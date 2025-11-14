@@ -22,7 +22,7 @@ class Player(BasePlayer):
 
 # Example points calculation (customize as needed)
 def calculate_points(growth):
-    return round(growth * 10, 2)
+    return round(growth * 1, 2)
 
 class FlowerField(Page):
     live_method = 'live_flower_submit'

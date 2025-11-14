@@ -67,4 +67,4 @@ def calculate_points_from_growth(growth):
     """
     Convertit la croissance en points pour le paiement.
     """
-    return round(10 * growth, 2)
+    return round(growth, 2)
