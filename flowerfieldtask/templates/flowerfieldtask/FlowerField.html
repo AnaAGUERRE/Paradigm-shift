@@ -26,19 +26,20 @@
                         </div>
                     </div>
                 </div>
-                <div id="nutrient-panel"></div>
+                <div class="side-panel-stack">
+                    <div id="nutrient-panel"></div>
+                    <div id="results-section" class="text-center mt-3 mb-1">
+                        <h4 id="result">Result in this round:</h4>
+                        Average Growth: <span id="speedResult"></span> %<br>
+                        Earnings: £<span id="pointsResult"></span><br>
+                        Total earnings: £<span id="totalEarningsResult">{{ player.cumulative_earnings }}</span><br>
+                        <br>
+                        <!-- Continue button is now only created dynamically after submit -->
+                    </div>
+                </div>
             </div>
 
-            <!-- Results Section (hidden until submission) -->
-            <div id="results-section" style="display: none;"></div>
-            <div class="text-center mt-3 mb-1">
-                <h4 id="result">Result in this round:</h4>
-                Average Growth: <span id="speedResult"></span> %<br>
-                Earnings: £<span id="pointsResult"></span><br>
-                Total earnings: £<span id="totalEarningsResult">{{ player.cumulative_earnings }}</span><br>
-                <br>
-                <!-- Continue button is now only created dynamically after submit -->
-            </div>
+            <!-- Removed duplicate results section -->
         </div>
     </div>
 </div>
