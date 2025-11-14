@@ -1,3 +1,6 @@
+body {
+  background-color: #fff; /* Default white background */
+}
 .form-group label {
   display: block;
 }
@@ -29,7 +32,7 @@
     width: 1130px;
     min-width: 1130px;
     margin: 0 auto; /* This centers the container */
-    background-color: #ffffff; /* This gives the background color */
+    background-color: #e0e0e0; /* Light grey background */
 }
 
 #left-panel {
@@ -62,7 +65,7 @@
   
 
   #currentRound {
-    background-color: hsl(34, 100%, 72%);
+    background-color: #e0e0e0; /* Light grey background */
     /* Removed position: fixed and related properties to allow normal flow */
     /* Add other styles as needed */
   }
