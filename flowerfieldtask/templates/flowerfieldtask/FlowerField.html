@@ -1,0 +1,177 @@
+{% block content %}
+
+{% include "_templates/scripts.html" %}
+
+<link rel="stylesheet" href="{{ static 'css/flowers.css' }}?v=11">
+<title>Flower Field Task</title>
+
+<div id="main-container">
+    <div class="row m-0 p-0" id="toprow">
+        <div class="col-12 p-1 border mt-1">
+            <h5 class="text-center">Round {{player.round_number}} / {{C.NUM_ROUNDS}}</h5>
+        </div>
+    </div>
+
+    <div class="row m-0 p-0" style="width: 100%; min-height: 700px;">
+        <div class="col-12" id="currentRound" style="min-height: 700px; width: 100%; display: flex;">
+            <!-- Flower Field Game -->
+            <div class="flower-game-container" style="width: 100%;">
+                <div class="game-main">
+                    <div id="status-message"></div>
+                    <div id="flower-field"></div>
+                    <div class="game-controls">
+                        <button class="submit-button" id="submitButton">Submit Round</button>
+                        <button class="reset-button" id="resetButton">Reset</button>
+                    </div>
+                </div>
+                <div id="nutrient-panel"></div>
+            </div>
+
+            <!-- Results Section (hidden until submission) -->
+            <div id="results-section" style="display: none;"></div>
+            <div class="text-center mt-3 mb-1">
+                <h4 id="result">Result in this round:</h4>
+                Average Growth: <span id="speedResult"></span> %<br>
+                Earnings: £<span id="pointsResult"></span><br>
+                Total earnings: £<span id="totalEarningsResult">{{ player.cumulative_earnings }}</span><br>
+                <br>
+                <!-- Continue button is now only created dynamically after submit -->
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+</div>
+
+
+<script src="{{ static 'flowers.js' }}?v=7"></script>
+
+<script>
+    console.log('Flowers template loaded, initializing...');
+    
+    // Initialize the game
+    function initGame() {
+        console.log('Attempting to initialize FlowerGame');
+        console.log('window.FlowerGame exists:', typeof window.FlowerGame);
+        
+        if (window.flowerGame) {
+            console.log('FlowerGame already created');
+            return;
+        }
+        
+        if (typeof FlowerGame !== 'undefined') {
+            console.log('Creating new FlowerGame instance');
+            window.flowerGame = new FlowerGame();
+            console.log('FlowerGame created successfully');
+            // Now initialize the game (populate the DOM)
+            console.log('Initializing game UI...');
+            window.flowerGame.init();
+            console.log('Game UI initialized');
+        } else {
+            console.error('FlowerGame class not found!');
+        }
+    }
+    
+    // Wait for document to be ready
+    document.addEventListener('DOMContentLoaded', function() {
+        initGame();
+        // Fix: Reset button should only reset the field, not advance round
+        const resetButton = document.getElementById('resetButton');
+        if (resetButton) {
+            resetButton.addEventListener('click', function(event) {
+                event.preventDefault();
+                window.flowerGame.resetFlowerField();
+                document.getElementById('status-message').innerHTML = '';
+            });
+        }
+        // Fix: Submit button should not advance round if not all flowers have at least one nutrient
+        const submitButton = document.getElementById('submitButton');
+        if (submitButton) {
+            submitButton.addEventListener('click', function(event) {
+                event.preventDefault();
+                if (!window.flowerGame.isComplete()) {
+                    document.getElementById('status-message').innerHTML = '<div class="status-message warning">Please feed all flowers with at least 1 nutrient each!</div>';
+                    setTimeout(() => document.getElementById('status-message').innerHTML = '', 3000);
+                    return;
+                }
+                // If complete, proceed with liveSend
+                const flowerChoices = window.flowerGame.getFlowerChoices();
+                submitButton.disabled = true;
+                document.getElementById('status-message').innerHTML = '';
+                liveSend({
+                    type: 'flowerSubmit',
+                    data: flowerChoices
+                });
+            });
+        }
+        // Listen for liveRecv to handle server response
+        window.liveRecv = function(data) {
+            // Accept both direct and wrapped responses
+            let responseData = null;
+            if (data && data.total_growth !== undefined) {
+                responseData = data;
+            } else {
+                for (let key in data) {
+                    if (data[key] && data[key].total_growth !== undefined) {
+                        responseData = data[key];
+                        break;
+                    }
+                }
+            }
+            if (responseData && responseData.total_growth !== undefined) {
+                // Animate flower sizes and show results
+                if (window.flowerGame && typeof window.flowerGame.animateFlowerSizes === 'function') {
+                    window.flowerGame.animateFlowerSizes(responseData.flower_scores);
+                }
+                // Show scores under each flower after submit
+                if (window.flowerGame && typeof window.flowerGame.showAllScores === 'function') {
+                    window.flowerGame.showAllScores();
+                }
+                setTimeout(() => {
+                    document.getElementById('results-section').style.display = 'block';
+                    document.getElementById('speedResult').textContent = (responseData.total_growth * 100).toFixed(1);
+                    document.getElementById('pointsResult').textContent = responseData.total_points.toFixed(2);
+                    if (responseData.cumulative_earnings !== undefined) {
+                        document.getElementById('totalEarningsResult').textContent = parseFloat(responseData.cumulative_earnings).toFixed(2);
+                    }
+                    submitButton.style.display = 'none';
+                    resetButton.style.display = 'none';
+                    document.getElementById('status-message').innerHTML = '';
+                    // Add Continue button under earnings section
+                    let continueBtn = document.getElementById('continueAfterResults');
+                    if (!continueBtn) {
+                        continueBtn = document.createElement('button');
+                        continueBtn.id = 'continueAfterResults';
+                        continueBtn.className = 'btn btn-primary mt-3';
+                        continueBtn.textContent = 'Continue to Next Round';
+                        continueBtn.onclick = function() {
+                            document.querySelector('form').submit();
+                        };
+                        // Place button under earnings section
+                        const earningsSection = document.querySelector('.text-center.mt-3.mb-1');
+                        if (earningsSection) {
+                            earningsSection.appendChild(continueBtn);
+                        } else {
+                            document.getElementById('results-section').appendChild(continueBtn);
+                        }
+                    }
+                }, 700);
+            }
+        };
+        
+        // Format total earnings on page load
+        var totalEarningsElem = document.getElementById('totalEarningsResult');
+        if (totalEarningsElem) {
+            var val = parseFloat(totalEarningsElem.textContent);
+            if (!isNaN(val)) {
+                totalEarningsElem.textContent = val.toFixed(2);
+            }
+        }
+    });
+</script>
+{% endblock %}

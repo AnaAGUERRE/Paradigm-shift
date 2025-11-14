@@ -1,0 +1,200 @@
+.flower-image {
+    object-fit: contain;
+    display: block;
+    margin-bottom: 8px;
+}
+.flower-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100px;
+    margin-bottom: 24px;
+}
+/* Flower Field Task Styles */
+
+
+/* --- CLEAN, COMPACT, CONSISTENT NUTRIENT SIZING --- */
+.nutrient-slot {
+    width: 48px;
+    height: 48px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.2s ease;
+    overflow: hidden;
+    background: #f8f8f8;
+    margin: 2px;
+}
+
+.nutrient-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 0;
+    cursor: grab;
+    user-select: none;
+    background-color: #fff;
+    transition: all 0.2s ease;
+    width: 36px;
+    height: 36px;
+    margin: 2px;
+}
+
+.nutrient-image, .dropped-nutrient-image {
+    width: 24px !important;
+    height: 24px !important;
+    object-fit: contain;
+    display: block;
+    margin: 0;
+}
+.nutrient-slots {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 4px;
+    width: 100%;
+    justify-content: center;
+}
+
+
+#nutrient-panel {
+    padding: 8px 12px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-height: 70px;
+    overflow-y: auto;
+}
+
+#nutrient-panel h5 {
+    margin-bottom: 15px;
+    color: #333;
+    text-align: center;
+}
+
+.nutrient-container {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+    min-height: 50px;
+}
+
+
+
+/* Game Layout */
+.flower-game-container {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    padding: 20px;
+    min-height: 600px;
+    width: 100%;
+}
+#flower-field {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    justify-items: center;
+    width: 100%;
+}
+
+.game-main {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 500px;
+}
+
+.game-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.submit-button {
+    padding: 12px 30px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.submit-button:hover:not(:disabled) {
+    background-color: #45a049;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.submit-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.reset-button {
+    padding: 12px 30px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.reset-button:hover {
+    background-color: #da190b;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.status-message {
+    text-align: center;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+}
+
+.status-message.warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.status-message.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    #flower-field {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .flower-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+}
+
+@media (max-width: 768px) {
+    #flower-field {
+        grid-template-columns: 1fr;
+    }
+    /* Removed width/height for .flower-image to allow JS resizing on mobile */
+}
