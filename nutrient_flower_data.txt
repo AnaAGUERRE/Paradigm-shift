@@ -1,0 +1,10 @@
+{"participant_code": "n29r48j0", "round": 1, "nutrients": [["", "Red"], ["", "Red"], ["Blue", "Red"], ["", "Yellow"], ["", "Blue"], ["Red", "Yellow"]]}
+{"participant_code": "n29r48j0", "round": 2, "nutrients": [["Red", "Red"], ["", "Red"], ["", "Red"], ["Blue", ""], ["Blue", "Blue"], ["", "Yellow"]]}
+{"participant_code": "n29r48j0", "round": 3, "nutrients": [["Red", "Red"], ["", "Red"], ["", "Red"], ["Blue", "Yellow"], ["Yellow", "Yellow"], ["Blue", ""]]}
+{"participant_code": "n29r48j0", "round": 4, "nutrients": [["", "Blue"], ["", "Red"], ["", "Red"], ["", "Yellow"], ["Blue", ""], ["Yellow", ""]]}
+{"participant_code": "n29r48j0", "round": 5, "nutrients": [["", "Blue"], ["", "Red"], ["Red", ""], ["Yellow", "Blue"], ["Blue", ""], ["Red", ""]]}
+{"participant_code": "yy4f0b1k", "round": 1, "flower_colors": ["Purple", "Orange", "Orange", "Orange", "Green", "Purple"], "nutrients": [["Red", ""], ["Blue", ""], ["Blue", "Yellow"], ["Blue", ""], ["Blue", ""], ["Blue", ""]]}
+{"participant_code": "yy4f0b1k", "round": 2, "flower_colors": ["Green", "Green", "Purple", "Orange", "Purple", "Purple"], "nutrients": [["", "Yellow"], ["", "Yellow"], ["", "Red"], ["", "Red"], ["Red", "Yellow"], ["Blue", ""]]}
+{"participant_code": "yy4f0b1k", "round": 3, "flower_colors": ["Orange", "Green", "Purple", "Orange", "Orange", "Green"], "nutrients": [["", "Blue"], ["", "Blue"], ["Blue", ""], ["", "Blue"], ["", "Yellow"], ["Blue", ""]]}
+{"participant_code": "yy4f0b1k", "round": 4, "flower_colors": ["Orange", "Purple", "Orange", "Purple", "Green", "Green"], "nutrients": [["", "Blue"], ["", "Red"], ["", "Blue"], ["", "Yellow"], ["", "Blue"], ["", "Blue"]]}
+{"participant_code": "yy4f0b1k", "round": 5, "flower_colors": ["Purple", "Orange", "Green", "Green", "Orange", "Purple"], "nutrients": [["", "Red"], ["Red", "Blue"], ["Yellow", ""], ["", "Red"], ["Blue", "Blue"], ["Red", ""]]}

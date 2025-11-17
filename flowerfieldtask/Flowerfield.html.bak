@@ -1,7 +1,0 @@
-{% block content %}
-<!-- 
-DEPRECATED FILE - This template is no longer used.
-The active template is: flowerfieldtask/templates/flowerfieldtask/FlowerField.html
-A backup copy exists in flowerfieldtask/legacy/Flowerfield.html
--->
-{% endblock %}

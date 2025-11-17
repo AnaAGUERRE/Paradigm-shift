@@ -42,6 +42,40 @@ class FlowerField(Page):
                 player.participant.vars['total_earnings'] = 0
             player.participant.vars['total_earnings'] += round(total_points, 2)
             player.cumulative_earnings = player.participant.vars['total_earnings']
+
+
+            # Get flower colors for this round from JS config
+            round_flower_types = [
+                ['Purple', 'Orange', 'Orange', 'Orange', 'Green', 'Purple'],
+                ['Green', 'Green', 'Purple', 'Orange', 'Purple', 'Purple'],
+                ['Orange', 'Green', 'Purple', 'Orange', 'Orange', 'Green'],
+                ['Orange', 'Purple', 'Orange', 'Purple', 'Green', 'Green'],
+                ['Purple', 'Orange', 'Green', 'Green', 'Orange', 'Purple']
+            ]
+            current_round_idx = player.round_number - 1
+            flower_colors = round_flower_types[current_round_idx] if current_round_idx < len(round_flower_types) else []
+
+            # Store nutrient-flower combinations and flower colors for each round
+            if 'nutrient_flower_history' not in player.participant.vars:
+                player.participant.vars['nutrient_flower_history'] = []
+            player.participant.vars['nutrient_flower_history'].append({
+                'round': player.round_number,
+                'flower_colors': flower_colors,
+                'nutrients': nutrients
+            })
+
+            # Optionally, write to a local file (for localhost analysis only)
+            try:
+                with open('nutrient_flower_data.txt', 'a', encoding='utf-8') as f:
+                    f.write(json.dumps({
+                        'participant_code': player.participant.code,
+                        'round': player.round_number,
+                        'flower_colors': flower_colors,
+                        'nutrients': nutrients
+                    }) + '\n')
+            except Exception as e:
+                pass  # Ignore file errors in production
+
             return {
                 player.id_in_group: dict(
                     total_growth=round(total_growth, 2),
