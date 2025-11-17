@@ -1,8 +1,9 @@
+{% load static %}
 {% block content %}
 
 {% include "_templates/scripts.html" %}
 
-<link rel="stylesheet" href="{{ static 'css/flowers.css' }}?v=11">
+<link rel="stylesheet" href="{% static 'css/flowers.css' %}?v=11">
 <title>Flower Field Task</title>
 
 <div id="main-container">
@@ -15,8 +16,14 @@
 
     <div class="row m-0 p-0" id="instructions-row">
         <div class="col-12 p-2 text-center" style="font-size: 0.9rem; color: #333;">
-            Drag <b> one or two nutrients </b> under each flower to select your configuration.<br>
-            Click the <b> “Submit Round" </b> button when you are ready to grow the flowers.
+            {% if phase == 'Test 1' %}
+                Select the configuration that fits best with your understanding of what causes flowers to grow.<br>
+                </b>This set will be transmitted to following participants. </b> <br><br>
+                Click the <b>“Transmit"</b> button when you are ready.
+            {% else %}
+                Drag <b> one or two nutrients </b> under each flower to select your configuration.<br>
+                Click the <b> “Submit Round" </b> button when you are ready to grow the flowers.
+            {% endif %}
         </div>
     </div>
 
@@ -29,7 +36,7 @@
                         <div id="status-message"></div>
                         <div id="flower-field"></div>
                         <div class="game-controls">
-                            <button class="submit-button" id="submitButton">Submit Round</button>
+                            <button class="submit-button" id="submitButton">{% if phase == 'Test 1' %}Transmit{% else %}Submit Round{% endif %}</button>
                             <button class="reset-button" id="resetButton">Reset</button>
                         </div>
                     </div>
@@ -47,40 +54,25 @@
                     </div>
                 </div>
             </div>
-
             <!-- Removed duplicate results section -->
         </div>
     </div>
 </div>
 
-
-
-
-
-
-</div>
-
-
-
 <script>
     window.js_vars = window.js_vars || {};
     window.js_vars.current_round = {{ player.round_number }};
-</script>
-<script src="{{ static 'flowers.js' }}?v=7"></script>
+    window.js_vars.phase = "{{ phase }}";
 
-<script>
     console.log('Flowers template loaded, initializing...');
-    
     // Initialize the game
     function initGame() {
         console.log('Attempting to initialize FlowerGame');
         console.log('window.FlowerGame exists:', typeof window.FlowerGame);
-        
         if (window.flowerGame) {
             console.log('FlowerGame already created');
             return;
         }
-        
         if (typeof FlowerGame !== 'undefined') {
             console.log('Creating new FlowerGame instance');
             window.flowerGame = new FlowerGame();
@@ -93,9 +85,51 @@
             console.error('FlowerGame class not found!');
         }
     }
-    
-    // Wait for document to be ready
     document.addEventListener('DOMContentLoaded', function() {
+        // Show popup before Test 1 phase
+        if (window.js_vars.phase === 'Test 1') {
+            // Add blocking overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'test1-blocking-overlay';
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100vw';
+            overlay.style.height = '100vh';
+            overlay.style.background = 'rgba(255,255,255,0.7)';
+            overlay.style.zIndex = '9998';
+            // Ensure Bootbox modal is above overlay
+            const style = document.createElement('style');
+            style.innerHTML = '.bootbox.modal { z-index: 10000 !important; } .modal-backdrop { z-index: 9999 !important; }';
+            document.head.appendChild(style);
+            document.body.appendChild(overlay);
+            if (typeof bootbox !== 'undefined') {
+                bootbox.dialog({
+                    message: `<div style='font-size:1.15em; text-align:center;'>
+                        <img src='${window.static ? window.static('img/Chain.png') : '/static/img/Chain.png'}' style='height:60px; margin-bottom:1em;'>
+                        <div style='margin-bottom:1em;'>Please note that in the next round, the configuration you will choose will be seen by the next participant(s) in the chain.</div>
+                    </div>`,
+                    buttons: [
+                        {
+                            label: 'I understand',
+                            className: 'btn-primary',
+                            callback: function() {
+                                document.body.removeChild(overlay);
+                                var modals = document.getElementsByClassName('bootbox modal');
+                                if (modals.length > 0) {
+                                    modals[0].parentNode.removeChild(modals[0]);
+                                }
+                                return true;
+                            }
+                        }
+                    ],
+                    closeButton: false
+                });
+            } else {
+                alert('Please note that in the next round, the configuration you will choose will be seen by the next participant(s) in the chain.');
+                document.body.removeChild(overlay);
+            }
+        }
         initGame();
         // Fix: Reset button should only reset the field, not advance round
         const resetButton = document.getElementById('resetButton');
@@ -165,7 +199,7 @@
                         continueBtn = document.createElement('button');
                         continueBtn.id = 'continueAfterResults';
                         continueBtn.className = 'btn btn-primary mt-3';
-                        continueBtn.textContent = 'Continue to Next Round';
+                        continueBtn.textContent = (window.js_vars && window.js_vars.phase === 'Test 1') ? 'Transmit' : 'Continue to Next Round';
                         continueBtn.onclick = function() {
                             document.getElementById('nextRoundForm').submit();
                         };
@@ -180,7 +214,6 @@
                 }, 700);
             }
         };
-        
         // Format total earnings on page load
         var totalEarningsElem = document.getElementById('totalEarningsResult');
         if (totalEarningsElem) {
@@ -189,6 +222,80 @@
                 totalEarningsElem.textContent = val.toFixed(2);
             }
         }
+        // Show popup before Test 1 phase
+        if (window.js_vars.phase === 'Test 1') {
+            // DEBUG: Use simple Bootbox alert to test modal close
+            // Add blocking overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'test1-blocking-overlay';
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100vw';
+            overlay.style.height = '100vh';
+            overlay.style.background = 'rgba(255,255,255,0.7)';
+            overlay.style.zIndex = '9998';
+            document.body.appendChild(overlay);
+            // Show Bootbox popup with chain image and message
+            if (typeof bootbox !== 'undefined') {
+                bootbox.dialog({
+                    message: `<div style='font-size:1.15em; text-align:center;'>
+                        <img src='${window.static ? window.static('img/Chain.png') : '/static/img/Chain.png'}' style='height:60px; margin-bottom:1em;'>
+                        <div style='margin-bottom:1em;'>Please note that in the next round, the configuration you will choose will be seen by the next participant(s) in the chain.</div>
+                    </div>`,
+                    buttons: [
+                        {
+                            label: 'I understand',
+                            className: 'btn-primary',
+                            callback: function() {
+                                // Remove overlay by ID
+                                // Remove all overlays with the ID
+                                var overlays = document.querySelectorAll('#test1-blocking-overlay');
+                                overlays.forEach(function(overlayElem) {
+                                    if (overlayElem && overlayElem.parentNode) {
+                                        overlayElem.parentNode.removeChild(overlayElem);
+                                    }
+                                });
+                                // Remove any overlays with a likely overlay class
+                                var overlayClassElems = document.querySelectorAll('.blocking-overlay, .otree-blocking-overlay');
+                                overlayClassElems.forEach(function(elem) {
+                                    if (elem && elem.parentNode) {
+                                        elem.parentNode.removeChild(elem);
+                                    }
+                                });
+                                // Restore scrolling
+                                document.body.style.overflow = '';
+                                document.documentElement.style.overflow = '';
+                                // Forcefully remove Bootbox modal from DOM
+                                var modals = document.querySelectorAll('.bootbox');
+                                modals.forEach(function(modal) {
+                                    if (modal && modal.parentNode) {
+                                        modal.parentNode.removeChild(modal);
+                                    }
+                                });
+                                // Also remove any modal-backdrop
+                                var backdrops = document.querySelectorAll('.modal-backdrop');
+                                backdrops.forEach(function(backdrop) {
+                                    if (backdrop && backdrop.parentNode) {
+                                        backdrop.parentNode.removeChild(backdrop);
+                                    }
+                                });
+                                return true;
+                            }
+                        }
+                    ],
+                    closeButton: false
+                });
+            } else {
+                // Fallback: native alert and remove overlay
+                alert('Please note that in the next round, the configuration you will choose will be seen by the next participant(s) in the chain.');
+                if (overlay && overlay.parentNode === document.body) {
+                    document.body.removeChild(overlay);
+                }
+            }
+        }
+
     });
 </script>
+<script src="{% static 'flowers.js' %}?v=7"></script>
 {% endblock %}

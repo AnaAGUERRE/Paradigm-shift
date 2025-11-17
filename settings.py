@@ -1,4 +1,5 @@
 from os import environ
+import os
 
 SESSION_CONFIGS = [
     dict(
@@ -27,3 +28,8 @@ ADMIN_USERNAME = 'admin'
 ADMIN_PASSWORD = '1234'  # ou via environ
 
 SECRET_KEY = '7550954140615'
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, '_static'),
+]
