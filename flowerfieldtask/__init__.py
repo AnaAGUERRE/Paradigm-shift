@@ -7,7 +7,9 @@ import json
 class C(BaseConstants):
     NAME_IN_URL = 'flowerfieldtask'
     PLAYERS_PER_GROUP = None
-    NUM_ROUNDS = 5
+    TRAINING_ROUNDS = 5
+    TEST1_ROUNDS = 1
+    NUM_ROUNDS = TRAINING_ROUNDS + TEST1_ROUNDS
 
 class Subsession(BaseSubsession):
     def creating_session(self):
@@ -26,7 +28,31 @@ class Player(BasePlayer):
 class FlowerField(Page):
     def vars_for_template(player):
         player.cumulative_earnings = player.participant.vars.get('total_earnings', 0)
-        return dict()
+        # Determine phase and flower colors
+        if player.round_number <= C.TRAINING_ROUNDS:
+            phase = 'Training phase'
+            phase_round = player.round_number
+            phase_total = C.TRAINING_ROUNDS
+            round_flower_types = [
+                ['Purple', 'Orange', 'Orange', 'Orange', 'Green', 'Purple'],
+                ['Green', 'Green', 'Purple', 'Orange', 'Purple', 'Purple'],
+                ['Orange', 'Green', 'Purple', 'Orange', 'Orange', 'Green'],
+                ['Orange', 'Purple', 'Orange', 'Purple', 'Green', 'Green'],
+                ['Purple', 'Orange', 'Green', 'Green', 'Orange', 'Purple']
+            ]
+            flower_colors = round_flower_types[player.round_number - 1]
+        else:
+            phase = 'Test 1'
+            phase_round = player.round_number - C.TRAINING_ROUNDS
+            phase_total = C.TEST1_ROUNDS
+            flower_colors = ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
+        return dict(
+            phase=phase,
+            phase_round=phase_round,
+            phase_total=phase_total,
+            flower_colors=flower_colors,
+            cumulative_earnings=player.cumulative_earnings
+        )
     live_method = "live_method"
     template_name = 'flowerfieldtask/FlowerField.html'
 
@@ -45,21 +71,33 @@ class FlowerField(Page):
 
 
             # Get flower colors for this round from JS config
-            round_flower_types = [
-                ['Purple', 'Orange', 'Orange', 'Orange', 'Green', 'Purple'],
-                ['Green', 'Green', 'Purple', 'Orange', 'Purple', 'Purple'],
-                ['Orange', 'Green', 'Purple', 'Orange', 'Orange', 'Green'],
-                ['Orange', 'Purple', 'Orange', 'Purple', 'Green', 'Green'],
-                ['Purple', 'Orange', 'Green', 'Green', 'Orange', 'Purple']
-            ]
-            current_round_idx = player.round_number - 1
-            flower_colors = round_flower_types[current_round_idx] if current_round_idx < len(round_flower_types) else []
+            # Use same logic as vars_for_template to get flower_colors
+            if player.round_number <= C.TRAINING_ROUNDS:
+                round_flower_types = [
+                    ['Purple', 'Orange', 'Orange', 'Orange', 'Green', 'Purple'],
+                    ['Green', 'Green', 'Purple', 'Orange', 'Purple', 'Purple'],
+                    ['Orange', 'Green', 'Purple', 'Orange', 'Orange', 'Green'],
+                    ['Orange', 'Purple', 'Orange', 'Purple', 'Green', 'Green'],
+                    ['Purple', 'Orange', 'Green', 'Green', 'Orange', 'Purple']
+                ]
+                flower_colors = round_flower_types[player.round_number - 1]
+            else:
+                flower_colors = ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
+
+            # Determine phase and display round number
+            if player.round_number <= C.TRAINING_ROUNDS:
+                phase = 'Training phase'
+                display_round = player.round_number
+            else:
+                phase = 'Test 1'
+                display_round = player.round_number - C.TRAINING_ROUNDS
 
             # Store nutrient-flower combinations and flower colors for each round
             if 'nutrient_flower_history' not in player.participant.vars:
                 player.participant.vars['nutrient_flower_history'] = []
             player.participant.vars['nutrient_flower_history'].append({
-                'round': player.round_number,
+                'phase': phase,
+                'round': display_round,
                 'flower_colors': flower_colors,
                 'nutrients': nutrients
             })
@@ -69,7 +107,8 @@ class FlowerField(Page):
                 with open('nutrient_flower_data.txt', 'a', encoding='utf-8') as f:
                     f.write(json.dumps({
                         'participant_code': player.participant.code,
-                        'round': player.round_number,
+                        'phase': phase,
+                        'round': display_round,
                         'flower_colors': flower_colors,
                         'nutrients': nutrients
                     }) + '\n')

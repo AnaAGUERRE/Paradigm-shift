@@ -35,19 +35,17 @@ class FlowerGame {
         this.flowers = [];
         this.draggedElement = null;
         
-        // Round flower types configuration
-        this.roundFlowerTypes = [
-          // Round 1
-          ['Purple', 'Orange', 'Orange', 'Orange', 'Green', 'Purple'],
-          // Round 2
-          ['Green', 'Green', 'Purple', 'Orange', 'Purple', 'Purple'],
-          // Round 3
-          ['Orange', 'Green', 'Purple', 'Orange', 'Orange', 'Green'],
-          // Round 4
-          ['Orange', 'Purple', 'Orange', 'Purple', 'Green', 'Green'],
-          // Round 5
-          ['Purple', 'Orange', 'Green', 'Green', 'Orange', 'Purple']
-        ];
+                // Round flower types configuration
+                this.roundFlowerTypes = [
+                    // Training phase rounds
+                    ['Purple', 'Orange', 'Orange', 'Orange', 'Green', 'Purple'],
+                    ['Green', 'Green', 'Purple', 'Orange', 'Purple', 'Purple'],
+                    ['Orange', 'Green', 'Purple', 'Orange', 'Orange', 'Green'],
+                    ['Orange', 'Purple', 'Orange', 'Purple', 'Green', 'Green'],
+                    ['Purple', 'Orange', 'Green', 'Green', 'Orange', 'Purple'],
+                    // Test 1 round
+                    ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
+                ];
         
         // Don't initialize immediately - wait for DOM to be ready
         // This will be called from the template's initGame function
