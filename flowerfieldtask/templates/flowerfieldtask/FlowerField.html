@@ -41,7 +41,8 @@
                         Earnings: £<span id="pointsResult"></span><br>
                         Total earnings: £<span id="totalEarningsResult">{{ player.cumulative_earnings }}</span><br>
                         <br>
-                        <!-- Continue button is now only created dynamically after submit -->
+                        <!-- Hidden form for round advancement -->
+                        <form id="nextRoundForm" method="post" style="display:none;"></form>
                     </div>
                 </div>
             </div>
@@ -59,6 +60,11 @@
 </div>
 
 
+
+<script>
+    window.js_vars = window.js_vars || {};
+    window.js_vars.current_round = {{ player.round_number }};
+</script>
 <script src="{{ static 'flowers.js' }}?v=7"></script>
 
 <script>
@@ -160,7 +166,7 @@
                         continueBtn.className = 'btn btn-primary mt-3';
                         continueBtn.textContent = 'Continue to Next Round';
                         continueBtn.onclick = function() {
-                            document.querySelector('form').submit();
+                            document.getElementById('nextRoundForm').submit();
                         };
                         // Place button under earnings section
                         const earningsSection = document.querySelector('.text-center.mt-3.mb-1');

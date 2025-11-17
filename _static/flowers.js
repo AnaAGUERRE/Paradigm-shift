@@ -35,6 +35,20 @@ class FlowerGame {
         this.flowers = [];
         this.draggedElement = null;
         
+        // Round flower types configuration
+        this.roundFlowerTypes = [
+          // Round 1
+          ['Purple', 'Orange', 'Orange', 'Orange', 'Green', 'Purple'],
+          // Round 2
+          ['Green', 'Green', 'Purple', 'Orange', 'Purple', 'Purple'],
+          // Round 3
+          ['Orange', 'Green', 'Purple', 'Orange', 'Orange', 'Green'],
+          // Round 4
+          ['Orange', 'Purple', 'Orange', 'Purple', 'Green', 'Green'],
+          // Round 5
+          ['Purple', 'Orange', 'Green', 'Green', 'Orange', 'Purple']
+        ];
+        
         // Don't initialize immediately - wait for DOM to be ready
         // This will be called from the template's initGame function
     }
@@ -51,9 +65,22 @@ class FlowerGame {
         container.innerHTML = '';
         this.flowers = [];
 
-        // Create 6 flowers (one of each type)
+        // Get current round (1-based)
+        let currentRound = 1;
+        if (window.js_vars && window.js_vars.current_round) {
+            currentRound = parseInt(window.js_vars.current_round);
+        }
+        // Clamp to valid range
+        if (currentRound < 1) currentRound = 1;
+        if (currentRound > this.roundFlowerTypes.length) currentRound = this.roundFlowerTypes.length;
+
+        // Get flower types for this round
+        const roundTypes = this.roundFlowerTypes[currentRound - 1];
+
         for (let i = 0; i < 6; i++) {
-            const flowerType = this.flowerTypes[i];
+            // Find flowerType object by name
+            const flowerName = roundTypes[i];
+            const flowerType = this.flowerTypes.find(ft => ft.name === flowerName);
             const flower = document.createElement('div');
             flower.className = 'flower-container';
             flower.id = `flower-${i}`;
@@ -63,7 +90,6 @@ class FlowerGame {
             flowerImg.src = window.static(`img/${flowerType.image}`);
             flowerImg.alt = `${flowerType.name} Flower`;
             flowerImg.className = 'flower-image';
-            // Set initial size to 28px (matches min-width/min-height in CSS)
             flowerImg.style.width = '28px';
             flowerImg.style.height = '28px';
 
@@ -108,7 +134,7 @@ class FlowerGame {
                 scoreDiv: scoreDiv
             });
         }
-        console.log('createFlowerField: created', this.flowers.length, 'flowers');
+        console.log('createFlowerField: created', this.flowers.length, 'flowers for round', currentRound, roundTypes);
     }
 
     createNutrientPanel() {
@@ -366,6 +392,11 @@ class FlowerGame {
             img.style.height = minSize + 'px';
         });
     }
+}
+
+// Example: currentRound is 1-based (1,2,3,4,5)
+function getCurrentRoundFlowerTypes(currentRound) {
+  return roundFlowerTypes[currentRound - 1];
 }
 
 // Don't auto-initialize - let the template handle it
