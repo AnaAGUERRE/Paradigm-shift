@@ -48,11 +48,11 @@ class FlowerField(Page):
             phase_round = player.round_number
             phase_total = C.TRAINING_ROUNDS
             round_flower_types = [
-                ['Purple', 'Orange', 'Orange', 'Orange', 'Green', 'Purple'],
-                ['Green', 'Green', 'Purple', 'Orange', 'Purple', 'Purple'],
-                ['Orange', 'Green', 'Purple', 'Orange', 'Orange', 'Green'],
-                ['Orange', 'Purple', 'Orange', 'Purple', 'Green', 'Green'],
-                ['Purple', 'Orange', 'Green', 'Green', 'Orange', 'Purple']
+                ['Purple', 'Orange', 'Green'],
+                ['Green', 'Green', 'Orange'],
+                ['Purple', 'Green', 'Purple'],
+                ['Purple', 'Orange', 'Orange'],
+                ['Green', 'Orange', 'Purple']
             ]
             flower_colors = round_flower_types[player.round_number - 1]
         elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS:
@@ -119,11 +119,11 @@ class FlowerField(Page):
             # Get flower colors and phase for this round
             if player.round_number <= C.TRAINING_ROUNDS:
                 round_flower_types = [
-                    ['Purple', 'Orange', 'Orange', 'Orange', 'Green', 'Purple'],
-                    ['Green', 'Green', 'Purple', 'Orange', 'Purple', 'Purple'],
-                    ['Orange', 'Green', 'Purple', 'Orange', 'Orange', 'Green'],
-                    ['Orange', 'Purple', 'Orange', 'Purple', 'Green', 'Green'],
-                    ['Purple', 'Orange', 'Green', 'Green', 'Orange', 'Purple']
+                    ['Purple', 'Orange', 'Green'],
+                    ['Green', 'Green', 'Orange'],
+                    ['Purple', 'Green', 'Purple'],
+                    ['Purple', 'Orange', 'Orange'],
+                    ['Green', 'Orange', 'Purple']
                 ]
                 flower_colors = round_flower_types[player.round_number - 1]
                 phase = 'Training phase'

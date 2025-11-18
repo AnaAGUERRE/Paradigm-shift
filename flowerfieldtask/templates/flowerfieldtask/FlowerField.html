@@ -102,26 +102,46 @@
             align-items: center;
             justify-content: center;
         }
-        #flower-field-wrapper.training-phase-flowers, #flower-field-wrapper.test-1-flowers {
+        #flower-field-wrapper.training-phase-flowers {
+            text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
             max-width: 600px;
             margin: 0 auto;
         }
-        #flower-field-wrapper.training-phase-flowers #flower-field,
+        #flower-field-wrapper.training-phase-flowers #flower-field {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 80px;
+            margin-left: auto;
+            margin-right: auto;
+            width: 100%;
+            max-width: 420px;
+        }
+        #flower-field-wrapper.training-phase-flowers .flower-container {
+            min-width: 120px;
+            margin: 0;
+        }
+
+        #flower-field-wrapper.test-1-flowers {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
         #flower-field-wrapper.test-1-flowers #flower-field {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             width: 100%;
         }
-        #flower-field-wrapper.training-phase-flowers .flower-container,
         #flower-field-wrapper.test-1-flowers .flower-container {
             width: 30%;
             margin: 10px 2%;
         }
-        #flower-field-wrapper.training-phase-flowers #flower-field .flower-container:nth-child(n+4),
         #flower-field-wrapper.test-1-flowers #flower-field .flower-container:nth-child(n+4) {
             margin-top: 40px;
         }
@@ -180,7 +200,7 @@
             }
         }
         document.addEventListener('DOMContentLoaded', function() {
-        // Show popup before Test 1 and Test 2 phases
+        // Unified popup and overlay for Test 1 and Test 2 phases
         if (window.js_vars.phase === 'Test 1' || window.js_vars.phase === 'Test 2') {
             const overlay = document.createElement('div');
             overlay.id = 'test1-blocking-overlay';
@@ -342,78 +362,7 @@
                 totalEarningsElem.textContent = val.toFixed(2);
             }
         }
-        // Show popup before Test 1 phase
-        if (window.js_vars.phase === 'Test 1') {
-            // DEBUG: Use simple Bootbox alert to test modal close
-            // Add blocking overlay
-            const overlay = document.createElement('div');
-            overlay.id = 'test1-blocking-overlay';
-            overlay.style.position = 'fixed';
-            overlay.style.top = '0';
-            overlay.style.left = '0';
-            overlay.style.width = '100vw';
-            overlay.style.height = '100vh';
-            overlay.style.background = 'rgba(255,255,255,0.7)';
-            overlay.style.zIndex = '9998';
-            document.body.appendChild(overlay);
-            // Show Bootbox popup with chain image and message
-            if (typeof bootbox !== 'undefined') {
-                bootbox.dialog({
-                    message: `<div style='font-size:1.15em; text-align:center;'>
-                        <img src='${window.static ? window.static('img/Chain.png') : '/static/img/Chain.png'}' style='height:60px; margin-bottom:1em;'>
-                        <div style='margin-bottom:1em;'>Please note that in the next round, the configuration you will choose will be seen by the next participant(s) in the chain.</div>
-                    </div>`,
-                    buttons: [
-                        {
-                            label: 'I understand',
-                            className: 'btn-primary',
-                            callback: function() {
-                                // Remove overlay by ID
-                                // Remove all overlays with the ID
-                                var overlays = document.querySelectorAll('#test1-blocking-overlay');
-                                overlays.forEach(function(overlayElem) {
-                                    if (overlayElem && overlayElem.parentNode) {
-                                        overlayElem.parentNode.removeChild(overlayElem);
-                                    }
-                                });
-                                // Remove any overlays with a likely overlay class
-                                var overlayClassElems = document.querySelectorAll('.blocking-overlay, .otree-blocking-overlay');
-                                overlayClassElems.forEach(function(elem) {
-                                    if (elem && elem.parentNode) {
-                                        elem.parentNode.removeChild(elem);
-                                    }
-                                });
-                                // Restore scrolling
-                                document.body.style.overflow = '';
-                                document.documentElement.style.overflow = '';
-                                // Forcefully remove Bootbox modal from DOM
-                                var modals = document.querySelectorAll('.bootbox');
-                                modals.forEach(function(modal) {
-                                    if (modal && modal.parentNode) {
-                                        modal.parentNode.removeChild(modal);
-                                    }
-                                });
-                                // Also remove any modal-backdrop
-                                var backdrops = document.querySelectorAll('.modal-backdrop');
-                                backdrops.forEach(function(backdrop) {
-                                    if (backdrop && backdrop.parentNode) {
-                                        backdrop.parentNode.removeChild(backdrop);
-                                    }
-                                });
-                                return true;
-                            }
-                        }
-                    ],
-                    closeButton: false
-                });
-            } else {
-                // Fallback: native alert and remove overlay
-                alert('Please note that in the next round, the configuration you will choose will be seen by the next participant(s) in the chain.');
-                if (overlay && overlay.parentNode === document.body) {
-                    document.body.removeChild(overlay);
-                }
-            }
-        }
+        // (Removed duplicate Test 1 popup logic; now unified above)
 
     });
 </script>
