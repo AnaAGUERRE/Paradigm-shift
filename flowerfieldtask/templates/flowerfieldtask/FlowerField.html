@@ -32,12 +32,14 @@
             <!-- Flower Field Game -->
             <div class="flower-game-container" style="width: 100%;">
                 <div id="flower-field-panel" class="white-panel">
+                    {% if phase == 'Test 1' %}
                     <style>
                         #flower-field-panel {
                             border: 3px solid #a80000;
                             border-radius: 10px;
                         }
                     </style>
+                    {% endif %}
                     <div class="game-main">
                         <div id="status-message"></div>
                         <div id="flower-field"></div>
@@ -67,7 +69,7 @@
 
 <script>
     window.js_vars = window.js_vars || {};
-    window.js_vars.current_round = {{ player.round_number }};
+    window.js_vars.current_round = "{{ player.round_number }}";
     window.js_vars.phase = "{{ phase }}";
 
     console.log('Flowers template loaded, initializing...');
