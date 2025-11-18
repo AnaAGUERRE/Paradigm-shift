@@ -103,15 +103,45 @@ class FlowerField(Page):
             })
 
             # Optionally, write to a local file (for localhost analysis only)
+            # Save all entries to Excel after every round
             try:
-                with open('nutrient_flower_data.txt', 'a', encoding='utf-8') as f:
-                    f.write(json.dumps({
-                        'participant_code': player.participant.code,
-                        'phase': phase,
-                        'round': display_round,
-                        'flower_colors': flower_colors,
-                        'nutrients': nutrients
-                    }) + '\n')
+                import pandas as pd
+                import os
+                # Prepare the new entry
+                new_entry = {
+                    'participant_code': player.participant.code,
+                    'phase': phase,
+                    'round': display_round,
+                    'flower_colors': flower_colors,
+                    'nutrients': nutrients
+                }
+                # Read existing data if file exists
+                excel_path = 'nutrient_flower_data.xlsx'
+                if os.path.exists(excel_path):
+                    df_existing = pd.read_excel(excel_path)
+                    df_new = pd.DataFrame([new_entry])
+                    df_all = pd.concat([df_existing, df_new], ignore_index=True)
+                else:
+                    df_all = pd.DataFrame([new_entry])
+                df_all.to_excel(excel_path, index=False)
+
+                # Auto-adjust column widths using openpyxl
+                from openpyxl import load_workbook
+                wb = load_workbook(excel_path)
+                ws = wb.active
+                for col in ws.columns:
+                    max_length = 0
+                    column = col[0].column_letter # Get the column name
+                    for cell in col:
+                        try:
+                            cell_length = len(str(cell.value)) if cell.value is not None else 0
+                            if cell_length > max_length:
+                                max_length = cell_length
+                        except:
+                            pass
+                    adjusted_width = (max_length + 2)
+                    ws.column_dimensions[column].width = adjusted_width
+                wb.save(excel_path)
             except Exception as e:
                 pass  # Ignore file errors in production
 

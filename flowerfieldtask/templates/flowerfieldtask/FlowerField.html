@@ -17,8 +17,8 @@
     <div class="row m-0 p-0" id="instructions-row">
         <div class="col-12 p-2 text-center" style="font-size: 0.9rem; color: #333;">
             {% if phase == 'Test 1' %}
-                Select the configuration that fits best with your understanding of what causes flowers to grow.<br>
-                </b>This set will be transmitted to following participants. </b> <br><br>
+                <span style="color: #a80000; font-weight: bold;">Select the configuration that fits best with your understanding of what causes flowers to grow.<br>
+                This set will be transmitted to following participants.</span> <br><br>
                 Click the <b>“Transmit"</b> button when you are ready.
             {% else %}
                 Drag <b> one or two nutrients </b> under each flower to select your configuration.<br>
@@ -32,6 +32,12 @@
             <!-- Flower Field Game -->
             <div class="flower-game-container" style="width: 100%;">
                 <div id="flower-field-panel" class="white-panel">
+                    <style>
+                        #flower-field-panel {
+                            border: 3px solid #a80000;
+                            border-radius: 10px;
+                        }
+                    </style>
                     <div class="game-main">
                         <div id="status-message"></div>
                         <div id="flower-field"></div>
