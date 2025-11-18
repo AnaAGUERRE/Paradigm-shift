@@ -91,28 +91,22 @@ class FlowerGame {
             flowerImg.style.width = '28px';
             flowerImg.style.height = '28px';
 
-            const nutrientSlots = document.createElement('div');
-            nutrientSlots.className = 'nutrient-slots';
+            // Create a single nutrient slot (rectangle) under each flower
+            const nutrientSlot = document.createElement('div');
+            nutrientSlot.className = 'nutrient-slot single-slot';
+            nutrientSlot.id = `flower-${i}-slot`;
+            nutrientSlot.ondrop = (e) => this.onDrop(e);
+            nutrientSlot.ondragover = (e) => this.onDragOver(e);
+            nutrientSlot.ondragleave = (e) => this.onDragLeave(e);
 
-            // Create 2 slots for nutrients under each flower
-            for (let j = 0; j < 2; j++) {
-                const slot = document.createElement('div');
-                slot.className = 'nutrient-slot';
-                slot.id = `flower-${i}-slot-${j}`;
-                slot.ondrop = (e) => this.onDrop(e);
-                slot.ondragover = (e) => this.onDragOver(e);
-                slot.ondragleave = (e) => this.onDragLeave(e);
-
-                const label = document.createElement('span');
-                label.className = 'slot-label';
-                label.textContent = `+`;
-
-                slot.appendChild(label);
-                nutrientSlots.appendChild(slot);
-            }
+            // Add a label if empty
+            const label = document.createElement('span');
+            label.className = 'slot-label';
+            label.textContent = `+`;
+            nutrientSlot.appendChild(label);
 
             flower.appendChild(flowerImg);
-            flower.appendChild(nutrientSlots);
+            flower.appendChild(nutrientSlot);
 
             // Score display (hidden by default)
             const scoreDiv = document.createElement('div');
@@ -128,7 +122,7 @@ class FlowerGame {
                 id: i,
                 type: flowerType.name,
                 element: flower,
-                nutrients: [null, null],
+                nutrients: [null, null], // still keep two slots in data
                 scoreDiv: scoreDiv
             });
         }
@@ -219,15 +213,15 @@ class FlowerGame {
         const slot = e.target.closest('.nutrient-slot');
         slot?.classList.remove('drag-over');
 
-        // Only allow drop if slot is empty and slot exists
         if (!slot) {
             console.log('onDrop: no slot found');
             this.currentDraggedNutrient = null;
             return;
         }
-        const existingNutrient = slot.querySelector('.dropped-nutrient');
-        if (existingNutrient) {
-            console.log('onDrop: slot already filled');
+        // Allow up to 2 nutrients in the slot
+        const existingNutrients = slot.querySelectorAll('.dropped-nutrient');
+        if (existingNutrients.length >= 2) {
+            console.log('onDrop: slot already has two nutrients');
             this.currentDraggedNutrient = null;
             return;
         }
@@ -237,45 +231,62 @@ class FlowerGame {
         if (!nutrient && e.dataTransfer) {
             nutrient = e.dataTransfer.getData('nutrient') || e.dataTransfer.getData('text/plain');
         }
-        // Extra fallback: try to find .nutrient-item in the DOM tree
         if (!nutrient && this.draggedElement && this.draggedElement.dataset) {
             nutrient = this.draggedElement.dataset.nutrient;
         }
-        // Always reset dragged nutrient
         this.currentDraggedNutrient = null;
         console.log('onDrop: nutrient =', nutrient, 'event:', e, 'draggedElement:', this.draggedElement);
-        // Validate nutrient
         if (!nutrient || !this.nutrientImages[nutrient]) {
             alert('Error: undetermined nutrient! Please try again.');
             return;
         }
+        // Get flower index from slot id
         const slotId = slot.id;
-        const [flowerPrefix, flowerId, slotPrefix, slotId_num] = slotId.split('-');
+        const [flowerPrefix, flowerId] = slotId.split('-');
+        const flowerIdx = parseInt(flowerId);
 
         // Add nutrient display to slot
         const nutrientDisplay = document.createElement('div');
         nutrientDisplay.className = 'dropped-nutrient';
-
-        // Create image element
         const nutrientImg = document.createElement('img');
         nutrientImg.src = window.static(`img/${this.nutrientImages[nutrient]}`);
         nutrientImg.alt = `${nutrient} Nutrient`;
         nutrientImg.className = 'dropped-nutrient-image';
-
         nutrientDisplay.appendChild(nutrientImg);
 
-        // Replace label with nutrient image
+        // Remove label if now filled
         const label = slot.querySelector('.slot-label');
-        if (label) label.remove();
+        if (label && existingNutrients.length === 0) label.remove();
         slot.appendChild(nutrientDisplay);
 
-        // Update flower data
-        const flowerIdx = parseInt(flowerId);
-        const slotIdx = parseInt(slotId_num);
-        this.flowers[flowerIdx].nutrients[slotIdx] = nutrient;
+        // Update flower data: fill first empty slot
+        const nutrientsArr = this.flowers[flowerIdx].nutrients;
+        const emptyIdx = nutrientsArr.findIndex(n => n === null);
+        if (emptyIdx !== -1) {
+            nutrientsArr[emptyIdx] = nutrient;
+        }
 
         // Update score display for this flower
         this.updateFlowerScore(flowerIdx);
+    /* Add to your CSS file (flowers.css):
+    .nutrient-slot.single-slot {
+        width: 60px;
+        height: 32px;
+        border: 2px dashed #888;
+        border-radius: 8px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        background: #fff;
+    }
+    .dropped-nutrient-image {
+        width: 24px;
+        height: 24px;
+        margin: 0 2px;
+    }
+    */
     }
 
     updateFlowerScore(flowerIdx) {

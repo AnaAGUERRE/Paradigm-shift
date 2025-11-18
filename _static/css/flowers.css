@@ -1,3 +1,30 @@
+/* Single nutrient slot for each flower */
+
+.nutrient-slot.single-slot {
+    width: 70px !important;
+    height: 36px !important;
+    border: 2px dashed #333 !important;
+    border-radius: 10px !important;
+    margin: 8px auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    background: #fff !important;
+    box-sizing: border-box !important;
+}
+
+.nutrient-slots {
+    display: block !important;
+    width: 100%;
+}
+
+/* Nutrient images inside the slot */
+.dropped-nutrient-image {
+    width: 24px;
+    height: 24px;
+    margin: 0 2px;
+}
 .flower-image {
     object-fit: contain;
     display: block;
