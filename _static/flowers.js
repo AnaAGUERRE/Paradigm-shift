@@ -15,7 +15,7 @@ class FlowerGame {
         // Nutrient types
         this.nutrients = ['Red', 'Blue', 'Yellow'];
         
-        // Flower types (6 different flowers)
+        // Flower types (6 different flowers) and their associated image files
         this.flowerTypes = [
             { name: 'Red', image: 'FlwRed.png' },
             { name: 'Blue', image: 'FlwBlue.png' },
@@ -31,11 +31,12 @@ class FlowerGame {
             'Blue': 'NutrBlue.png',
             'Yellow': 'NutrYellow.png'
         };
-        
+        // Initializes the array to hold flower objects 
+        // and a variable for the currently dragged nutrient.
         this.flowers = [];
         this.draggedElement = null;
         
-                // Round flower types configuration
+                // Flower sets for each round
                 this.roundFlowerTypes = [
                     // Training phase rounds
                     ['Purple', 'Orange', 'Orange', 'Orange', 'Green', 'Purple'],
@@ -47,15 +48,15 @@ class FlowerGame {
                     ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
                 ];
         
-        // Don't initialize immediately - wait for DOM to be ready
-        // This will be called from the template's initGame function
+        // Comment: Initialization is deferred until the DOM is ready.
     }
 
+// Initializes the game UI by creating the flower field and nutrient panel.
     init() {
         this.createFlowerField();
         this.createNutrientPanel();
     }
-
+// Prepares the flower field container and resets the flowers array.
     createFlowerField() {
         const container = document.getElementById('flower-field');
         if (!container) return;
@@ -63,6 +64,7 @@ class FlowerGame {
         container.innerHTML = '';
         this.flowers = [];
 
+// Determines the current round number, ensuring it’s within valid bounds.
         // Get current round (1-based)
         let currentRound = 1;
         if (window.js_vars && window.js_vars.current_round) {
@@ -75,6 +77,7 @@ class FlowerGame {
         // Get flower types for this round
         const roundTypes = this.roundFlowerTypes[currentRound - 1];
 
+        // For each flower, create a container and assign its type and ID.
         for (let i = 0; i < 6; i++) {
             // Find flowerType object by name
             const flowerName = roundTypes[i];
@@ -108,7 +111,10 @@ class FlowerGame {
             flower.appendChild(flowerImg);
             flower.appendChild(nutrientSlot);
 
-            // Score display (hidden by default)
+            // Score display (hidden by default). 
+            // Adds a score display for each flower, 
+            // appends the flower to the container, 
+            // and stores its data in the flowers array.
             const scoreDiv = document.createElement('div');
             scoreDiv.className = 'flower-score';
             scoreDiv.id = `flower-score-${i}`;
@@ -129,6 +135,9 @@ class FlowerGame {
         console.log('createFlowerField: created', this.flowers.length, 'flowers for round', currentRound, roundTypes);
     }
 
+    // Creates the nutrient panel on the right.
+    // Adds three draggable nutrient items (Red, Blue, Yellow) with images.
+    // Each nutrient is set up for drag-and-drop.
     createNutrientPanel() {
         const panel = document.getElementById('nutrient-panel');
         console.log('createNutrientPanel: panel element:', panel);
@@ -173,6 +182,10 @@ class FlowerGame {
         panel.appendChild(nutrientContainer);
     }
 
+
+    //Handles the start of a drag event for a nutrient.
+    // Stores the dragged element and nutrient type.
+    // Sets up the drag data for compatibility.
     onDragStart(e) {
         // Always get the .nutrient-item element, even if drag starts from child (like the image)
         let item = e.target;
@@ -191,6 +204,7 @@ class FlowerGame {
         console.log('onDragStart: currentDraggedNutrient =', this.currentDraggedNutrient, 'event target:', e.target, 'item:', item);
     }
 
+// Resets drag state when dragging ends.
     onDragEnd(e) {
         // Do NOT change opacity
         this.draggedElement = null;
@@ -198,16 +212,23 @@ class FlowerGame {
         console.log('onDragEnd: currentDraggedNutrient reset');
     }
 
+// Allows dropping by preventing default.
+// Adds a visual highlight to the slot being hovered.
     onDragOver(e) {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
         e.target.closest('.nutrient-slot')?.classList.add('drag-over');
     }
 
+// Removes the visual highlight when the dragged item leaves the slot.
     onDragLeave(e) {
         e.target.closest('.nutrient-slot')?.classList.remove('drag-over');
     }
 
+// Handles dropping a nutrient into a slot.
+// Only allows up to two nutrients per slot.
+// Updates the UI and internal data structure.
+// Triggers score update for the flower.
     onDrop(e) {
         e.preventDefault();
         const slot = e.target.closest('.nutrient-slot');
@@ -226,7 +247,9 @@ class FlowerGame {
             return;
         }
 
-        // Always get the nutrient from the closest .nutrient-item if possible
+        // Ensures that when dropping a nutrient onto a flower slot, 
+        // the code robustly determines which nutrient was dragged,
+        // If it can’t figure out the nutrient, it alerts the user to try again.
         let nutrient = this.currentDraggedNutrient;
         if (!nutrient && e.dataTransfer) {
             nutrient = e.dataTransfer.getData('nutrient') || e.dataTransfer.getData('text/plain');
@@ -268,66 +291,56 @@ class FlowerGame {
 
         // Update score display for this flower
         this.updateFlowerScore(flowerIdx);
-    /* Add to your CSS file (flowers.css):
-    .nutrient-slot.single-slot {
-        width: 60px;
-        height: 32px;
-        border: 2px dashed #888;
-        border-radius: 8px;
-        margin: 0 auto;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        background: #fff;
-    }
-    .dropped-nutrient-image {
-        width: 24px;
-        height: 24px;
-        margin: 0 2px;
-    }
-    */
+        
     }
 
+    // Updates the score display for a specific flower based on its nutrients.
     updateFlowerScore(flowerIdx) {
-        // Get nutrients for this flower
+        // Get the nutrients assigned to this flower
         const nutrients = this.flowers[flowerIdx].nutrients;
         let score = 0;
+        // If both nutrient slots are filled, calculate growth with both
         if (nutrients[0] && nutrients[1]) {
             score = this.calculateGrowth(nutrients[0], nutrients[1]);
         } else if (nutrients[0] || nutrients[1]) {
+        // If only one slot is filled, calculate growth with one
             const n = nutrients[0] || nutrients[1];
             score = this.calculateGrowth(n, '');
         } else {
+        // No nutrients assigned, score is zero
             score = 0;
         }
+        // Update the score display for this flower
         this.flowers[flowerIdx].scoreDiv.textContent = `Score: ${(score * 100).toFixed(0)}%`;
     }
 
+    // Shows the score for all flowers by updating and displaying each scoreDiv.
     showAllScores() {
-        // Affiche tous les scores
         for (let i = 0; i < this.flowers.length; i++) {
             this.updateFlowerScore(i);
+            // Make the score visible
             this.flowers[i].scoreDiv.style.display = '';
         }
     }
 
+    // Animates the size of each flower image based on its score.
+    // Higher scores result in larger flower images.
     animateFlowerSizes(scores) {
-        // scores: tableau de 6 valeurs entre 0 et 1
-        const baseSize = 28; // px, taille de départ (identique à l'initial)
+        // scores: array of 6 values between 0 and 1
+        const baseSize = 28; // px, initial size
         const flowerImages = document.querySelectorAll('#flower-field .flower-image');
-        // Reset all flower sizes to baseSize first for animation
+        // Reset all flower sizes to baseSize for smooth animation
         flowerImages.forEach(img => {
             img.style.transition = 'none';
             img.style.setProperty('width', baseSize + 'px', 'important');
             img.style.setProperty('height', baseSize + 'px', 'important');
         });
+        // Force reflow for animation
         void document.body.offsetWidth;
         scores.forEach((score, i) => {
             const img = flowerImages[i];
             if (img) {
-                // Taille = baseSize * (1 + score)
-                // 0% => 1x, 100% => 2x, 50% => 1.5x
+                // Calculate new size: 0% score = baseSize, 100% = 2x baseSize
                 const factor = 1 + Math.max(0, Math.min(1, score));
                 const size = baseSize * factor;
                 console.log(`Animating flower #${i}: score=${score}, size=${size}`);
@@ -342,15 +355,17 @@ class FlowerGame {
         });
     }
 
+    // Hides the score display for all flowers when reseting.
     hideAllScores() {
         for (let i = 0; i < this.flowers.length; i++) {
             this.flowers[i].scoreDiv.style.display = 'none';
         }
     }
 
-    // Règle de croissance compatible avec le backend
+    // Calculates the growth score for a flower based on its nutrients.
+    // The rules match the backend logic for consistency.
     calculateGrowth(n1, n2) {
-        // Deux nutriments
+        // Two nutrients provided
         if (n1 && n2 && n1 !== '' && n2 !== '') {
             if (n1 === 'Blue' && n2 === 'Blue') return 1.0;
             if ((n1 === 'Blue' && n2 === 'Yellow') || (n1 === 'Yellow' && n2 === 'Blue')) return 0.8;
@@ -359,7 +374,7 @@ class FlowerGame {
             if ((n1 === 'Yellow' && n2 === 'Red') || (n1 === 'Red' && n2 === 'Yellow')) return 0.55;
             if (n1 === 'Red' && n2 === 'Red') return 0.5;
         }
-        // Un seul nutriment
+        // Only one nutrient provided
         if (n1 && (!n2 || n2 === '')) {
             if (n1 === 'Blue') return 0.5;
             if (n1 === 'Yellow') return 0.3;
@@ -370,6 +385,7 @@ class FlowerGame {
             if (n2 === 'Yellow') return 0.3;
             if (n2 === 'Red') return 0.25;
         }
+        // No valid nutrients, score is zero
         return 0.0;
     }
 
@@ -408,5 +424,4 @@ function getCurrentRoundFlowerTypes(currentRound) {
   return roundFlowerTypes[currentRound - 1];
 }
 
-// Don't auto-initialize - let the template handle it
-// This allows for better control and debugging
+

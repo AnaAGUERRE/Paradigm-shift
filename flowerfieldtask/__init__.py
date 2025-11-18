@@ -1,34 +1,45 @@
+"""
+Flower Field Task — version indépendante (pas de transmission)
+Main oTree app logic for the Flower Field experiment.
+Handles session setup, round logic, earnings, and data export.
+"""
 doc = """Flower Field Task — version indépendante (pas de transmission)"""
 
+
+# oTree imports and engine functions
 from otree.api import *
 from .engine import run_engine, calculate_points_from_growth
 import json
 
 class C(BaseConstants):
-    NAME_IN_URL = 'flowerfieldtask'
-    PLAYERS_PER_GROUP = None
-    TRAINING_ROUNDS = 5
-    TEST1_ROUNDS = 1
-    NUM_ROUNDS = TRAINING_ROUNDS + TEST1_ROUNDS
+    NAME_IN_URL = 'flowerfieldtask'  # URL name for this app
+    PLAYERS_PER_GROUP = None         # No grouping
+    TRAINING_ROUNDS = 5              # Number of training rounds
+    TEST1_ROUNDS = 1                 # Number of test rounds
+    NUM_ROUNDS = TRAINING_ROUNDS + TEST1_ROUNDS  # Total rounds
 
 class Subsession(BaseSubsession):
     def creating_session(self):
+        # Initialize total earnings for each participant
         for p in self.session.get_participants():
             if 'total_earnings' not in p.vars:
                 p.vars['total_earnings'] = 0
+        # Set cumulative earnings for each player
         for player in self.get_players():
             player.cumulative_earnings = player.participant.vars.get('total_earnings', 0)
 
 class Group(BaseGroup):
-    pass
+    pass  # No group logic needed
 
 class Player(BasePlayer):
-    cumulative_earnings = models.FloatField(initial=0)
+    cumulative_earnings = models.FloatField(initial=0)  # Tracks total earnings for this player
+
 
 class FlowerField(Page):
     def vars_for_template(player):
+        # Pass variables to the template for display and JS logic
         player.cumulative_earnings = player.participant.vars.get('total_earnings', 0)
-        # Determine phase and flower colors
+        # Determine phase and flower colors for this round
         if player.round_number <= C.TRAINING_ROUNDS:
             phase = 'Training phase'
             phase_round = player.round_number
@@ -53,25 +64,26 @@ class FlowerField(Page):
             flower_colors=flower_colors,
             cumulative_earnings=player.cumulative_earnings
         )
-    live_method = "live_method"
-    template_name = 'flowerfieldtask/FlowerField.html'
+    live_method = "live_method"  # Name of live method for JS communication
+    template_name = 'flowerfieldtask/FlowerField.html'  # HTML template to use
+
 
     def live_method(player, data):
+        # Handles live communication from JS (nutrient submission)
         if data['type'] == 'flowerSubmit':
             nutrients = data['data']
+            # Run backend engine to calculate growth and points
             output = run_engine(nutrients)
             total_growth = sum(f['growth'] for f in output) / len(output)
             total_points = calculate_points_from_growth(total_growth)
             flower_scores = [f['growth'] for f in output]
-            # Accumulate total earnings for participant
+            # Update participant's total earnings
             if 'total_earnings' not in player.participant.vars:
                 player.participant.vars['total_earnings'] = 0
             player.participant.vars['total_earnings'] += round(total_points, 2)
             player.cumulative_earnings = player.participant.vars['total_earnings']
 
-
-            # Get flower colors for this round from JS config
-            # Use same logic as vars_for_template to get flower_colors
+            # Get flower colors for this round
             if player.round_number <= C.TRAINING_ROUNDS:
                 round_flower_types = [
                     ['Purple', 'Orange', 'Orange', 'Orange', 'Green', 'Purple'],
@@ -102,12 +114,11 @@ class FlowerField(Page):
                 'nutrients': nutrients
             })
 
-            # Optionally, write to a local file (for localhost analysis only)
-            # Save all entries to Excel after every round
+            # Save all entries to Excel after every round (local analysis)
             try:
                 import pandas as pd
                 import os
-                # Prepare the new entry
+                # Prepare the new entry for Excel
                 new_entry = {
                     'participant_code': player.participant.code,
                     'phase': phase,
@@ -115,7 +126,6 @@ class FlowerField(Page):
                     'flower_colors': flower_colors,
                     'nutrients': nutrients
                 }
-                # Read existing data if file exists
                 excel_path = 'nutrient_flower_data.xlsx'
                 if os.path.exists(excel_path):
                     df_existing = pd.read_excel(excel_path)
@@ -125,7 +135,7 @@ class FlowerField(Page):
                     df_all = pd.DataFrame([new_entry])
                 df_all.to_excel(excel_path, index=False)
 
-                # Auto-adjust column widths using openpyxl
+                # Auto-adjust column widths for readability
                 from openpyxl import load_workbook
                 wb = load_workbook(excel_path)
                 ws = wb.active
@@ -145,6 +155,7 @@ class FlowerField(Page):
             except Exception as e:
                 pass  # Ignore file errors in production
 
+            # Return results to JS for display
             return {
                 player.id_in_group: dict(
                     total_growth=round(total_growth, 2),
@@ -154,5 +165,7 @@ class FlowerField(Page):
                 )
             }
 
+
+# Sequence of pages in the experiment
 page_sequence = [FlowerField]
 

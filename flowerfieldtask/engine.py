@@ -2,12 +2,14 @@
 
 def run_engine(nutrient_choices):
     """
-    Nutrient choices est une liste de fleurs, chaque fleur a 2 nutriments, ex:
+    Nutrient choices is a list of flowers, each flower has 2 nutrients, e.g.:
     [["red", "blue"], ["yellow", "yellow"], ["blue", "blue"]]
     """
-    results = []
+    results = []  # List to store results for each flower
     for nutrients in nutrient_choices:
+        # Calculate growth for the current flower
         growth = calculate_growth(nutrients)
+        # Append nutrients and growth to results
         results.append({
             'nutrients': nutrients,
             'growth': growth
@@ -28,10 +30,12 @@ def calculate_growth(nutrients):
     - Only Yellow (if same one counted twice) → 30% (0.3)
     - Only Red (if same one counted twice) → 25% (0.25)
     """
+    # Extract nutrients, handle missing values
     n1 = nutrients[0] if len(nutrients) > 0 else ''
     n2 = nutrients[1] if len(nutrients) > 1 else ''
 
     # Deux nutriments
+    # Case: Two nutrients
     if n1 and n2:
         if n1 == 'Blue' and n2 == 'Blue':
             return 1.0
@@ -45,7 +49,7 @@ def calculate_growth(nutrients):
             return 0.55
         if n1 == 'Red' and n2 == 'Red':
             return 0.5
-    # Un seul nutriment
+    # Case: Only one nutrient
     if n1 and not n2:
         if n1 == 'Blue':
             return 0.5
@@ -60,11 +64,12 @@ def calculate_growth(nutrients):
             return 0.3
         if n2 == 'Red':
             return 0.25
+    # Case: No valid nutrients
     return 0.0
 
 
 def calculate_points_from_growth(growth):
     """
-    Convertit la croissance en points pour le paiement.
+    Converts growth percentage to points for payment.
     """
-    return round(growth, 2)
+    return round(growth, 2)  # Round to 2 decimal places

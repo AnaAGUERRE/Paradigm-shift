@@ -1,12 +1,16 @@
+{# Django static files loader #}
 {% load static %}
 {% block content %}
 
+{# Include shared scripts for oTree #}
 {% include "_templates/scripts.html" %}
 
+{# Main stylesheet for flower task #}
 <link rel="stylesheet" href="{% static 'css/flowers.css' %}?v=11">
 <title>Flower Field Task</title>
 
 <div id="main-container">
+    {# Top row: phase and round info #}
     <div class="row m-0 p-0" id="toprow">
         <div class="col-12 p-1 border mt-1">
             <h4 class="text-center" style="margin-bottom:0.5em;">{{ phase }}</h4>
@@ -14,6 +18,7 @@
         </div>
     </div>
 
+    {# Instructions row: changes text depending on phase #}
     <div class="row m-0 p-0" id="instructions-row">
         <div class="col-12 p-2 text-center" style="font-size: 0.9rem; color: #333;">
             {% if phase == 'Test 1' %}
@@ -27,11 +32,13 @@
         </div>
     </div>
 
+    {# Main game and results area #}
     <div class="row m-0 p-0" style="width: 100%; min-height: 700px;">
         <div class="col-12" id="currentRound" style="min-height: 700px; width: 100%; display: flex;">
             <!-- Flower Field Game -->
             <div class="flower-game-container" style="width: 100%;">
                 <div id="flower-field-panel" class="white-panel">
+                    {# Panel border changes color in Test 1 phase #}
                     {% if phase == 'Test 1' %}
                     <style>
                         #flower-field-panel {
@@ -94,9 +101,8 @@
         }
     }
     document.addEventListener('DOMContentLoaded', function() {
-        // Show popup before Test 1 phase
+        // Show popup before Test 1 phase (single block)
         if (window.js_vars.phase === 'Test 1') {
-            // Add blocking overlay
             const overlay = document.createElement('div');
             overlay.id = 'test1-blocking-overlay';
             overlay.style.position = 'fixed';
@@ -106,7 +112,6 @@
             overlay.style.height = '100vh';
             overlay.style.background = 'rgba(255,255,255,0.7)';
             overlay.style.zIndex = '9998';
-            // Ensure Bootbox modal is above overlay
             const style = document.createElement('style');
             style.innerHTML = '.bootbox.modal { z-index: 10000 !important; } .modal-backdrop { z-index: 9999 !important; }';
             document.head.appendChild(style);
@@ -122,11 +127,37 @@
                             label: 'I understand',
                             className: 'btn-primary',
                             callback: function() {
-                                document.body.removeChild(overlay);
-                                var modals = document.getElementsByClassName('bootbox modal');
-                                if (modals.length > 0) {
-                                    modals[0].parentNode.removeChild(modals[0]);
-                                }
+                                // Remove overlay by ID
+                                var overlays = document.querySelectorAll('#test1-blocking-overlay');
+                                overlays.forEach(function(overlayElem) {
+                                    if (overlayElem && overlayElem.parentNode) {
+                                        overlayElem.parentNode.removeChild(overlayElem);
+                                    }
+                                });
+                                // Remove any overlays with a likely overlay class
+                                var overlayClassElems = document.querySelectorAll('.blocking-overlay, .otree-blocking-overlay');
+                                overlayClassElems.forEach(function(elem) {
+                                    if (elem && elem.parentNode) {
+                                        elem.parentNode.removeChild(elem);
+                                    }
+                                });
+                                // Restore scrolling
+                                document.body.style.overflow = '';
+                                document.documentElement.style.overflow = '';
+                                // Forcefully remove Bootbox modal from DOM
+                                var modals = document.querySelectorAll('.bootbox');
+                                modals.forEach(function(modal) {
+                                    if (modal && modal.parentNode) {
+                                        modal.parentNode.removeChild(modal);
+                                    }
+                                });
+                                // Also remove any modal-backdrop
+                                var backdrops = document.querySelectorAll('.modal-backdrop');
+                                backdrops.forEach(function(backdrop) {
+                                    if (backdrop && backdrop.parentNode) {
+                                        backdrop.parentNode.removeChild(backdrop);
+                                    }
+                                });
                                 return true;
                             }
                         }
@@ -135,7 +166,9 @@
                 });
             } else {
                 alert('Please note that in the next round, the configuration you will choose will be seen by the next participant(s) in the chain.');
-                document.body.removeChild(overlay);
+                if (overlay && overlay.parentNode === document.body) {
+                    document.body.removeChild(overlay);
+                }
             }
         }
         initGame();

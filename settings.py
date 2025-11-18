@@ -1,35 +1,38 @@
 from os import environ
 import os
 
+# oTree experiment settings for Flower Field Task
+
 SESSION_CONFIGS = [
+    # List of session configurations (one per experiment/app)
     dict(
-        name='flowerfieldtask',
-        display_name='Flower Field Task (independent)',
-        app_sequence=['flowerfieldtask'],
-        num_demo_participants=1,
+        name='flowerfieldtask',                # Internal name for the session
+        display_name='Flower Field Task (independent)',  # Shown in admin
+        app_sequence=['flowerfieldtask'],      # Apps to run in sequence
+        num_demo_participants=1,               # Number of demo participants
     ),
 ]
 
 SESSION_CONFIG_DEFAULTS = dict(
-    real_world_currency_per_point=1.00,
-    participation_fee=0.00,
-    doc="",
+    real_world_currency_per_point=1.00,   # Conversion rate for points
+    participation_fee=0.00,               # Participation fee (if any)
+    doc="",                              # Optional documentation
 )
 
-PARTICIPANT_FIELDS = ['total_earnings']
-SESSION_FIELDS = []
-ROOMS = []
+PARTICIPANT_FIELDS = ['total_earnings']  # Custom fields for each participant
+SESSION_FIELDS = []                      # Custom fields for each session
+ROOMS = []                               # List of rooms (if used)
 
-LANGUAGE_CODE = 'en'
-REAL_WORLD_CURRENCY_CODE = 'GBP'
-USE_POINTS = True
+LANGUAGE_CODE = 'en'                     # Language for experiment
+REAL_WORLD_CURRENCY_CODE = 'GBP'         # Currency code
+USE_POINTS = True                        # Use points system
 
-ADMIN_USERNAME = 'admin'
-ADMIN_PASSWORD = '1234'  # ou via environ
+ADMIN_USERNAME = 'admin'                  # Admin login username
+ADMIN_PASSWORD = '1234'                   # Admin password (change in production)
 
-SECRET_KEY = '7550954140615'
+SECRET_KEY = '7550954140615'              # Django secret key
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))   # Base directory of project
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, '_static'),
+    os.path.join(BASE_DIR, '_static'),                  # Static files directory
 ]
