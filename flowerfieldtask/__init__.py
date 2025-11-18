@@ -15,8 +15,10 @@ class C(BaseConstants):
     NAME_IN_URL = 'flowerfieldtask'  # URL name for this app
     PLAYERS_PER_GROUP = None         # No grouping
     TRAINING_ROUNDS = 5              # Number of training rounds
-    TEST1_ROUNDS = 1                 # Number of test rounds
-    NUM_ROUNDS = TRAINING_ROUNDS + TEST1_ROUNDS  # Total rounds
+    TEST1_ROUNDS = 1                 # Number of test1 rounds
+    EXPLORATION_ROUNDS = 5           # Number of exploration rounds
+    TEST2_ROUNDS = 1                 # Number of test2 rounds
+    NUM_ROUNDS = TRAINING_ROUNDS + TEST1_ROUNDS + EXPLORATION_ROUNDS + TEST2_ROUNDS  # Total rounds
 
 class Subsession(BaseSubsession):
     def creating_session(self):
@@ -36,6 +38,7 @@ class Player(BasePlayer):
 
 
 class FlowerField(Page):
+    import json
     def vars_for_template(player):
         # Pass variables to the template for display and JS logic
         player.cumulative_earnings = player.participant.vars.get('total_earnings', 0)
@@ -52,17 +55,47 @@ class FlowerField(Page):
                 ['Purple', 'Orange', 'Green', 'Green', 'Orange', 'Purple']
             ]
             flower_colors = round_flower_types[player.round_number - 1]
-        else:
+        elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS:
             phase = 'Test 1'
             phase_round = player.round_number - C.TRAINING_ROUNDS
             phase_total = C.TEST1_ROUNDS
             flower_colors = ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
+        elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS + C.EXPLORATION_ROUNDS:
+            phase = 'Exploration phase'
+            phase_round = player.round_number - C.TRAINING_ROUNDS - C.TEST1_ROUNDS
+            phase_total = C.EXPLORATION_ROUNDS
+            # Exploration rounds flower colors
+            exploration_flower_types = [
+                ['Green', 'Purple', 'Blue'],
+                ['Green', 'Purple', 'Blue'],
+                ['Green', 'Purple', 'Yellow'],
+                ['Green', 'Purple', 'Yellow'],
+                ['Green', 'Purple', 'Yellow']
+            ]
+            flower_colors = exploration_flower_types[phase_round - 1]
+        else:
+            phase = 'Test 2'
+            phase_round = player.round_number - C.TRAINING_ROUNDS - C.TEST1_ROUNDS - C.EXPLORATION_ROUNDS
+            phase_total = C.TEST2_ROUNDS
+            flower_colors = ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
+        # Set phase_class for template
+        if phase == 'Training phase':
+            phase_class = 'training-phase-flowers'
+        elif phase == 'Test 1':
+            phase_class = 'test-1-flowers'
+        elif phase == 'Exploration phase':
+            phase_class = 'exploration-flowers'
+        elif phase == 'Test 2':
+            phase_class = 'test-1-flowers'
+        else:
+            phase_class = ''
         return dict(
             phase=phase,
             phase_round=phase_round,
             phase_total=phase_total,
-            flower_colors=flower_colors,
-            cumulative_earnings=player.cumulative_earnings
+            flower_colors=json.dumps(flower_colors),
+            cumulative_earnings=player.cumulative_earnings,
+            phase_class=phase_class
         )
     live_method = "live_method"  # Name of live method for JS communication
     template_name = 'flowerfieldtask/FlowerField.html'  # HTML template to use
@@ -83,7 +116,7 @@ class FlowerField(Page):
             player.participant.vars['total_earnings'] += round(total_points, 2)
             player.cumulative_earnings = player.participant.vars['total_earnings']
 
-            # Get flower colors for this round
+            # Get flower colors and phase for this round
             if player.round_number <= C.TRAINING_ROUNDS:
                 round_flower_types = [
                     ['Purple', 'Orange', 'Orange', 'Orange', 'Green', 'Purple'],
@@ -93,16 +126,27 @@ class FlowerField(Page):
                     ['Purple', 'Orange', 'Green', 'Green', 'Orange', 'Purple']
                 ]
                 flower_colors = round_flower_types[player.round_number - 1]
-            else:
-                flower_colors = ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
-
-            # Determine phase and display round number
-            if player.round_number <= C.TRAINING_ROUNDS:
                 phase = 'Training phase'
                 display_round = player.round_number
-            else:
+            elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS:
+                flower_colors = ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
                 phase = 'Test 1'
                 display_round = player.round_number - C.TRAINING_ROUNDS
+            elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS + C.EXPLORATION_ROUNDS:
+                exploration_flower_types = [
+                    ['Green', 'Purple', 'Blue'],
+                    ['Green', 'Purple', 'Blue'],
+                    ['Green', 'Purple', 'Yellow'],
+                    ['Green', 'Purple', 'Yellow'],
+                    ['Green', 'Purple', 'Yellow']
+                ]
+                phase = 'Exploration phase'
+                display_round = player.round_number - C.TRAINING_ROUNDS - C.TEST1_ROUNDS
+                flower_colors = exploration_flower_types[display_round - 1]
+            else:
+                flower_colors = ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
+                phase = 'Test 2'
+                display_round = player.round_number - C.TRAINING_ROUNDS - C.TEST1_ROUNDS - C.EXPLORATION_ROUNDS
 
             # Store nutrient-flower combinations and flower colors for each round
             if 'nutrient_flower_history' not in player.participant.vars:

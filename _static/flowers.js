@@ -76,11 +76,16 @@ class FlowerGame {
 
         // Get flower types for this round
         const roundTypes = this.roundFlowerTypes[currentRound - 1];
+        // If window.js_vars.flower_colors is set, use it for the number and type of flowers
+        let flowerColors = roundTypes;
+        if (window.js_vars && window.js_vars.flower_colors) {
+            flowerColors = window.js_vars.flower_colors;
+        }
 
         // For each flower, create a container and assign its type and ID.
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < flowerColors.length; i++) {
             // Find flowerType object by name
-            const flowerName = roundTypes[i];
+            const flowerName = flowerColors[i];
             const flowerType = this.flowerTypes.find(ft => ft.name === flowerName);
             const flower = document.createElement('div');
             flower.className = 'flower-container';
@@ -122,8 +127,6 @@ class FlowerGame {
             scoreDiv.style.display = 'none';
             flower.appendChild(scoreDiv);
 
-            container.appendChild(flower);
-
             this.flowers.push({
                 id: i,
                 type: flowerType.name,
@@ -132,7 +135,38 @@ class FlowerGame {
                 scoreDiv: scoreDiv
             });
         }
-        console.log('createFlowerField: created', this.flowers.length, 'flowers for round', currentRound, roundTypes);
+        // Clear container and add flowers in correct layout
+        container.innerHTML = '';
+        if (flowerColors.length === 6) {
+            // 2 rows of 3 flowers
+            const row1 = document.createElement('div');
+            row1.style.display = 'flex';
+            row1.style.justifyContent = 'center';
+            row1.style.width = '100%';
+            for (let i = 0; i < 3; i++) {
+                row1.appendChild(this.flowers[i].element);
+            }
+            const row2 = document.createElement('div');
+            row2.style.display = 'flex';
+            row2.style.justifyContent = 'center';
+            row2.style.width = '100%';
+            for (let i = 3; i < 6; i++) {
+                row2.appendChild(this.flowers[i].element);
+            }
+            container.appendChild(row1);
+            container.appendChild(row2);
+        } else {
+            // 1 row of 3 flowers
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.justifyContent = 'center';
+            row.style.width = '100%';
+            for (let i = 0; i < flowerColors.length; i++) {
+                row.appendChild(this.flowers[i].element);
+            }
+            container.appendChild(row);
+        }
+        console.log('createFlowerField: created', this.flowers.length, 'flowers for round', currentRound, flowerColors);
     }
 
     // Creates the nutrient panel on the right.

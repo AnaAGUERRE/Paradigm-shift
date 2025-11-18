@@ -1,6 +1,23 @@
+{% load static %}
 {# Django static files loader #}
 {% load static %}
+
 {% block content %}
+    <style>
+        #flower-field-wrapper.exploration-flowers {
+            text-align: center;
+        }
+        #flower-field-wrapper.exploration-flowers #flower-field {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 80px;
+        }
+        #flower-field-wrapper.exploration-flowers .flower-container {
+            min-width: 120px;
+            margin: 0;
+        }
+    </style>
 
 {# Include shared scripts for oTree #}
 {% include "_templates/scripts.html" %}
@@ -21,7 +38,7 @@
     {# Instructions row: changes text depending on phase #}
     <div class="row m-0 p-0" id="instructions-row">
         <div class="col-12 p-2 text-center" style="font-size: 0.9rem; color: #333;">
-            {% if phase == 'Test 1' %}
+            {% if phase == 'Test 1' or phase == 'Test 2' %}
                 <span style="color: #a80000; font-weight: bold;">Select the configuration that fits best with your understanding of what causes flowers to grow.<br>
                 This set will be transmitted to following participants.</span> <br><br>
                 Click the <b>“Transmit"</b> button when you are ready.
@@ -39,7 +56,7 @@
             <div class="flower-game-container" style="width: 100%;">
                 <div id="flower-field-panel" class="white-panel">
                     {# Panel border changes color in Test 1 phase #}
-                    {% if phase == 'Test 1' %}
+                    {% if phase == 'Test 1' or phase == 'Test 2' %}
                     <style>
                         #flower-field-panel {
                             border: 3px solid #a80000;
@@ -49,7 +66,10 @@
                     {% endif %}
                     <div class="game-main">
                         <div id="status-message"></div>
-                        <div id="flower-field"></div>
+                        <div id="flower-field-wrapper" class="{{ phase_class }}">
+                            <!-- JS will fill flower-field with correct layout -->
+                            <div id="flower-field"></div>
+                        </div>
                         <div class="game-controls">
                             <button class="submit-button" id="submitButton">{% if phase == 'Test 1' %}Transmit{% else %}Submit Round{% endif %}</button>
                             <button class="reset-button" id="resetButton">Reset</button>
@@ -74,35 +94,94 @@
     </div>
 </div>
 
-<script>
-    window.js_vars = window.js_vars || {};
-    window.js_vars.current_round = "{{ player.round_number }}";
-    window.js_vars.phase = "{{ phase }}";
+    <style>
+        /* Center the card and its contents for Exploration phase */
+        #flower-field-wrapper.exploration-flowers {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #flower-field-wrapper.training-phase-flowers, #flower-field-wrapper.test-1-flowers {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        #flower-field-wrapper.training-phase-flowers #flower-field,
+        #flower-field-wrapper.test-1-flowers #flower-field {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+        }
+        #flower-field-wrapper.training-phase-flowers .flower-container,
+        #flower-field-wrapper.test-1-flowers .flower-container {
+            width: 30%;
+            margin: 10px 2%;
+        }
+        #flower-field-wrapper.training-phase-flowers #flower-field .flower-container:nth-child(n+4),
+        #flower-field-wrapper.test-1-flowers #flower-field .flower-container:nth-child(n+4) {
+            margin-top: 40px;
+        }
+        #flower-field-wrapper.exploration-flowers {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        #flower-field-wrapper.exploration-flowers #flower-field {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 80px;
+            margin-left: auto;
+            margin-right: auto;
+            width: 100%;
+            max-width: 420px;
+        }
+        #flower-field-wrapper.exploration-flowers .flower-container {
+            min-width: 120px;
+            margin: 0;
+        }
+    </style>
+    </style>
+    <script>
+        window.js_vars = window.js_vars || {};
+        window.js_vars.current_round = "{{ player.round_number }}";
+        window.js_vars.phase = "{{ phase }}";
+        window.js_vars.flower_colors = JSON.parse('{{ flower_colors|safe }}');
 
-    console.log('Flowers template loaded, initializing...');
-    // Initialize the game
-    function initGame() {
-        console.log('Attempting to initialize FlowerGame');
-        console.log('window.FlowerGame exists:', typeof window.FlowerGame);
-        if (window.flowerGame) {
-            console.log('FlowerGame already created');
-            return;
+        console.log('Flowers template loaded, initializing...');
+        // Initialize the game
+        function initGame() {
+            console.log('Attempting to initialize FlowerGame');
+            console.log('window.FlowerGame exists:', typeof window.FlowerGame);
+            if (window.flowerGame) {
+                console.log('FlowerGame already created');
+                return;
+            }
+            if (typeof FlowerGame !== 'undefined') {
+                console.log('Creating new FlowerGame instance');
+                window.flowerGame = new FlowerGame();
+                // Pass flower colors for this round to the game instance
+                if (window.js_vars.flower_colors) {
+                    window.flowerGame.roundFlowerTypes = [window.js_vars.flower_colors];
+                }
+                console.log('FlowerGame created successfully');
+                // Now initialize the game (populate the DOM)
+                console.log('Initializing game UI...');
+                window.flowerGame.init();
+                console.log('Game UI initialized');
+            } else {
+                console.error('FlowerGame class not found!');
+            }
         }
-        if (typeof FlowerGame !== 'undefined') {
-            console.log('Creating new FlowerGame instance');
-            window.flowerGame = new FlowerGame();
-            console.log('FlowerGame created successfully');
-            // Now initialize the game (populate the DOM)
-            console.log('Initializing game UI...');
-            window.flowerGame.init();
-            console.log('Game UI initialized');
-        } else {
-            console.error('FlowerGame class not found!');
-        }
-    }
-    document.addEventListener('DOMContentLoaded', function() {
-        // Show popup before Test 1 phase (single block)
-        if (window.js_vars.phase === 'Test 1') {
+        document.addEventListener('DOMContentLoaded', function() {
+        // Show popup before Test 1 and Test 2 phases
+        if (window.js_vars.phase === 'Test 1' || window.js_vars.phase === 'Test 2') {
             const overlay = document.createElement('div');
             overlay.id = 'test1-blocking-overlay';
             overlay.style.position = 'fixed';
@@ -240,7 +319,7 @@
                         continueBtn = document.createElement('button');
                         continueBtn.id = 'continueAfterResults';
                         continueBtn.className = 'btn btn-primary mt-3';
-                        continueBtn.textContent = (window.js_vars && window.js_vars.phase === 'Test 1') ? 'Transmit' : 'Continue to Next Round';
+                        continueBtn.textContent = (window.js_vars && (window.js_vars.phase === 'Test 1' || window.js_vars.phase === 'Test 2')) ? 'Transmit' : 'Continue to Next Round';
                         continueBtn.onclick = function() {
                             document.getElementById('nextRoundForm').submit();
                         };
