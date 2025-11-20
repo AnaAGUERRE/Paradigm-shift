@@ -4,6 +4,14 @@
 
 {% block content %}
     <style>
+                /* Make game control buttons smaller */
+                .game-controls .submit-button,
+                .game-controls .reset-button {
+                    font-size: 0.95em;
+                    padding: 4px 16px;
+                    min-width: 80px;
+                    height: 32px;
+                }
         #flower-field-wrapper.exploration-flowers {
             text-align: center;
         }
@@ -44,7 +52,7 @@
                 Click the <b>“Transmit"</b> button when you are ready.
             {% else %}
                 Drag <b> one or two nutrients </b> under each flower to select your configuration.<br>
-                Click the <b> “Submit Round" </b> button when you are ready to grow the flowers.
+                Click the <b> “Submit" </b> button when you are ready to grow the flowers.
             {% endif %}
         </div>
     </div>
@@ -71,8 +79,8 @@
                             <div id="flower-field"></div>
                         </div>
                         <div class="game-controls">
-                            <button class="submit-button" id="submitButton">{% if phase == 'Test 1' %}Transmit{% else %}Submit Round{% endif %}</button>
                             <button class="reset-button" id="resetButton">Reset</button>
+                            <button class="submit-button" id="submitButton">{% if phase == 'Test 1' or phase == 'Test 2' %}Transmit{% else %}Submit{% endif %}</button>
                         </div>
                     </div>
                 </div>
