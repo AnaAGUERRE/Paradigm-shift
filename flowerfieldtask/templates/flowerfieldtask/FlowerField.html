@@ -88,8 +88,9 @@
                     <div id="nutrient-panel"></div>
                     <div id="results-section" class="text-center mt-3 mb-1">
                         <h4 id="result">Result in this round:</h4>
-                        Average Growth: <span id="speedResult"></span> %<br>
+                        {% if phase != 'Test 1' and phase != 'Test 2' %}
                         Earnings: £<span id="pointsResult"></span><br>
+                        {% endif %}
                         Total earnings: £<span id="totalEarningsResult">{{ player.cumulative_earnings }}</span><br>
                         <br>
                         <!-- Hidden form for round advancement -->
@@ -298,14 +299,59 @@
                     setTimeout(() => document.getElementById('status-message').innerHTML = '', 3000);
                     return;
                 }
-                // If complete, proceed with liveSend
-                const flowerChoices = window.flowerGame.getFlowerChoices();
-                submitButton.disabled = true;
-                document.getElementById('status-message').innerHTML = '';
-                liveSend({
-                    type: 'flowerSubmit',
-                    data: flowerChoices
-                });
+                // If Test 1 or Test 2, show confirmation popup before transmitting
+                if (window.js_vars.phase === 'Test 1' || window.js_vars.phase === 'Test 2') {
+                    if (typeof bootbox !== 'undefined') {
+                        bootbox.dialog({
+                            message: `<div style='font-size:1.1em; text-align:center;'>Are you sure you’ve put the desired nutrients and want to transmit your configuration to following participants ?</div>`,
+                            buttons: [
+                                {
+                                    label: 'Yes transmit',
+                                    className: 'btn-primary',
+                                    callback: function() {
+                                        submitButton.disabled = true;
+                                        document.getElementById('status-message').innerHTML = '';
+                                        const flowerChoices = window.flowerGame.getFlowerChoices();
+                                        liveSend({
+                                            type: 'flowerSubmit',
+                                            data: flowerChoices
+                                        });
+                                        return true;
+                                    }
+                                },
+                                {
+                                    label: 'No, continue editing',
+                                    className: 'btn-secondary',
+                                    callback: function() {
+                                        // Close the popup by returning true (Bootbox closes on true)
+                                        return true;
+                                    }
+                                }
+                            ],
+                            closeButton: false
+                        });
+                    } else {
+                        // Fallback: native confirm
+                        if (confirm('Are you sure you’ve put the desired nutrients and want to transmit your configuration to following participants ?')) {
+                            submitButton.disabled = true;
+                            document.getElementById('status-message').innerHTML = '';
+                            const flowerChoices = window.flowerGame.getFlowerChoices();
+                            liveSend({
+                                type: 'flowerSubmit',
+                                data: flowerChoices
+                            });
+                        }
+                    }
+                } else {
+                    // Other phases: submit directly
+                    const flowerChoices = window.flowerGame.getFlowerChoices();
+                    submitButton.disabled = true;
+                    document.getElementById('status-message').innerHTML = '';
+                    liveSend({
+                        type: 'flowerSubmit',
+                        data: flowerChoices
+                    });
+                }
             });
         }
         // Listen for liveRecv to handle server response
@@ -324,41 +370,70 @@
             }
             if (responseData && responseData.total_growth !== undefined) {
                 // Animate flower sizes and show results
-                if (window.flowerGame && typeof window.flowerGame.animateFlowerSizes === 'function') {
-                    window.flowerGame.animateFlowerSizes(responseData.flower_scores);
-                }
-                // Show scores under each flower after submit
-                if (window.flowerGame && typeof window.flowerGame.showAllScores === 'function') {
-                    window.flowerGame.showAllScores();
+                const isTestPhase = window.js_vars.phase === 'Test 1' || window.js_vars.phase === 'Test 2';
+                if (!isTestPhase) {
+                    if (window.flowerGame && typeof window.flowerGame.animateFlowerSizes === 'function') {
+                        window.flowerGame.animateFlowerSizes(responseData.flower_scores);
+                    }
+                    if (window.flowerGame && typeof window.flowerGame.showAllScores === 'function') {
+                        const scaledScores = responseData.flower_scores.map(x => Math.round(x * 400));
+                        window.flowerGame.showAllScores(scaledScores);
+                    }
+                } else {
+                    if (window.flowerGame && typeof window.flowerGame.hideAllScores === 'function') {
+                        window.flowerGame.hideAllScores();
+                    }
                 }
                 setTimeout(() => {
-                    document.getElementById('results-section').style.display = 'block';
-                    document.getElementById('speedResult').textContent = (responseData.total_growth * 100).toFixed(1);
-                    document.getElementById('pointsResult').textContent = responseData.total_points.toFixed(2);
-                    if (responseData.cumulative_earnings !== undefined) {
-                        document.getElementById('totalEarningsResult').textContent = parseFloat(responseData.cumulative_earnings).toFixed(2);
+                    // Fully hide results section in Test 1 and Test 2
+                    if (isTestPhase) {
+                        document.getElementById('results-section').style.display = 'none';
+                        // Add Continue button under the nutrients panel if not present
+                        let continueBtn = document.getElementById('continueAfterResults');
+                        if (!continueBtn) {
+                            continueBtn = document.createElement('button');
+                            continueBtn.id = 'continueAfterResults';
+                            continueBtn.className = 'btn btn-primary mt-3';
+                            continueBtn.textContent = (window.js_vars.phase === 'Test 2') ? 'End the task' : 'Go to the next round';
+                            continueBtn.onclick = function() {
+                                document.getElementById('nextRoundForm').submit();
+                            };
+                            // Place button under nutrient panel
+                            const nutrientPanel = document.getElementById('nutrient-panel');
+                            if (nutrientPanel && nutrientPanel.parentNode) {
+                                nutrientPanel.parentNode.appendChild(continueBtn);
+                            } else {
+                                document.body.appendChild(continueBtn);
+                            }
+                        }
+                    } else {
+                        document.getElementById('results-section').style.display = 'block';
+                        document.getElementById('pointsResult').textContent = responseData.total_points.toFixed(2);
+                        if (responseData.cumulative_earnings !== undefined) {
+                            document.getElementById('totalEarningsResult').textContent = parseFloat(responseData.cumulative_earnings).toFixed(2);
+                        }
+                        // Add Continue button under earnings section
+                        let continueBtn = document.getElementById('continueAfterResults');
+                        if (!continueBtn) {
+                            continueBtn = document.createElement('button');
+                            continueBtn.id = 'continueAfterResults';
+                            continueBtn.className = 'btn btn-primary mt-3';
+                            continueBtn.textContent = (window.js_vars && (window.js_vars.phase === 'Test 1' || window.js_vars.phase === 'Test 2')) ? 'Transmit' : 'Continue to Next Round';
+                            continueBtn.onclick = function() {
+                                document.getElementById('nextRoundForm').submit();
+                            };
+                            // Place button under earnings section
+                            const earningsSection = document.querySelector('.text-center.mt-3.mb-1');
+                            if (earningsSection) {
+                                earningsSection.appendChild(continueBtn);
+                            } else {
+                                document.getElementById('results-section').appendChild(continueBtn);
+                            }
+                        }
                     }
                     submitButton.style.display = 'none';
                     resetButton.style.display = 'none';
                     document.getElementById('status-message').innerHTML = '';
-                    // Add Continue button under earnings section
-                    let continueBtn = document.getElementById('continueAfterResults');
-                    if (!continueBtn) {
-                        continueBtn = document.createElement('button');
-                        continueBtn.id = 'continueAfterResults';
-                        continueBtn.className = 'btn btn-primary mt-3';
-                        continueBtn.textContent = (window.js_vars && (window.js_vars.phase === 'Test 1' || window.js_vars.phase === 'Test 2')) ? 'Transmit' : 'Continue to Next Round';
-                        continueBtn.onclick = function() {
-                            document.getElementById('nextRoundForm').submit();
-                        };
-                        // Place button under earnings section
-                        const earningsSection = document.querySelector('.text-center.mt-3.mb-1');
-                        if (earningsSection) {
-                            earningsSection.appendChild(continueBtn);
-                        } else {
-                            document.getElementById('results-section').appendChild(continueBtn);
-                        }
-                    }
                 }, 700);
             }
         };

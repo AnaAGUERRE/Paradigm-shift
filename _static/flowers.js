@@ -349,9 +349,14 @@ class FlowerGame {
     }
 
     // Shows the score for all flowers by updating and displaying each scoreDiv.
-    showAllScores() {
+    // If scores argument is provided, use those values directly (already scaled)
+    showAllScores(scores) {
         for (let i = 0; i < this.flowers.length; i++) {
-            this.updateFlowerScore(i);
+            if (scores && scores[i] !== undefined) {
+                this.flowers[i].scoreDiv.textContent = `Score: ${scores[i]}`;
+            } else {
+                this.updateFlowerScore(i);
+            }
             // Make the score visible
             this.flowers[i].scoreDiv.style.display = '';
         }
