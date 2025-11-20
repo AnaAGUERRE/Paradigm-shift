@@ -89,13 +89,42 @@ class FlowerField(Page):
             phase_class = 'test-1-flowers'
         else:
             phase_class = ''
+        # Prepare previous rounds' history for Training and Exploration phases
+        previous_combinations = []
+        valid_flowers = ['Blue', 'Green', 'Orange', 'Purple', 'Red', 'Yellow']
+        if phase in ['Training phase', 'Exploration phase']:
+            history = player.participant.vars.get('nutrient_flower_history', [])
+            # Only show previous rounds (not current)
+            for entry in history:
+                if entry['phase'] == phase and entry['round'] < phase_round:
+                    print(f"DEBUG previous round {entry['round']} flower_colors: {entry['flower_colors']}")
+                    # Filter out invalid/empty flower names before zipping
+                    filtered = [
+                        (
+                            f,
+                            [f"img/Nutr{nut}.png" if nut else None for nut in n],
+                            int(round(s * 400)),
+                            f"img/Flw{f}.png" if f is not None and f != '' and f in valid_flowers else None,
+                            s,  # growth value (0.0 to 1.0)
+                            int(18 + s * 18)  # flower_size in px (smaller base and scale)
+                        )
+                        for f, n, s in zip(entry['flower_colors'], entry.get('nutrients', []), entry.get('scores', []))
+                        if f is not None and f != '' and f in valid_flowers
+                    ]
+                    previous_combinations.append({
+                        'round': entry['round'],
+                        'zipped': filtered
+                    })
+        valid_flowers = ['Purple', 'Orange', 'Green', 'Yellow', 'Red', 'Blue']
         return dict(
             phase=phase,
             phase_round=phase_round,
             phase_total=phase_total,
             flower_colors=json.dumps(flower_colors),
             cumulative_earnings=player.cumulative_earnings,
-            phase_class=phase_class
+            phase_class=phase_class,
+            previous_combinations=previous_combinations,
+            valid_flowers=valid_flowers
         )
     live_method = "live_method"  # Name of live method for JS communication
     template_name = 'flowerfieldtask/FlowerField.html'  # HTML template to use
@@ -155,7 +184,8 @@ class FlowerField(Page):
                 'phase': phase,
                 'round': display_round,
                 'flower_colors': flower_colors,
-                'nutrients': nutrients
+                'nutrients': nutrients,
+                'scores': flower_scores
             })
 
             # Save all entries to Excel after every round (local analysis)
