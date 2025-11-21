@@ -168,6 +168,8 @@ class FlowerField(Page):
             total_growth = sum(f['growth'] for f in output) / len(output)
             total_points = calculate_points_from_growth(total_growth)
             flower_scores = [f['growth'] for f in output]
+            # Track noise effects for noisy configs
+            noise_effects = [f.get('noise') for f in output]
             # Update participant's total earnings
             if 'total_earnings' not in player.participant.vars:
                 player.participant.vars['total_earnings'] = 0
@@ -214,7 +216,8 @@ class FlowerField(Page):
                 'round': display_round,
                 'flower_colors': flower_colors,
                 'nutrients': nutrients,
-                'scores': flower_scores
+                'scores': flower_scores,
+                'noise_effects': noise_effects
             })
 
             # Save all entries to Excel after every round (local analysis)
@@ -228,7 +231,9 @@ class FlowerField(Page):
                     'phase': phase,
                     'round': display_round,
                     'flower_colors': flower_colors,
-                    'nutrients': nutrients
+                    'nutrients': nutrients,
+                    'scores': flower_scores,
+                    'noise_effects': noise_effects
                 }
                 excel_path = 'nutrient_flower_data.xlsx'
                 if os.path.exists(excel_path):

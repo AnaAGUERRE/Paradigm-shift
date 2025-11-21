@@ -25,7 +25,9 @@ def run_engine(nutrient_choices, flower_colors=None, scoring_system='anomaly'):
     noise_indices = set()
     if noisy and n_flowers > 0:
         noise_indices = set(random.sample(range(n_flowers), max(1, n_flowers // 3)))
+    noise_effects = []
     for i, nutrients in enumerate(nutrient_choices):
+        noise = None
         if scoring_system == 'mm' and flower_colors:
             growth = calculate_growth_mm(nutrients, flower_colors[i])
         else:
@@ -33,13 +35,19 @@ def run_engine(nutrient_choices, flower_colors=None, scoring_system='anomaly'):
         # Apply noise if needed
         if noisy and i in noise_indices:
             if random.random() < 0.5:
-                growth = min(1.0, growth + epsilon)
+                new_growth = min(1.0, growth + epsilon)
+                noise = {'index': i, 'type': 'increase', 'amount': round(new_growth - growth, 3), 'before': round(growth, 3), 'after': round(new_growth, 3)}
+                growth = new_growth
             else:
-                growth = max(0.0, growth - epsilon)
+                new_growth = max(0.0, growth - epsilon)
+                noise = {'index': i, 'type': 'decrease', 'amount': round(new_growth - growth, 3), 'before': round(growth, 3), 'after': round(new_growth, 3)}
+                growth = new_growth
         results.append({
             'nutrients': nutrients,
-            'growth': growth
+            'growth': growth,
+            'noise': noise
         })
+    return results
     return results
 
 def calculate_growth_mm(nutrients, flower_color):
