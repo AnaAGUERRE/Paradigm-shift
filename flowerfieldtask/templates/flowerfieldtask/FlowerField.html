@@ -118,7 +118,7 @@
                 {% for flower, nutrient, score, flower_img, growth, flower_size in combo.zipped %}
                 <div style="display:flex; flex-direction:column; align-items:center; margin:0 1px;">
                     {% if flower_img %}
-                        <img src="{% static flower_img %}" style="width:{{ flower_size }}px; height:{{ flower_size }}px; margin-bottom:2px;" alt="{{ flower }}">
+                        <img src="{% static flower_img %}" width="{{ flower_size }}" height="{{ flower_size }}" style="margin-bottom:2px;" alt="{{ flower }}">
                     {% endif %}
                 </div>
                 {% endfor %}

@@ -7,12 +7,35 @@ def run_engine(nutrient_choices, flower_colors=None, scoring_system='anomaly'):
     flower_colors: list of flower colors for each flower (for M&M scoring)
     scoring_system: 'anomaly' or 'mm'
     """
+    import random
     results = []
+    # Check for noise config
+    noisy = False
+    epsilon = 0.0
+    # If called with extra kwargs, use them
+    import inspect
+    frame = inspect.currentframe().f_back
+    session_config = getattr(frame.f_locals.get('player', None), 'session', None)
+    if session_config:
+        config = session_config.config
+        noisy = config.get('noisy', False)
+        epsilon = config.get('epsilon', 0.0)
+    # Pick 1/3 of flowers to apply noise
+    n_flowers = len(nutrient_choices)
+    noise_indices = set()
+    if noisy and n_flowers > 0:
+        noise_indices = set(random.sample(range(n_flowers), max(1, n_flowers // 3)))
     for i, nutrients in enumerate(nutrient_choices):
         if scoring_system == 'mm' and flower_colors:
             growth = calculate_growth_mm(nutrients, flower_colors[i])
         else:
             growth = calculate_growth(nutrients)
+        # Apply noise if needed
+        if noisy and i in noise_indices:
+            if random.random() < 0.5:
+                growth = min(1.0, growth + epsilon)
+            else:
+                growth = max(0.0, growth - epsilon)
         results.append({
             'nutrients': nutrients,
             'growth': growth

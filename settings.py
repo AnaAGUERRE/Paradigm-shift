@@ -19,6 +19,24 @@ SESSION_CONFIGS = [
         num_demo_participants=1,                # Number of demo participants
         scoring_system='mm',                    # Scoring system identifier
     ),
+    dict(
+        name='anomaly_noisy',
+        display_name='Anomaly noisy',
+        app_sequence=['flowerfieldtask'],
+        num_demo_participants=1,
+        scoring_system='anomaly',
+        epsilon=0.2,  # 20% noise
+        noisy=True,
+    ),
+    dict(
+        name='mm_noisy',
+        display_name='M&M noisy',
+        app_sequence=['flowerfieldtask'],
+        num_demo_participants=1,
+        scoring_system='mm',
+        epsilon=0.2,  # 20% noise
+        noisy=True,
+    ),
 ]
 
 SESSION_CONFIG_DEFAULTS = dict(
