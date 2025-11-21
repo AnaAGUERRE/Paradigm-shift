@@ -4,10 +4,10 @@
     z-index: 20;
     box-shadow: 0 2px 8px rgba(0,0,0,0.12);
     width: auto !important;
-    min-width: 180px;
-    max-width: 260px;
-    font-size: 1.2em;
-    padding: 16px 0;
+    min-width: 120px;
+    max-width: 220px;
+    font-size: 1em;
+    padding: 8px 24px;
     text-align: center;
 }
 /* Single nutrient slot for each flower */

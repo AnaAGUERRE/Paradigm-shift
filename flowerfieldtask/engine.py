@@ -1,21 +1,67 @@
 # flowerfieldtask/engine.py
 
-def run_engine(nutrient_choices):
+def run_engine(nutrient_choices, flower_colors=None, scoring_system='anomaly'):
     """
     Nutrient choices is a list of flowers, each flower has 2 nutrients, e.g.:
     [["red", "blue"], ["yellow", "yellow"], ["blue", "blue"]]
+    flower_colors: list of flower colors for each flower (for M&M scoring)
+    scoring_system: 'anomaly' or 'mm'
     """
-    results = []  # List to store results for each flower
-    for nutrients in nutrient_choices:
-        # Calculate growth for the current flower
-        growth = calculate_growth(nutrients)
-        # Append nutrients and growth to results
+    results = []
+    for i, nutrients in enumerate(nutrient_choices):
+        if scoring_system == 'mm' and flower_colors:
+            growth = calculate_growth_mm(nutrients, flower_colors[i])
+        else:
+            growth = calculate_growth(nutrients)
         results.append({
             'nutrients': nutrients,
             'growth': growth
         })
     return results
 
+def calculate_growth_mm(nutrients, flower_color):
+    """
+    Mix-and-match scoring for M&M config:
+    - For primary colored flowers (Red, Blue, Yellow): best score for matching two same primary nutrients to same flower.
+    - For secondary colored flowers (Orange, Green, Purple): best score for mixing correct two primary nutrients to match flower color.
+    - Scores are normalized to same range as anomaly (max 1.0, min 0.0).
+    """
+    # Define color rules
+    primary = {'Red', 'Blue', 'Yellow'}
+    secondary_map = {
+        'Orange': {'Red', 'Yellow'},
+        'Green': {'Blue', 'Yellow'},
+        'Purple': {'Red', 'Blue'}
+    }
+    n1 = nutrients[0] if len(nutrients) > 0 else ''
+    n2 = nutrients[1] if len(nutrients) > 1 else ''
+    # Primary flower: best is two matching nutrients
+    if flower_color in primary:
+        if n1 == flower_color and n2 == flower_color:
+            return 1.0
+        elif n1 == flower_color or n2 == flower_color:
+            return 0.6
+        elif n1 in primary and n2 in primary:
+            return 0.4
+        elif n1 or n2:
+            return 0.2
+        else:
+            return 0.0
+    # Secondary flower: best is correct mix
+    elif flower_color in secondary_map:
+        correct_mix = secondary_map[flower_color]
+        if {n1, n2} == correct_mix:
+            return 1.0
+        elif n1 in correct_mix or n2 in correct_mix:
+            return 0.7
+        elif n1 in primary and n2 in primary:
+            return 0.5
+        elif n1 or n2:
+            return 0.3
+        else:
+            return 0.0
+    # Fallback: anomaly scoring
+    return calculate_growth([n1, n2])
 
 def calculate_growth(nutrients):
     """
@@ -34,7 +80,6 @@ def calculate_growth(nutrients):
     n1 = nutrients[0] if len(nutrients) > 0 else ''
     n2 = nutrients[1] if len(nutrients) > 1 else ''
 
-    # Deux nutriments
     # Case: Two nutrients
     if n1 and n2:
         if n1 == 'Blue' and n2 == 'Blue':

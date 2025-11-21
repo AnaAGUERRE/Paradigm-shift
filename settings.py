@@ -4,12 +4,20 @@ import os
 # oTree experiment settings for Flower Field Task
 
 SESSION_CONFIGS = [
-    # List of session configurations (one per experiment/app)
+    # Anomaly no noise config
     dict(
-        name='flowerfieldtask',                # Internal name for the session
-        display_name='Flower Field Task (independent)',  # Shown in admin
-        app_sequence=['flowerfieldtask'],      # Apps to run in sequence
-        num_demo_participants=1,               # Number of demo participants
+        name='anomaly_no_noise',                # Internal name for the session
+        display_name='Anomaly no noise',        # Shown in admin
+        app_sequence=['flowerfieldtask'],       # Apps to run in sequence
+        num_demo_participants=1,                # Number of demo participants
+        scoring_system='anomaly',               # Scoring system identifier
+    ),
+    dict(
+        name='mm_no_noise',                     # Internal name for the session
+        display_name='M&M no noise',            # Shown in admin
+        app_sequence=['flowerfieldtask'],       # Apps to run in sequence
+        num_demo_participants=1,                # Number of demo participants
+        scoring_system='mm',                    # Scoring system identifier
     ),
 ]
 

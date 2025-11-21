@@ -86,16 +86,21 @@
                 </div>
                 <div class="side-panel-stack">
                     <div id="nutrient-panel"></div>
+                    {% if phase != 'Test 1' and phase != 'Test 2' %}
                     <div id="results-section" class="text-center mt-3 mb-1">
                         <h4 id="result">Result in this round:</h4>
-                        {% if phase != 'Test 1' and phase != 'Test 2' %}
                         Earnings: £<span id="pointsResult"></span><br>
-                        {% endif %}
                         Total earnings: £<span id="totalEarningsResult">{{ player.cumulative_earnings }}</span><br>
                         <br>
                         <!-- Hidden form for round advancement -->
                         <form id="nextRoundForm" method="post" style="display:none;"></form>
                     </div>
+                    {% else %}
+                    <div id="results-section" class="text-center mt-3 mb-1" style="display:none;">
+                        <!-- Hidden form for round advancement -->
+                        <form id="nextRoundForm" method="post" style="display:none;"></form>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
             <!-- Removed duplicate results section -->
@@ -213,6 +218,7 @@
     </style>
     <script>
         window.js_vars = window.js_vars || {};
+                    window.js_vars.treatment = "{{ session.config.display_name }}";
         window.js_vars.current_round = "{{ player.round_number }}";
         window.js_vars.phase = "{{ phase }}";
         window.js_vars.flower_colors = JSON.parse('{{ flower_colors|safe }}');
@@ -333,6 +339,11 @@
                     setTimeout(() => document.getElementById('status-message').innerHTML = '', 3000);
                     return;
                 }
+                // Hide reset button immediately after valid submit attempt
+                const resetButton = document.getElementById('resetButton');
+                if (resetButton) {
+                    resetButton.style.display = 'none';
+                }
                 // If Test 1 or Test 2, show confirmation popup before transmitting
                 if (window.js_vars.phase === 'Test 1' || window.js_vars.phase === 'Test 2') {
                     if (typeof bootbox !== 'undefined') {
@@ -358,6 +369,11 @@
                                     className: 'btn-secondary',
                                     callback: function() {
                                         // Close the popup by returning true (Bootbox closes on true)
+                                        // If user cancels, re-show reset button
+                                        const resetButton = document.getElementById('resetButton');
+                                        if (resetButton) {
+                                            resetButton.style.display = '';
+                                        }
                                         return true;
                                     }
                                 }
@@ -374,6 +390,12 @@
                                 type: 'flowerSubmit',
                                 data: flowerChoices
                             });
+                        } else {
+                            // If user cancels, re-show reset button
+                            const resetButton = document.getElementById('resetButton');
+                            if (resetButton) {
+                                resetButton.style.display = '';
+                            }
                         }
                     }
                 } else {
@@ -403,6 +425,9 @@
                 }
             }
             if (responseData && responseData.total_growth !== undefined) {
+                if (typeof disableNutrientPanelAndSlots === 'function') {
+                    disableNutrientPanelAndSlots();
+                }
                 // Animate flower sizes and show results
                 const isTestPhase = window.js_vars.phase === 'Test 1' || window.js_vars.phase === 'Test 2';
                 if (!isTestPhase) {
@@ -410,7 +435,18 @@
                         window.flowerGame.animateFlowerSizes(responseData.flower_scores);
                     }
                     if (window.flowerGame && typeof window.flowerGame.showAllScores === 'function') {
-                        const scaledScores = responseData.flower_scores.map(x => Math.round(x * 400));
+                        let scaledScores;
+                        if (window.js_vars && window.js_vars.treatment && window.js_vars.treatment.toLowerCase().includes('m&m')) {
+                            // For M&M config, min growth is 0.3, scale 0.3->100, 1.0->400
+                            const minGrowth = 0.3, minPx = 100, maxPx = 400;
+                            scaledScores = responseData.flower_scores.map(x => {
+                                if (x <= minGrowth) return minPx;
+                                return Math.round(minPx + (x - minGrowth) * (maxPx - minPx) / (1.0 - minGrowth));
+                            });
+                        } else {
+                            // Default scaling
+                            scaledScores = responseData.flower_scores.map(x => Math.round(x * 400));
+                        }
                         window.flowerGame.showAllScores(scaledScores);
                     }
                 } else {

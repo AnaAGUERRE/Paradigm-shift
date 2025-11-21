@@ -1,3 +1,18 @@
+// Disables nutrient panel and prevents further drag-and-drop after submission
+function disableNutrientPanelAndSlots() {
+    // Hide nutrient panel
+    const panel = document.getElementById('nutrient-panel');
+    if (panel) {
+        panel.style.display = 'none';
+    }
+    // Disable all nutrient slots
+    const slots = document.querySelectorAll('.nutrient-slot');
+    slots.forEach(slot => {
+        slot.ondrop = null;
+        slot.ondragover = null;
+        slot.ondragleave = null;
+    });
+}
 /**
  * Flower Field Task - Drag and Drop Implementation with PNG Images
  */
@@ -351,6 +366,8 @@ class FlowerGame {
     // Shows the score for all flowers by updating and displaying each scoreDiv.
     // If scores argument is provided, use those values directly (already scaled)
     showAllScores(scores) {
+        // After showing scores, mask nutrients and disable slots
+        disableNutrientPanelAndSlots();
         for (let i = 0; i < this.flowers.length; i++) {
             if (scores && scores[i] !== undefined) {
                 this.flowers[i].scoreDiv.textContent = `Score: ${scores[i]}`;

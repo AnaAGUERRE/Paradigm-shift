@@ -134,8 +134,37 @@ class FlowerField(Page):
         # Handles live communication from JS (nutrient submission)
         if data['type'] == 'flowerSubmit':
             nutrients = data['data']
+            # Select scoring system from session config
+            scoring_system = player.session.config.get('scoring_system', 'anomaly')
+            # Get flower colors for this round
+            if player.round_number <= C.TRAINING_ROUNDS:
+                round_flower_types = [
+                    ['Purple', 'Orange', 'Green'],
+                    ['Green', 'Green', 'Orange'],
+                    ['Purple', 'Green', 'Purple'],
+                    ['Purple', 'Orange', 'Orange'],
+                    ['Green', 'Orange', 'Purple']
+                ]
+                flower_colors = round_flower_types[player.round_number - 1]
+            elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS:
+                flower_colors = ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
+            elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS + C.EXPLORATION_ROUNDS:
+                exploration_flower_types = [
+                    ['Green', 'Purple', 'Blue'],
+                    ['Green', 'Purple', 'Blue'],
+                    ['Green', 'Purple', 'Yellow'],
+                    ['Green', 'Purple', 'Yellow'],
+                    ['Green', 'Purple', 'Yellow']
+                ]
+                display_round = player.round_number - C.TRAINING_ROUNDS - C.TEST1_ROUNDS
+                flower_colors = exploration_flower_types[display_round - 1]
+            else:
+                flower_colors = ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
             # Run backend engine to calculate growth and points
-            output = run_engine(nutrients)
+            if scoring_system == 'mm':
+                output = run_engine(nutrients, flower_colors=flower_colors, scoring_system='mm')
+            else:
+                output = run_engine(nutrients)
             total_growth = sum(f['growth'] for f in output) / len(output)
             total_points = calculate_points_from_growth(total_growth)
             flower_scores = [f['growth'] for f in output]
@@ -195,6 +224,7 @@ class FlowerField(Page):
                 # Prepare the new entry for Excel
                 new_entry = {
                     'participant_code': player.participant.code,
+                    'Treatment': player.session.config.get('display_name', player.session.config.get('name', '')),
                     'phase': phase,
                     'round': display_round,
                     'flower_colors': flower_colors,
@@ -207,6 +237,11 @@ class FlowerField(Page):
                     df_all = pd.concat([df_existing, df_new], ignore_index=True)
                 else:
                     df_all = pd.DataFrame([new_entry])
+                # Reorder columns to put 'Treatment' first
+                cols = list(df_all.columns)
+                if 'Treatment' in cols:
+                    cols.insert(0, cols.pop(cols.index('Treatment')))
+                    df_all = df_all[cols]
                 df_all.to_excel(excel_path, index=False)
 
                 # Auto-adjust column widths for readability
