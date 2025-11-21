@@ -58,7 +58,7 @@
     </div>
 
     {# Main game and results area #}
-    <div class="row m-0 p-0" style="width: 100%; min-height: 700px;">
+    <div class="row m-0 p-0" style="width: 100%; min-height: 400px;">
         <div class="col-12" id="currentRound" style="min-height: 700px; width: 100%; display: flex;">
             <!-- Flower Field Game -->
             <div class="flower-game-container" style="width: 100%;">
@@ -428,7 +428,13 @@
                             continueBtn = document.createElement('button');
                             continueBtn.id = 'continueAfterResults';
                             continueBtn.className = 'btn btn-primary mt-3';
-                            continueBtn.textContent = (window.js_vars.phase === 'Test 2') ? 'End the task' : 'Go to the next round';
+                            if (window.js_vars.phase === 'Test 2') {
+                                continueBtn.textContent = 'End the task';
+                            } else if (window.js_vars.phase === 'Test 1') {
+                                continueBtn.textContent = 'Continue to the next phase';
+                            } else {
+                                continueBtn.textContent = 'Go to the next round';
+                            }
                             continueBtn.onclick = function() {
                                 document.getElementById('nextRoundForm').submit();
                             };
@@ -456,12 +462,20 @@
                             continueBtn.onclick = function() {
                                 document.getElementById('nextRoundForm').submit();
                             };
-                            // Place button under earnings section
-                            const earningsSection = document.querySelector('.text-center.mt-3.mb-1');
-                            if (earningsSection) {
-                                earningsSection.appendChild(continueBtn);
+                            // Place button inside the white panel, below the flowers and controls
+                            continueBtn.style.position = 'static';
+                            continueBtn.style.display = 'inline-block';
+                            continueBtn.style.margin = '32px auto 0 auto';
+                            continueBtn.style.zIndex = '20';
+                            continueBtn.style.maxWidth = '260px';
+                            const flowerPanel = document.getElementById('flower-field-panel');
+                            if (flowerPanel) {
+                                const panelCol = document.createElement('div');
+                                panelCol.style.textAlign = 'center';
+                                panelCol.appendChild(continueBtn);
+                                flowerPanel.appendChild(panelCol);
                             } else {
-                                document.getElementById('results-section').appendChild(continueBtn);
+                                document.body.appendChild(continueBtn);
                             }
                         }
                     }

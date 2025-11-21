@@ -1,3 +1,15 @@
+.btn#continueAfterResults {
+    display: block;
+    margin: 32px auto 0 auto;
+    z-index: 20;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    width: auto !important;
+    min-width: 180px;
+    max-width: 260px;
+    font-size: 1.2em;
+    padding: 16px 0;
+    text-align: center;
+}
 /* Single nutrient slot for each flower */
 
 .nutrient-slot.single-slot {
