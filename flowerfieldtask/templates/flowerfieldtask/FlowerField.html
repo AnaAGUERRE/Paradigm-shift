@@ -344,69 +344,67 @@
                 if (resetButton) {
                     resetButton.style.display = 'none';
                 }
-                // If Test 1 or Test 2, show confirmation popup before transmitting
+                // Show confirmation popup for all phases
+                let popupMessage = '';
+                let yesLabel = '';
                 if (window.js_vars.phase === 'Test 1' || window.js_vars.phase === 'Test 2') {
-                    if (typeof bootbox !== 'undefined') {
-                        bootbox.dialog({
-                            message: `<div style='font-size:1.1em; text-align:center;'>Are you sure you’ve put the desired nutrients and want to transmit your configuration to following participants ?</div>`,
-                            buttons: [
-                                {
-                                    label: 'Yes transmit',
-                                    className: 'btn-primary',
-                                    callback: function() {
-                                        submitButton.disabled = true;
-                                        document.getElementById('status-message').innerHTML = '';
-                                        const flowerChoices = window.flowerGame.getFlowerChoices();
-                                        liveSend({
-                                            type: 'flowerSubmit',
-                                            data: flowerChoices
-                                        });
-                                        return true;
-                                    }
-                                },
-                                {
-                                    label: 'No, continue editing',
-                                    className: 'btn-secondary',
-                                    callback: function() {
-                                        // Close the popup by returning true (Bootbox closes on true)
-                                        // If user cancels, re-show reset button
-                                        const resetButton = document.getElementById('resetButton');
-                                        if (resetButton) {
-                                            resetButton.style.display = '';
-                                        }
-                                        return true;
-                                    }
+                    popupMessage = "Are you sure you’ve put the desired nutrients and want to transmit your configuration to following participants ?";
+                    yesLabel = 'Yes transmit';
+                } else {
+                    popupMessage = "Are you sure you’ve put the desired nutrients and want to submit the round ?";
+                    yesLabel = 'Yes, submit';
+                }
+                if (typeof bootbox !== 'undefined') {
+                    bootbox.dialog({
+                        message: `<div style='font-size:1.1em; text-align:center;'>${popupMessage}</div>`,
+                        buttons: [
+                            {
+                                label: yesLabel,
+                                className: 'btn-primary',
+                                callback: function() {
+                                    submitButton.disabled = true;
+                                    document.getElementById('status-message').innerHTML = '';
+                                    const flowerChoices = window.flowerGame.getFlowerChoices();
+                                    liveSend({
+                                        type: 'flowerSubmit',
+                                        data: flowerChoices
+                                    });
+                                    return true;
                                 }
-                            ],
-                            closeButton: false
+                            },
+                            {
+                                label: 'No, continue editing',
+                                className: 'btn-secondary',
+                                callback: function() {
+                                    // Close the popup by returning true (Bootbox closes on true)
+                                    // If user cancels, re-show reset button
+                                    const resetButton = document.getElementById('resetButton');
+                                    if (resetButton) {
+                                        resetButton.style.display = '';
+                                    }
+                                    return true;
+                                }
+                            }
+                        ],
+                        closeButton: false
+                    });
+                } else {
+                    // Fallback: native confirm
+                    if (confirm(popupMessage)) {
+                        submitButton.disabled = true;
+                        document.getElementById('status-message').innerHTML = '';
+                        const flowerChoices = window.flowerGame.getFlowerChoices();
+                        liveSend({
+                            type: 'flowerSubmit',
+                            data: flowerChoices
                         });
                     } else {
-                        // Fallback: native confirm
-                        if (confirm('Are you sure you’ve put the desired nutrients and want to transmit your configuration to following participants ?')) {
-                            submitButton.disabled = true;
-                            document.getElementById('status-message').innerHTML = '';
-                            const flowerChoices = window.flowerGame.getFlowerChoices();
-                            liveSend({
-                                type: 'flowerSubmit',
-                                data: flowerChoices
-                            });
-                        } else {
-                            // If user cancels, re-show reset button
-                            const resetButton = document.getElementById('resetButton');
-                            if (resetButton) {
-                                resetButton.style.display = '';
-                            }
+                        // If user cancels, re-show reset button
+                        const resetButton = document.getElementById('resetButton');
+                        if (resetButton) {
+                            resetButton.style.display = '';
                         }
                     }
-                } else {
-                    // Other phases: submit directly
-                    const flowerChoices = window.flowerGame.getFlowerChoices();
-                    submitButton.disabled = true;
-                    document.getElementById('status-message').innerHTML = '';
-                    liveSend({
-                        type: 'flowerSubmit',
-                        data: flowerChoices
-                    });
                 }
             });
         }
