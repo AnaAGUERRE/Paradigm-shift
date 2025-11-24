@@ -344,37 +344,39 @@ class FlowerGame {
     }
 
     // Updates the score display for a specific flower based on its nutrients.
-    updateFlowerScore(flowerIdx) {
-        // Get the nutrients assigned to this flower
+    updateFlowerScore(flowerIdx, earningsPenny) {
+        // If earningsPenny is a string (already formatted as X.XX), display as £X.XX
+        if (typeof earningsPenny === 'string') {
+            this.flowers[flowerIdx].scoreDiv.textContent = `£${earningsPenny}`;
+            return;
+        }
+        // Otherwise, calculate as before
         const nutrients = this.flowers[flowerIdx].nutrients;
         let score = 0;
-        // If both nutrient slots are filled, calculate growth with both
         if (nutrients[0] && nutrients[1]) {
             score = this.calculateGrowth(nutrients[0], nutrients[1]);
         } else if (nutrients[0] || nutrients[1]) {
-        // If only one slot is filled, calculate growth with one
             const n = nutrients[0] || nutrients[1];
             score = this.calculateGrowth(n, '');
         } else {
-        // No nutrients assigned, score is zero
             score = 0;
         }
-        // Update the score display for this flower
-        this.flowers[flowerIdx].scoreDiv.textContent = `Score: ${(score * 100).toFixed(0)}%`;
+        let earnings = (typeof earningsPenny === 'number') ? earningsPenny : Math.round(score * 100);
+        let earningsPounds = (earnings / 100).toFixed(2);
+        this.flowers[flowerIdx].scoreDiv.textContent = `£${earningsPounds}`;
     }
 
     // Shows the score for all flowers by updating and displaying each scoreDiv.
     // If scores argument is provided, use those values directly (already scaled)
-    showAllScores(scores) {
+    showAllScores(scores, earnings) {
         // After showing scores, mask nutrients and disable slots
         disableNutrientPanelAndSlots();
         for (let i = 0; i < this.flowers.length; i++) {
-            if (scores && scores[i] !== undefined) {
-                this.flowers[i].scoreDiv.textContent = `Score: ${scores[i]}`;
+            if (earnings && earnings[i] !== undefined) {
+                this.updateFlowerScore(i, earnings[i]);
             } else {
                 this.updateFlowerScore(i);
             }
-            // Make the score visible
             this.flowers[i].scoreDiv.style.display = '';
         }
     }

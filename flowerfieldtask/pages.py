@@ -40,20 +40,22 @@ class FlowerField(Page):
             # Compute growth for each flower using engine.py
             results = run_engine(flower_choices)
             flower_scores = [r['growth'] for r in results]
-            # Calculate average growth and points
+            # Calculate per-flower earnings in pennies (e.g., 1.0 growth = 100p)
+            flower_earnings = [int(round(g * 100)) for g in flower_scores]
             total_growth = sum(flower_scores) / len(flower_scores)
-            total_points = calculate_points(total_growth)
+            total_earnings = sum(flower_earnings)
             self.player.total_growth = total_growth
-            self.player.total_points = total_points
+            self.player.total_points = total_earnings  # Store as pennies for clarity
             # Accumulate total earnings for participant
             if not hasattr(self.participant, 'total_earnings') or self.participant.total_earnings is None:
                 self.participant.total_earnings = 0
-            self.participant.total_earnings += total_points
+            self.participant.total_earnings += total_earnings
             # Send results back to frontend
             self.send({
                 'total_growth': total_growth,
-                'total_points': total_points,
+                'total_earnings': total_earnings,
                 'flower_scores': flower_scores,
+                'flower_earnings': flower_earnings,
             })
 
 page_sequence = [FlowerField]  # Sequence of pages in the experiment

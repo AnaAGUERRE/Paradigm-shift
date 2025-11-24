@@ -98,15 +98,14 @@ class FlowerField(Page):
             for entry in history:
                 if entry['phase'] == phase and entry['round'] < phase_round:
                     print(f"DEBUG previous round {entry['round']} flower_colors: {entry['flower_colors']}")
-                    # Filter out invalid/empty flower names before zipping
                     filtered = [
                         (
                             f,
                             [f"img/Nutr{nut}.png" if nut else None for nut in n],
-                            int(round(s * 400)),
+                            s,  # per-flower earnings as string £X.XX
                             f"img/Flw{f}.png" if f is not None and f != '' and f in valid_flowers else None,
-                            s,  # growth value (0.0 to 1.0)
-                            int(18 + s * 18)  # flower_size in px (smaller base and scale)
+                            float(s),  # growth value as float (for proportional size)
+                            int(18 + float(s) * 18)  # flower_size in px (smaller base and scale)
                         )
                         for f, n, s in zip(entry['flower_colors'], entry.get('nutrients', []), entry.get('scores', []))
                         if f is not None and f != '' and f in valid_flowers
@@ -168,12 +167,15 @@ class FlowerField(Page):
             total_growth = sum(f['growth'] for f in output) / len(output)
             total_points = calculate_points_from_growth(total_growth)
             flower_scores = [f['growth'] for f in output]
+            # Per-flower earnings as strings with two decimals
+            flower_earnings = ["{:.2f}".format(g * 1.00) for g in flower_scores]
+            round_earnings = sum([float(e) for e in flower_earnings])
             # Track noise effects for noisy configs
             noise_effects = [f.get('noise') for f in output]
             # Update participant's total earnings
             if 'total_earnings' not in player.participant.vars:
-                player.participant.vars['total_earnings'] = 0
-            player.participant.vars['total_earnings'] += round(total_points, 2)
+                player.participant.vars['total_earnings'] = 0.0
+            player.participant.vars['total_earnings'] = round(float(player.participant.vars['total_earnings']) + round_earnings, 2)
             player.cumulative_earnings = player.participant.vars['total_earnings']
 
             # Get flower colors and phase for this round
@@ -216,7 +218,7 @@ class FlowerField(Page):
                 'round': display_round,
                 'flower_colors': flower_colors,
                 'nutrients': nutrients,
-                'scores': flower_scores,
+                'scores': flower_earnings,
                 'noise_effects': noise_effects
             })
 
@@ -272,10 +274,9 @@ class FlowerField(Page):
             # Return results to JS for display
             return {
                 player.id_in_group: dict(
-                    total_growth=round(total_growth, 2),
-                    total_points=round(total_points, 2),
                     flower_scores=flower_scores,
-                    cumulative_earnings=player.cumulative_earnings
+                    flower_earnings=flower_earnings,
+                    cumulative_earnings="{:.2f}".format(player.cumulative_earnings)
                 )
             }
 

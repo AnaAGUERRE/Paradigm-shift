@@ -36,10 +36,13 @@
 
 <div id="main-container">
     {# Top row: phase and round info #}
-    <div class="row m-0 p-0" id="toprow">
-        <div class="col-12 p-1 border mt-1">
-            <h4 class="text-center" style="margin-bottom:0.5em;">{{ phase }}</h4>
-            <h5 class="text-center">Round {{ phase_round }} / {{ phase_total }}</h5>
+    <div class="row m-0 p-0" id="toprow" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+        <div class="col-12 p-1 border mt-1" style="width: 100%; max-width: 700px; text-align: center;">
+            <h4 style="margin-bottom:0.5em;">{{ phase }}</h4>
+            <h5>Round {{ phase_round }} / {{ phase_total }}</h5>
+            <div id="top-earnings" style="font-size:1.1em; margin-top:0.5em;">
+                Total earnings: £<span id="totalEarningsResult">{{ cumulative_earnings }}</span>
+            </div>
         </div>
     </div>
 
@@ -59,7 +62,7 @@
 
     {# Main game and results area #}
     <div class="row m-0 p-0" style="width: 100%; min-height: 400px;">
-        <div class="col-12" id="currentRound" style="min-height: 700px; width: 100%; display: flex;">
+        <div class="col-12" id="currentRound" style="min-height: 700px; width: 100%; display: flex; justify-content: center; align-items: flex-start;">
             <!-- Flower Field Game -->
             <div class="flower-game-container" style="width: 100%;">
                 <div id="flower-field-panel" class="white-panel">
@@ -76,7 +79,7 @@
                         <div id="status-message"></div>
                         <div id="flower-field-wrapper" class="{{ phase_class }}">
                             <!-- JS will fill flower-field with correct layout -->
-                            <div id="flower-field" class="flower-slots-row"></div>
+                            <div id="flower-field" class="flower-slots-row" style="display: flex; justify-content: center; align-items: flex-end; width: 100%;"></div>
                         </div>
                         <div class="game-controls">
                             <button class="reset-button" id="resetButton">Reset</button>
@@ -86,21 +89,7 @@
                 </div>
                 <div class="side-panel-stack">
                     <div id="nutrient-panel"></div>
-                    {% if phase != 'Test 1' and phase != 'Test 2' %}
-                    <div id="results-section" class="text-center mt-3 mb-1">
-                        <h4 id="result">Result in this round:</h4>
-                        Earnings: £<span id="pointsResult"></span><br>
-                        Total earnings: £<span id="totalEarningsResult">{{ player.cumulative_earnings }}</span><br>
-                        <br>
-                        <!-- Hidden form for round advancement -->
-                        <form id="nextRoundForm" method="post" style="display:none;"></form>
-                    </div>
-                    {% else %}
-                    <div id="results-section" class="text-center mt-3 mb-1" style="display:none;">
-                        <!-- Hidden form for round advancement -->
-                        <form id="nextRoundForm" method="post" style="display:none;"></form>
-                    </div>
-                    {% endif %}
+                    <!-- Results section removed -->
                 </div>
             </div>
             <!-- Removed duplicate results section -->
@@ -118,7 +107,11 @@
                 {% for flower, nutrient, score, flower_img, growth, flower_size in combo.zipped %}
                 <div style="display:flex; flex-direction:column; align-items:center; margin:0 1px;">
                     {% if flower_img %}
-                        <img src="{% static flower_img %}" width="{{ flower_size }}" height="{{ flower_size }}" style="margin-bottom:2px;" alt="{{ flower }}">
+                        {% if flower_size %}
+                            <img src="{% static flower_img %}" width="{{ flower_size }}" height="{{ flower_size }}" style="margin-bottom:2px;" alt="{{ flower }}">
+                        {% else %}
+                            <img src="{% static flower_img %}" width="32" height="32" style="margin-bottom:2px;" alt="{{ flower }}">
+                        {% endif %}
                     {% endif %}
                 </div>
                 {% endfor %}
@@ -131,7 +124,7 @@
                         {% if nutrient_img %}<img src="{% static nutrient_img %}" style="width:16px; height:16px;" alt="nutrient">{% endif %}
                         {% endfor %}
                     </div>
-                    <span style="font-size:0.85em; color:#444; font-weight:bold; margin-top:0px;">{{ score }}</span>
+                    <span style="font-size:0.85em; color:#444; font-weight:bold; margin-top:0px;">£{{ score }}</span>
                 </div>
                 {% endfor %}
             </div>
@@ -412,17 +405,17 @@
         window.liveRecv = function(data) {
             // Accept both direct and wrapped responses
             let responseData = null;
-            if (data && data.total_growth !== undefined) {
+            if (data && data.cumulative_earnings !== undefined) {
                 responseData = data;
             } else {
                 for (let key in data) {
-                    if (data[key] && data[key].total_growth !== undefined) {
+                    if (data[key] && data[key].cumulative_earnings !== undefined) {
                         responseData = data[key];
                         break;
                     }
                 }
             }
-            if (responseData && responseData.total_growth !== undefined) {
+            if (responseData && responseData.cumulative_earnings !== undefined) {
                 if (typeof disableNutrientPanelAndSlots === 'function') {
                     disableNutrientPanelAndSlots();
                 }
@@ -445,77 +438,74 @@
                             // Default scaling
                             scaledScores = responseData.flower_scores.map(x => Math.round(x * 400));
                         }
-                        window.flowerGame.showAllScores(scaledScores);
+                        window.flowerGame.showAllScores(scaledScores, responseData.flower_earnings);
                     }
                 } else {
                     if (window.flowerGame && typeof window.flowerGame.hideAllScores === 'function') {
                         window.flowerGame.hideAllScores();
                     }
                 }
-                setTimeout(() => {
-                    // Fully hide results section in Test 1 and Test 2
-                    if (isTestPhase) {
-                        document.getElementById('results-section').style.display = 'none';
-                        // Add Continue button under the nutrients panel if not present
-                        let continueBtn = document.getElementById('continueAfterResults');
-                        if (!continueBtn) {
-                            continueBtn = document.createElement('button');
-                            continueBtn.id = 'continueAfterResults';
-                            continueBtn.className = 'btn btn-primary mt-3';
-                            if (window.js_vars.phase === 'Test 2') {
-                                continueBtn.textContent = 'End the task';
-                            } else if (window.js_vars.phase === 'Test 1') {
-                                continueBtn.textContent = 'Continue to the next phase';
-                            } else {
-                                continueBtn.textContent = 'Go to the next round';
-                            }
-                            continueBtn.onclick = function() {
-                                document.getElementById('nextRoundForm').submit();
-                            };
-                            // Place button under nutrient panel
-                            const nutrientPanel = document.getElementById('nutrient-panel');
-                            if (nutrientPanel && nutrientPanel.parentNode) {
-                                nutrientPanel.parentNode.appendChild(continueBtn);
-                            } else {
-                                document.body.appendChild(continueBtn);
-                            }
-                        }
-                    } else {
-                        document.getElementById('results-section').style.display = 'block';
-                        document.getElementById('pointsResult').textContent = responseData.total_points.toFixed(2);
-                        if (responseData.cumulative_earnings !== undefined) {
-                            document.getElementById('totalEarningsResult').textContent = parseFloat(responseData.cumulative_earnings).toFixed(2);
-                        }
-                        // Add Continue button under earnings section
-                        let continueBtn = document.getElementById('continueAfterResults');
-                        if (!continueBtn) {
-                            continueBtn = document.createElement('button');
-                            continueBtn.id = 'continueAfterResults';
-                            continueBtn.className = 'btn btn-primary mt-3';
-                            continueBtn.textContent = (window.js_vars && (window.js_vars.phase === 'Test 1' || window.js_vars.phase === 'Test 2')) ? 'Transmit' : 'Continue to Next Round';
-                            continueBtn.onclick = function() {
-                                document.getElementById('nextRoundForm').submit();
-                            };
-                            // Place button inside the white panel, below the flowers and controls
-                            continueBtn.style.position = 'static';
-                            continueBtn.style.display = 'inline-block';
-                            continueBtn.style.margin = '32px auto 0 auto';
-                            continueBtn.style.zIndex = '20';
-                            continueBtn.style.maxWidth = '260px';
-                            const flowerPanel = document.getElementById('flower-field-panel');
-                            if (flowerPanel) {
-                                const panelCol = document.createElement('div');
-                                panelCol.style.textAlign = 'center';
-                                panelCol.appendChild(continueBtn);
-                                flowerPanel.appendChild(panelCol);
-                            } else {
-                                document.body.appendChild(continueBtn);
-                            }
-                        }
+                // Update total earnings display immediately after feedback
+                if (responseData.cumulative_earnings !== undefined) {
+                    const totalEarningsElem = document.getElementById('totalEarningsResult');
+                    if (totalEarningsElem) {
+                        totalEarningsElem.textContent = responseData.cumulative_earnings;
                     }
+                }
+                setTimeout(() => {
+                    // Hide nutrient panel and center everything after feedback
                     submitButton.style.display = 'none';
                     resetButton.style.display = 'none';
                     document.getElementById('status-message').innerHTML = '';
+                    const nutrientPanel = document.getElementById('nutrient-panel');
+                    if (nutrientPanel) {
+                        nutrientPanel.style.display = 'none';
+                    }
+                    const currentRound = document.getElementById('currentRound');
+                    if (currentRound) {
+                        currentRound.style.justifyContent = 'center';
+                        currentRound.style.alignItems = 'flex-start';
+                        // Force the main game container to be centered horizontally
+                        const gameContainer = currentRound.querySelector('.flower-game-container');
+                        if (gameContainer) {
+                            gameContainer.style.marginLeft = 'auto';
+                            gameContainer.style.marginRight = 'auto';
+                            gameContainer.style.display = 'block';
+                        }
+                    }
+                    // Add Continue button below the flower field if not present
+                    let continueBtn = document.getElementById('continueAfterResults');
+                    if (!continueBtn) {
+                        continueBtn = document.createElement('button');
+                        continueBtn.id = 'continueAfterResults';
+                        continueBtn.className = 'btn btn-primary mt-3';
+                        continueBtn.style.minWidth = '0';
+                        continueBtn.style.padding = '12px 28px';
+                        continueBtn.style.whiteSpace = 'nowrap';
+                        continueBtn.textContent = 'Continue to Next Round';
+                        continueBtn.onclick = function() {
+                            // Submit the hidden form to advance round
+                            let form = document.getElementById('nextRoundForm');
+                            if (!form) {
+                                form = document.createElement('form');
+                                form.id = 'nextRoundForm';
+                                form.method = 'post';
+                                form.style.display = 'none';
+                                document.body.appendChild(form);
+                            }
+                            form.submit();
+                        };
+                        // Center the button below the flower field
+                        const flowerPanel = document.getElementById('flower-field-panel');
+                        if (flowerPanel) {
+                            const panelCol = document.createElement('div');
+                            panelCol.style.textAlign = 'center';
+                            panelCol.appendChild(continueBtn);
+                            flowerPanel.appendChild(panelCol);
+                        } else {
+                            document.body.appendChild(continueBtn);
+                        }
+                    }
                 }, 700);
             }
         };
