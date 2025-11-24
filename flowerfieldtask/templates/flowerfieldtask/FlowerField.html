@@ -479,10 +479,23 @@
                         continueBtn = document.createElement('button');
                         continueBtn.id = 'continueAfterResults';
                         continueBtn.className = 'btn btn-primary mt-3';
-                        continueBtn.style.minWidth = '0';
-                        continueBtn.style.padding = '12px 28px';
-                        continueBtn.style.whiteSpace = 'nowrap';
-                        continueBtn.textContent = 'Continue to Next Round';
+                        continueBtn.style.display = 'block';
+                        continueBtn.style.margin = '32px auto 0 auto';
+                        continueBtn.style.padding = '10px 20px';
+                        continueBtn.style.fontSize = '1em';
+                        continueBtn.style.minWidth = '220px';
+                        continueBtn.style.maxWidth = '90vw';
+                        continueBtn.style.whiteSpace = 'normal';
+                        continueBtn.style.lineHeight = '1.25';
+                        // Set button label based on phase
+                        let phase = window.js_vars && window.js_vars.phase;
+                        if (phase === 'Test 1') {
+                            continueBtn.textContent = 'Continue to the Next Phase';
+                        } else if (phase === 'Test 2') {
+                            continueBtn.textContent = 'End task';
+                        } else {
+                            continueBtn.textContent = 'Continue to Next Round';
+                        }
                         continueBtn.onclick = function() {
                             // Submit the hidden form to advance round
                             let form = document.getElementById('nextRoundForm');
