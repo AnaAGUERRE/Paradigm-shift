@@ -48,6 +48,17 @@
     align-items: center;
     width: 100px;
     margin-bottom: 24px;
+        min-height: 140px; /* Prevents crushing, allows for 2 nutrients */
+        height: auto;
+    justify-content: flex-end; /* Aligns children to the bottom */
+}
+
+.flower-slots-row {
+    display: flex;
+    align-items: flex-end; /* Align all slots to the bottom */
+    justify-content: center;
+    gap: 80px;
+    width: 100%;
 }
 /* Flower Field Task Styles */
 
@@ -98,7 +109,19 @@
     flex-direction: row !important;
     gap: 4px;
     width: 100%;
-    justify-content: center;
+    .nutrient-slot.single-slot {
+        width: 90px !important;
+        height: 36px !important;
+        border: 2px dashed #333 !important;
+        border-radius: 10px !important;
+        margin: 8px auto !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
+        background: #fff !important;
+        box-sizing: border-box !important;
+    }
 }
 
 
@@ -146,7 +169,20 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 32px;
-    max-width: 700px;
+    .nutrient-slot {
+        width: 90px;
+        height: 48px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        transition: all 0.2s ease;
+        overflow: hidden;
+        background: #f8f8f8;
+        margin: 2px;
+    }
     width: auto;
 }
 
