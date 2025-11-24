@@ -75,7 +75,7 @@ def calculate_growth_mm(nutrients, flower_color):
         elif n1 in primary and n2 in primary:
             return 0.4
         elif n1 or n2:
-            return 0.2
+            return 0.3  # changed from 0.2 to 0.3
         else:
             return 0.0
     # Secondary flower: best is correct mix
