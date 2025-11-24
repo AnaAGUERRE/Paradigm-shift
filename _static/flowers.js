@@ -288,14 +288,6 @@ class FlowerGame {
             this.currentDraggedNutrient = null;
             return;
         }
-        // Allow up to 2 nutrients in the slot
-        const existingNutrients = slot.querySelectorAll('.dropped-nutrient');
-        if (existingNutrients.length >= 2) {
-            console.log('onDrop: slot already has two nutrients');
-            this.currentDraggedNutrient = null;
-            return;
-        }
-
         // Ensures that when dropping a nutrient onto a flower slot, 
         // the code robustly determines which nutrient was dragged,
         // If it can’t figure out the nutrient, it alerts the user to try again.
@@ -317,6 +309,22 @@ class FlowerGame {
         const [flowerPrefix, flowerId] = slotId.split('-');
         const flowerIdx = parseInt(flowerId);
 
+        // Remove label if now filled
+        const label = slot.querySelector('.slot-label');
+
+        // Handle nutrient replacement if slot is full
+        let existingNutrients = slot.querySelectorAll('.dropped-nutrient');
+        if (existingNutrients.length >= 2) {
+            // Remove the first nutrient visually
+            if (existingNutrients[0]) existingNutrients[0].remove();
+            // Shift the second nutrient to the first position in data
+            const nutrientsArr = this.flowers[flowerIdx].nutrients;
+            nutrientsArr[0] = nutrientsArr[1];
+            nutrientsArr[1] = null;
+            // Update the NodeList after removal
+            existingNutrients = slot.querySelectorAll('.dropped-nutrient');
+        }
+
         // Add nutrient display to slot
         const nutrientDisplay = document.createElement('div');
         nutrientDisplay.className = 'dropped-nutrient';
@@ -326,8 +334,6 @@ class FlowerGame {
         nutrientImg.className = 'dropped-nutrient-image';
         nutrientDisplay.appendChild(nutrientImg);
 
-        // Remove label if now filled
-        const label = slot.querySelector('.slot-label');
         if (label && existingNutrients.length === 0) label.remove();
         slot.appendChild(nutrientDisplay);
 
@@ -340,7 +346,6 @@ class FlowerGame {
 
         // Update score display for this flower
         this.updateFlowerScore(flowerIdx);
-        
     }
 
     // Updates the score display for a specific flower based on its nutrients.
