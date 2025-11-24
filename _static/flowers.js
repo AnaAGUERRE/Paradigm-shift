@@ -345,9 +345,9 @@ class FlowerGame {
 
     // Updates the score display for a specific flower based on its nutrients.
     updateFlowerScore(flowerIdx, earningsPenny) {
-        // If earningsPenny is a string (already formatted as X.XX), display as £X.XX
+        // If earningsPenny is a string, always show as pennies with 'p' (e.g., 8p, 10p)
         if (typeof earningsPenny === 'string') {
-            this.flowers[flowerIdx].scoreDiv.textContent = `£${earningsPenny}`;
+            this.flowers[flowerIdx].scoreDiv.textContent = `${earningsPenny}p`;
             return;
         }
         // Otherwise, calculate as before

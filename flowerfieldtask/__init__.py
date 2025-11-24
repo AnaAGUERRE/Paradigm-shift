@@ -92,22 +92,32 @@ class FlowerField(Page):
         # Prepare previous rounds' history for Training and Exploration phases
         previous_combinations = []
         valid_flowers = ['Blue', 'Green', 'Orange', 'Purple', 'Red', 'Yellow']
-        if phase in ['Training phase', 'Exploration phase']:
+        if phase in ["Training phase", "Exploration phase"]:
             history = player.participant.vars.get('nutrient_flower_history', [])
             # Only show previous rounds (not current)
             for entry in history:
                 if entry['phase'] == phase and entry['round'] < phase_round:
                     print(f"DEBUG previous round {entry['round']} flower_colors: {entry['flower_colors']}")
+                    # Use growth values for flower size, not pennies
+                    growths = entry.get('growths', None)
+                    if not growths:
+                        # If not stored, try to infer from pennies (reverse calculation)
+                        growths = []
+                        for s in entry.get('scores', []):
+                            try:
+                                growths.append(float(s) / 10.0)
+                            except:
+                                growths.append(0.0)
                     filtered = [
                         (
                             f,
                             [f"img/Nutr{nut}.png" if nut else None for nut in n],
-                            s,  # per-flower earnings as string £X.XX
+                            s,  # per-flower earnings as string (pennies)
                             f"img/Flw{f}.png" if f is not None and f != '' and f in valid_flowers else None,
-                            float(s),  # growth value as float (for proportional size)
-                            int(18 + float(s) * 18)  # flower_size in px (smaller base and scale)
+                            g,  # growth value as float (for proportional size)
+                            int(18 + g * 18)  # flower_size in px (smaller base and scale)
                         )
-                        for f, n, s in zip(entry['flower_colors'], entry.get('nutrients', []), entry.get('scores', []))
+                        for (f, n, s, g) in zip(entry['flower_colors'], entry.get('nutrients', []), entry.get('scores', []), growths)
                         if f is not None and f != '' and f in valid_flowers
                     ]
                     previous_combinations.append({
@@ -174,13 +184,15 @@ class FlowerField(Page):
             total_growth = sum(f['growth'] for f in output) / len(output)
             total_points = calculate_points_from_growth(total_growth)
             flower_scores = [f['growth'] for f in output]
-            # Per-flower earnings as strings with two decimals
+            # Per-flower earnings as integer pennies (e.g., 8p, 10p), not £
             if phase in ["Test 1", "Test 2"]:
-                flower_earnings = ["0.00" for _ in flower_scores]
+                flower_earnings = ["0" for _ in flower_scores]
                 round_earnings = 0.0
             else:
-                flower_earnings = ["{:.2f}".format(g * 1.00) for g in flower_scores]
-                round_earnings = sum([float(e) for e in flower_earnings])
+                # Each earning: growth * 10 (to get pennies), rounded to nearest int
+                flower_earnings = [str(int(round(g * 10))) for g in flower_scores]
+                # For total, sum as £
+                round_earnings = sum([int(e) for e in flower_earnings]) / 100.0
             # Track noise effects for noisy configs
             noise_effects = [f.get('noise') for f in output]
             # Update participant's total earnings (only for non-test phases)
@@ -233,6 +245,7 @@ class FlowerField(Page):
                 'flower_colors': flower_colors,
                 'nutrients': nutrients,
                 'scores': flower_earnings,
+                'growths': flower_scores,  # store growths for correct sizing
                 'noise_effects': noise_effects
             })
 
