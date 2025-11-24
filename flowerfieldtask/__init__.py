@@ -258,6 +258,31 @@ class FlowerField(Page):
                     df_all = pd.concat([df_existing, df_new], ignore_index=True)
                 else:
                     df_all = pd.DataFrame([new_entry])
+
+                # Compute total earnings for each participant (excluding Test 1 and Test 2)
+                df_all['final_total_earnings (£)'] = None
+                for code in df_all['participant_code'].unique():
+                    mask = df_all['participant_code'] == code
+                    # Only include non-test phases
+                    mask_non_test = mask & (~df_all['phase'].isin(['Test 1', 'Test 2']))
+                    # Sum all scores for non-test phases
+                    total = 0.0
+                    for idx, row in df_all[mask_non_test].iterrows():
+                        # row['scores'] is a list of floats
+                        if isinstance(row['scores'], list):
+                            total += sum(row['scores'])
+                        elif isinstance(row['scores'], str):
+                            # Try to parse as list
+                            try:
+                                import ast
+                                scores = ast.literal_eval(row['scores'])
+                                total += sum(scores)
+                            except:
+                                pass
+                    # Set only for the last row of this participant
+                    last_idx = df_all[mask].index[-1]
+                    df_all.at[last_idx, 'final_total_earnings'] = round(total, 2)
+
                 # Reorder columns to put 'Treatment' first
                 cols = list(df_all.columns)
                 if 'Treatment' in cols:
