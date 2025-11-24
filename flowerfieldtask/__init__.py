@@ -135,7 +135,7 @@ class FlowerField(Page):
             nutrients = data['data']
             # Select scoring system from session config
             scoring_system = player.session.config.get('scoring_system', 'anomaly')
-            # Get flower colors for this round
+            # Get flower colors and phase for this round
             if player.round_number <= C.TRAINING_ROUNDS:
                 round_flower_types = [
                     ['Purple', 'Orange', 'Green'],
@@ -145,8 +145,12 @@ class FlowerField(Page):
                     ['Green', 'Orange', 'Purple']
                 ]
                 flower_colors = round_flower_types[player.round_number - 1]
+                phase = 'Training phase'
+                display_round = player.round_number
             elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS:
                 flower_colors = ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
+                phase = 'Test 1'
+                display_round = player.round_number - C.TRAINING_ROUNDS
             elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS + C.EXPLORATION_ROUNDS:
                 exploration_flower_types = [
                     ['Green', 'Purple', 'Blue'],
@@ -157,8 +161,11 @@ class FlowerField(Page):
                 ]
                 display_round = player.round_number - C.TRAINING_ROUNDS - C.TEST1_ROUNDS
                 flower_colors = exploration_flower_types[display_round - 1]
+                phase = 'Exploration phase'
             else:
                 flower_colors = ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
+                phase = 'Test 2'
+                display_round = player.round_number - C.TRAINING_ROUNDS - C.TEST1_ROUNDS - C.EXPLORATION_ROUNDS
             # Run backend engine to calculate growth and points
             if scoring_system == 'mm':
                 output = run_engine(nutrients, flower_colors=flower_colors, scoring_system='mm')
@@ -168,15 +175,22 @@ class FlowerField(Page):
             total_points = calculate_points_from_growth(total_growth)
             flower_scores = [f['growth'] for f in output]
             # Per-flower earnings as strings with two decimals
-            flower_earnings = ["{:.2f}".format(g * 1.00) for g in flower_scores]
-            round_earnings = sum([float(e) for e in flower_earnings])
+            if phase in ["Test 1", "Test 2"]:
+                flower_earnings = ["0.00" for _ in flower_scores]
+                round_earnings = 0.0
+            else:
+                flower_earnings = ["{:.2f}".format(g * 1.00) for g in flower_scores]
+                round_earnings = sum([float(e) for e in flower_earnings])
             # Track noise effects for noisy configs
             noise_effects = [f.get('noise') for f in output]
-            # Update participant's total earnings
-            if 'total_earnings' not in player.participant.vars:
-                player.participant.vars['total_earnings'] = 0.0
-            player.participant.vars['total_earnings'] = round(float(player.participant.vars['total_earnings']) + round_earnings, 2)
-            player.cumulative_earnings = player.participant.vars['total_earnings']
+            # Update participant's total earnings (only for non-test phases)
+            if phase not in ["Test 1", "Test 2"]:
+                if 'total_earnings' not in player.participant.vars:
+                    player.participant.vars['total_earnings'] = 0.0
+                player.participant.vars['total_earnings'] = round(float(player.participant.vars['total_earnings']) + round_earnings, 2)
+                player.cumulative_earnings = player.participant.vars['total_earnings']
+            else:
+                player.cumulative_earnings = player.participant.vars.get('total_earnings', 0.0)
 
             # Get flower colors and phase for this round
             if player.round_number <= C.TRAINING_ROUNDS:
@@ -269,7 +283,7 @@ class FlowerField(Page):
                     ws.column_dimensions[column].width = adjusted_width
                 wb.save(excel_path)
             except Exception as e:
-                pass  # Ignore file errors in production
+                print(f"Excel export error: {e}")
 
             # Return results to JS for display
             return {
