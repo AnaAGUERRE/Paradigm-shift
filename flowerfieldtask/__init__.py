@@ -261,7 +261,7 @@ class FlowerField(Page):
                     'round': display_round,
                     'flower_colors': flower_colors,
                     'nutrients': nutrients,
-                    'scores': flower_scores,
+                    'scores (p)': flower_earnings,  # in pennies as strings
                     'noise_effects': noise_effects
                 }
                 excel_path = 'nutrient_flower_data.xlsx'
@@ -272,29 +272,35 @@ class FlowerField(Page):
                 else:
                     df_all = pd.DataFrame([new_entry])
 
-                # Compute total earnings for each participant (excluding Test 1 and Test 2)
+                # Remove any old 'final_total_earnings' or 'final_total_earnings (£)' column if present
+                for col in ['final_total_earnings', 'final_total_earnings (£)']:
+                    if col in df_all.columns:
+                        df_all = df_all.drop(columns=[col])
+                # Only keep 'final_total_earnings (£)' and only fill it for the last row of each participant
                 df_all['final_total_earnings (£)'] = None
                 for code in df_all['participant_code'].unique():
                     mask = df_all['participant_code'] == code
                     # Only include non-test phases
                     mask_non_test = mask & (~df_all['phase'].isin(['Test 1', 'Test 2']))
-                    # Sum all scores for non-test phases
                     total = 0.0
                     for idx, row in df_all[mask_non_test].iterrows():
-                        # row['scores'] is a list of floats
-                        if isinstance(row['scores'], list):
-                            total += sum(row['scores'])
-                        elif isinstance(row['scores'], str):
-                            # Try to parse as list
+                        # Use the 'scores (p)' column, which is a list of penny strings
+                        scores_p = row.get('scores (p)')
+                        if isinstance(scores_p, list):
                             try:
-                                import ast
-                                scores = ast.literal_eval(row['scores'])
-                                total += sum(scores)
+                                total += sum([int(s) for s in scores_p])
                             except:
                                 pass
-                    # Set only for the last row of this participant
+                        elif isinstance(scores_p, str):
+                            try:
+                                import ast
+                                scores = ast.literal_eval(scores_p)
+                                total += sum([int(s) for s in scores])
+                            except:
+                                pass
                     last_idx = df_all[mask].index[-1]
-                    df_all.at[last_idx, 'final_total_earnings'] = round(total, 2)
+                    # Convert pennies to £ and format to two decimals
+                    df_all.at[last_idx, 'final_total_earnings (£)'] = '{:.2f}'.format(total / 100)
 
                 # Reorder columns to put 'Treatment' first
                 cols = list(df_all.columns)
