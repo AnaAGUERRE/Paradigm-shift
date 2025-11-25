@@ -1,0 +1,165 @@
+/* instructions.css - minimal styles for instructions sequence */
+
+/* Only add margin-top to h1 if not first slide */
+h1, .slide h1 { text-align: left; }
+.slide-title-row h1, .slide-title-row .slide-content-block h1 {
+	margin-top: 0 !important;
+	margin-bottom: 10px !important;
+}
+.slide {
+	max-width: 1100px;
+	margin: 10px auto 0 auto;
+	padding: 0 10px;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	min-height: 70vh;
+	position: relative;
+}
+.slide-header-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	width: 100%;
+	margin-bottom: 18px;
+}
+.slide-title-row {
+	display: flex;
+	flex-direction: row;
+	align-items: flex-start;
+	justify-content: center;
+	width: 100%;
+	gap: 60px;
+	margin-bottom: 0;
+}
+.slide-content-block h1 {
+	margin-bottom: 10px;
+	margin-top: 0;
+}
+.slide-intro-text {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+.slide-main-content {
+	flex: 1;
+	display: flex;
+	flex-direction: row;
+	align-items: flex-start;
+	justify-content: center;
+	gap: 60px;
+	width: 100%;
+}
+.slide-content-block {
+	flex: 2 1 600px;
+	min-width: 0 !important;
+	max-width: 60vw !important;
+	width: 100% !important;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	justify-content: flex-start;
+	margin-bottom: 6px !important;
+	margin-top: 0 !important;
+}
+.slide-content-block .flower-demo-box,
+.slide-content-block .chain-demo-box,
+.slide-content-block .previous-participant-img {
+	margin: 24px auto 0 auto;
+}
+.slide-counter {
+	text-align: right;
+	font-size: 1.5rem;
+	font-weight: bold;
+	margin-bottom: 6px;
+}
+
+/* Absolute positioning for first slide only */
+.slide-1 .slide-counter {
+	position: absolute;
+	top: 40px;
+	right: 3vw;
+	left: auto;
+	margin: 0;
+	z-index: 2;
+}
+.slide-1 .slide-intro-text {
+	position: static;
+	top: auto;
+	left: auto;
+	right: auto;
+	max-width: 60vw !important;
+	width: 100% !important;
+	margin: 0 0 8px 0 !important;
+	z-index: auto;
+}
+h1 { font-size: 1.7rem; font-weight: bold; margin-bottom: 18px; }
+.slide-question { text-align: center; font-size: 1rem; margin-bottom: 18px; }
+.answer-buttons { display: flex; flex-direction: column; align-items: center; gap: 12px; margin: 24px 0 12px 0; }
+.answer-btn { width: 400px; max-width: 95vw; font-size: 1rem; font-weight: bold; background: #aaa; color: #fff; border: none; border-radius: 10px; padding: 12px 0; cursor: pointer; transition: background 0.2s; }
+.answer-btn.wide-square {
+	min-width: 400px;
+	width: auto;
+	max-width: 99vw;
+	min-height: 54px;
+	font-size: 1.08rem;
+	border-radius: 12px;
+	padding: 12px 32px;
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	white-space: normal;
+	text-align: center;
+}
+.answer-btn.selected { outline: 2px solid #333; }
+.answer-btn.correct { background: #218739; color: #fff; }
+.answer-btn.incorrect { background: #c0392b; color: #fff; }
+.answer-feedback { text-align: right; font-size: 1rem; min-height: 28px; margin-bottom: 8px; }
+.slide-nav {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin: 32px 0 0 0;
+	width: 100%;
+	position: fixed;
+	left: 0;
+	bottom: 0;
+	background: #fff;
+	padding: 18px 8vw 18px 8vw;
+	box-shadow: 0 -2px 12px rgba(0,0,0,0.04);
+	z-index: 100;
+}
+.nav-btn { font-size: 1rem; padding: 8px 22px; border-radius: 8px; border: none; cursor: pointer; font-weight: 500; margin-left: 16px; }
+.prev-btn { background: #1677ff; color: #fff; }
+.next-btn { background: #1677ff; color: #fff; }
+.start-btn { background: #218739; color: #fff; }
+.nav-btn:disabled { background: #aaa; color: #fff; cursor: not-allowed; }
+.nav-msg { color: #444; font-size: 1rem; margin-left: 18px; margin-right: auto; }
+.slide-visual.right { float: right; margin-left: 30px; }
+.slide-visual.center { text-align: center; margin: 24px 0; }
+.flower-demo-box, .chain-demo-box { border: 2px solid #bbb; border-radius: 10px; padding: 18px 22px 18px 22px; background: #fff; display: inline-block; min-width: 220px; }
+.flower-demo-game-layout { min-width: 260px; max-width: 340px; }
+.demo-flower-row { display: flex; flex-direction: row; justify-content: space-between; align-items: flex-end; margin-bottom: 8px; }
+.demo-flower.spaced { width: 44px; margin: 0 18px; vertical-align: middle; }
+.demo-slots-row { display: flex; flex-direction: row; justify-content: space-between; align-items: flex-start; margin: 8px 0 0 0; }
+.demo-slot.game-slot { display: inline-block; width: 44px; height: 28px; border: 2px dashed #888; border-radius: 8px; margin: 0 18px; font-size: 1.2rem; color: #888; text-align: center; line-height: 28px; vertical-align: middle; background: #f9f9f9; }
+.demo-nutrients-row { display: flex; flex-direction: row; justify-content: center; align-items: flex-end; margin-top: 16px; }
+.demo-nutrient { width: 32px; margin: 0 10px; cursor: grab; }
+.demo-nutrient.dropped { width: 20px; margin: 0 2px; cursor: default; }
+.chain-img { width: 120px; display: block; margin: 0 auto; }
+.chain-caption { text-align: center; font-size: 0.9rem; color: #888; margin-top: 6px; }
+.previous-participant-img { width: 180px; display: block; margin: 0 auto; }
+@media (max-width: 900px) {
+	.slide { max-width: 99vw; padding: 0 2vw; }
+	.slide-title-row, .slide-main-content {
+		flex-direction: column;
+		gap: 20px;
+		align-items: center;
+	}
+	.slide-content-block { max-width: 99vw; min-width: 0; align-items: flex-start; }
+	.slide-header-row { flex-direction: column; align-items: center; }
+	.slide-counter { text-align: left; margin-top: 8px; }
+}
+.slide h1 { text-align: left; margin-top: 20px; }
+.slide p { font-size: 1rem; margin-bottom: 8px; }
+.slide .slide-counter { position: static; right: auto; top: auto; }
+.slide-nav .prev-btn.hide { display: none !important; }

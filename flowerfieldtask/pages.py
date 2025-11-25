@@ -30,27 +30,29 @@ def calculate_points(growth):
     return round(growth * 1, 2)
 
 
+
+# Instructions page
+class Instructions(Page):
+    def is_displayed(self):
+        return self.round_number == 1
+
+# FlowerField page
 class FlowerField(Page):
-    # Handles live submission of flower choices from the frontend
     live_method = 'live_flower_submit'
 
     def live_flower_submit(self, data):
         if data.get('type') == 'flowerSubmit':
             flower_choices = data.get('data')
-            # Compute growth for each flower using engine.py
             results = run_engine(flower_choices)
             flower_scores = [r['growth'] for r in results]
-            # Calculate per-flower earnings in pennies (e.g., 1.0 growth = 100p)
             flower_earnings = [int(round(g * 100)) for g in flower_scores]
             total_growth = sum(flower_scores) / len(flower_scores)
             total_earnings = sum(flower_earnings)
             self.player.total_growth = total_growth
-            self.player.total_points = total_earnings  # Store as pennies for clarity
-            # Accumulate total earnings for participant
+            self.player.total_points = total_earnings
             if not hasattr(self.participant, 'total_earnings') or self.participant.total_earnings is None:
                 self.participant.total_earnings = 0
             self.participant.total_earnings += total_earnings
-            # Send results back to frontend
             self.send({
                 'total_growth': total_growth,
                 'total_earnings': total_earnings,
@@ -58,4 +60,4 @@ class FlowerField(Page):
                 'flower_earnings': flower_earnings,
             })
 
-page_sequence = [FlowerField]  # Sequence of pages in the experiment
+page_sequence = [Instructions, FlowerField]  # Sequence of pages in the experiment

@@ -1,3 +1,75 @@
+// --- First-in-chain popup logic: show on first round for all treatments ---
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        if (window.js_vars && window.js_vars.current_round == 1 && !window._firstChainPopupShown) {
+            window._firstChainPopupShown = true;
+            // Create overlay (same as Test 1/Test 2)
+            var overlay = document.createElement('div');
+            overlay.id = 'firstchain-blocking-overlay';
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100vw';
+            overlay.style.height = '100vh';
+            overlay.style.background = 'rgba(255,255,255,0.7)';
+            overlay.style.zIndex = '9998';
+            document.body.appendChild(overlay);
+            // Add z-index for Bootbox/modal
+            var style = document.createElement('style');
+            style.innerHTML = '.bootbox.modal { z-index: 10000 !important; } .modal-backdrop { z-index: 9999 !important; }';
+            document.head.appendChild(style);
+            if (typeof bootbox !== 'undefined') {
+                bootbox.dialog({
+                    message: `<div style='font-size:1.15em; text-align:center;'>
+                        <img src='${window.static ? window.static('img/FirstChain.png') : '/static/img/FirstChain.png'}' style='height:60px; margin-bottom:1em;'>
+                        <div style='margin-bottom:1em;'>You are assigned to be the first in the chain.</div>
+                    </div>`,
+                    buttons: [
+                        {
+                            label: 'I understand',
+                            className: 'btn-primary',
+                            callback: function() {
+                                // Remove overlay by ID
+                                var overlays = document.querySelectorAll('#firstchain-blocking-overlay');
+                                overlays.forEach(function(overlayElem) {
+                                    if (overlayElem && overlayElem.parentNode) {
+                                        overlayElem.parentNode.removeChild(overlayElem);
+                                    }
+                                });
+                                // Remove Bootbox modal and backdrop
+                                var modals = document.querySelectorAll('.bootbox');
+                                modals.forEach(function(modal) {
+                                    if (modal && modal.parentNode) {
+                                        modal.parentNode.removeChild(modal);
+                                    }
+                                });
+                                var backdrops = document.querySelectorAll('.modal-backdrop');
+                                backdrops.forEach(function(backdrop) {
+                                    if (backdrop && backdrop.parentNode) {
+                                        backdrop.parentNode.removeChild(backdrop);
+                                    }
+                                });
+                                document.body.style.overflow = '';
+                                document.documentElement.style.overflow = '';
+                                return true;
+                            }
+                        }
+                    ],
+                    closeButton: false
+                });
+            } else {
+                // Fallback: native alert and remove overlay on OK
+                alert('You are assigned to be the first in the chain.');
+                var overlays = document.querySelectorAll('#firstchain-blocking-overlay');
+                overlays.forEach(function(overlayElem) {
+                    if (overlayElem && overlayElem.parentNode) {
+                        overlayElem.parentNode.removeChild(overlayElem);
+                    }
+                });
+            }
+        }
+    }, 0);
+});
 // Disables nutrient panel and prevents further drag-and-drop after submission
 function disableNutrientPanelAndSlots() {
     // Hide nutrient panel

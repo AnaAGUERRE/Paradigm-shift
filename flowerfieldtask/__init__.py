@@ -37,6 +37,13 @@ class Player(BasePlayer):
     cumulative_earnings = models.FloatField(initial=0)  # Tracks total earnings for this player
 
 
+class Instructions(Page):
+    def is_displayed(player):
+        return player.round_number == 1
+    def vars_for_template(player):
+        return {}
+    template_name = '_templates/instructions.html'
+
 class FlowerField(Page):
     import json
     def vars_for_template(player):
@@ -340,5 +347,5 @@ class FlowerField(Page):
 
 
 # Sequence of pages in the experiment
-page_sequence = [FlowerField]
+page_sequence = [Instructions, FlowerField]
 

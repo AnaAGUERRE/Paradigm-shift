@@ -10,9 +10,11 @@
 <script src="{% static 'libraries/pixijs/pixi.min.js' %}"></script>
 <script src="{% static 'libraries/pixijs/pixi.textinput.js' %}"></script>
 
-<!-- Bootstrap JS required for Bootbox -->
+<!-- jQuery required for Bootstrap and Bootbox -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Bootstrap JS required for Bootbox (must come after jQuery) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-<!-- bootbox -->
+<!-- bootbox (requires Bootstrap JS and jQuery above) -->
 <script src="{% static 'libraries/bootbox/bootbox.js' %}"></script>
 <!-- Removed unused/missing script: helpers.js -->
 <!-- Removed unused/missing scripts: wheel.js, arm.js, weight.js -->
