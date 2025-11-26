@@ -320,6 +320,8 @@ class FlowerGame {
         }
 
         panel.innerHTML = '<h5>Nutrients</h5>';
+        // Adjust the nutrients panel vertical size to a slightly smaller height
+        panel.style.minHeight = '170px';
 
         const nutrientContainer = document.createElement('div');
         nutrientContainer.className = 'nutrient-container';
@@ -353,6 +355,41 @@ class FlowerGame {
         });
 
         panel.appendChild(nutrientContainer);
+
+        // Add "See transmitted combination" button for Transmission correct and Transmission M&M
+        var treatment = (window.js_vars && window.js_vars.treatment) ? window.js_vars.treatment : '';
+        if (treatment === 'Transmission correct' || treatment === 'Transmission M&M') {
+            let btn = document.createElement('button');
+            btn.textContent = 'See transmitted combination';
+            btn.className = 'btn btn-info';
+            btn.style.display = 'block';
+            btn.style.margin = '24px auto 0 auto';
+            btn.style.fontSize = '0.95em';
+            btn.style.padding = '7px 14px';
+            btn.style.borderRadius = '8px';
+            btn.style.background = '#e6f0fa';
+            btn.style.color = '#1a3d6d';
+            btn.style.border = '1px solid #b3cce6';
+            btn.style.boxShadow = '0 2px 6px rgba(0,0,0,0.07)';
+            btn.onclick = function(e) {
+                if (e) e.preventDefault();
+                var imgSrc = (treatment === 'Transmission correct')
+                    ? (window.static ? window.static('img/TransCorr.png') : '/static/img/TransCorr.png')
+                    : (window.static ? window.static('img/TransMM.png') : '/static/img/TransMM.png');
+                if (typeof bootbox !== 'undefined') {
+                    bootbox.dialog({
+                        message: `<div style='text-align:center; min-height:340px; display:flex; align-items:center; justify-content:center;'><img src='${imgSrc}' style='max-width:95%; max-height:340px; width:auto; height:auto;'></div>`,
+                        closeButton: true
+                    });
+                } else {
+                    // fallback
+                    var win = window.open('', '_blank');
+                    win.document.write(`<img src='${imgSrc}' style='height:220px;'>`);
+                }
+                return false;
+            };
+            panel.appendChild(btn);
+        }
     }
 
 
