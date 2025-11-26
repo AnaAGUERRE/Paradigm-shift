@@ -4,8 +4,11 @@
 {% block content %}
 <div id="instructions-container">
     <h2>Instructions</h2>
-    <div id="custom-instructions"></div>
-    <script src="{% static 'js/instructions.js' %}"></script>
+        <div id="custom-instructions"></div>
+        <script>
+            window.isNoisyTreatment = true;
+        </script>
+        <script src="{% static 'js/instructions.js' %}"></script>
     <form method="post">
         {% csrf_token %}
         <button type="submit" class="btn btn-primary" style="margin-top:2em;">Start Experiment</button>

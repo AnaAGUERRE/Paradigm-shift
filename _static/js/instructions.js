@@ -63,7 +63,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 return false;
             }
         });
-    const slides = [
+    // Build slides array
+    let slides = [
         // 1. Welcome
         {
             render: () => `
@@ -90,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div style="max-width: 80vw;">
                             <p>In this task, you will take part in a virtual flower-growing experiment (see below).<br>
                                 Your goal is to make each flower grow as much as possible by selecting the right combination of nutrients.</p>
-                            <p>After you choose the combinations for the entire flower field, the software will show you the growth results of the flowers represented by their size and the corresponding earnings.</p>
+                            <p>After you choose the combinations for the entire flower field, the software will show you the growth results of the flowers represented by their size and the corresponding earnings (in pennies).</p>
                             <b>There is a relationship between the nutrient combinations, the growth outcomes of the flowers, and your earnings.</b>
                         </div>
                         <div class="slide-visual center" style="margin-top: 1em; text-align: center; width: 100%;">
@@ -110,6 +111,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div style="display: flex; align-items: flex-start; gap: 60px;">
                             <div style="max-width: 80vw;">
                                 <p>Each flower can receive <b>one or two nutrients</b>. There are three types of nutrients: blue, red, and yellow. You will drag and drop the nutrients below each flower before confirming your choice. If you use two nutrients, <b>order does not matter</b>, for example, <i>BLUE–YELLOW</i> is the same as <i>YELLOW–BLUE</i>.</p>
+                                <p><b>Each flower is independent:</b> there is no interaction between the flowers, and the placement of a flower in the field does not affect its growth. The outcome for each flower depends only on the nutrients you give to that specific flower.</p>
                                 <p>An interactive example is displayed on the right.</p>
                                 <p>To continue, please <b>drag and drop one blue nutrient and one red nutrient</b> under the flower and click on [Next].</p>
                             </div>
@@ -267,6 +269,7 @@ window.getCSRFToken = function() {
     return '';
 };
 
+    // If noise warning slide is present, start at 0 (it will be first), else as before
     let currentSlide = 0;
 
     function renderSlide(idx) {

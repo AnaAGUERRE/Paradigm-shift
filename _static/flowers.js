@@ -18,6 +18,67 @@ document.addEventListener('DOMContentLoaded', function() {
             var style = document.createElement('style');
             style.innerHTML = '.bootbox.modal { z-index: 10000 !important; } .modal-backdrop { z-index: 9999 !important; }';
             document.head.appendChild(style);
+            var showNoisePopup = function() {
+                // Only show for Anomaly noisy and M&M noisy
+                var treatment = (window.js_vars && window.js_vars.treatment) ? window.js_vars.treatment : '';
+                if (treatment === 'Anomaly noisy' || treatment === 'M&M noisy') {
+                    if (typeof bootbox !== 'undefined') {
+                        bootbox.dialog({
+                            message: `<div style='font-size:1.15em; text-align:center;'>
+                                <div style='margin-bottom:1em;'><b>Note about random variation</b></div>
+                                <div style='margin-bottom:1em;'>In this experiment, the data may be <b>noisy</b>. This means that for some flowers, there will be a small random variation in the score, even if you use the same nutrient combination for a given flower. This is normal and part of the experiment design.</div>                           </div>`,
+                            buttons: [
+                                {
+                                    label: 'I understand',
+                                    className: 'btn-primary',
+                                    callback: function() {
+                                        // Remove overlay by ID
+                                        var overlays = document.querySelectorAll('#firstchain-blocking-overlay');
+                                        overlays.forEach(function(overlayElem) {
+                                            if (overlayElem && overlayElem.parentNode) {
+                                                overlayElem.parentNode.removeChild(overlayElem);
+                                            }
+                                        });
+                                        // Remove Bootbox modal and backdrop
+                                        var modals = document.querySelectorAll('.bootbox');
+                                        modals.forEach(function(modal) {
+                                            if (modal && modal.parentNode) {
+                                                modal.parentNode.removeChild(modal);
+                                            }
+                                        });
+                                        var backdrops = document.querySelectorAll('.modal-backdrop');
+                                        backdrops.forEach(function(backdrop) {
+                                            if (backdrop && backdrop.parentNode) {
+                                                backdrop.parentNode.removeChild(backdrop);
+                                            }
+                                        });
+                                        document.body.style.overflow = '';
+                                        document.documentElement.style.overflow = '';
+                                        return true;
+                                    }
+                                }
+                            ],
+                            closeButton: false
+                        });
+                    } else {
+                        alert('Note about random variation: In this version of the experiment, the data may be noisy. This means that for some flowers, there will be a small random variation in the score, even if you use the same nutrient combination. This is normal and part of the experiment design. Try to focus on the general patterns, and don\'t worry if you see small differences in the results for the same combination.');
+                        var overlays = document.querySelectorAll('#firstchain-blocking-overlay');
+                        overlays.forEach(function(overlayElem) {
+                            if (overlayElem && overlayElem.parentNode) {
+                                overlayElem.parentNode.removeChild(overlayElem);
+                            }
+                        });
+                    }
+                } else {
+                    // Remove overlay if not noisy treatment
+                    var overlays = document.querySelectorAll('#firstchain-blocking-overlay');
+                    overlays.forEach(function(overlayElem) {
+                        if (overlayElem && overlayElem.parentNode) {
+                            overlayElem.parentNode.removeChild(overlayElem);
+                        }
+                    });
+                }
+            };
             if (typeof bootbox !== 'undefined') {
                 bootbox.dialog({
                     message: `<div style='font-size:1.15em; text-align:center;'>
@@ -29,28 +90,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             label: 'I understand',
                             className: 'btn-primary',
                             callback: function() {
-                                // Remove overlay by ID
-                                var overlays = document.querySelectorAll('#firstchain-blocking-overlay');
-                                overlays.forEach(function(overlayElem) {
-                                    if (overlayElem && overlayElem.parentNode) {
-                                        overlayElem.parentNode.removeChild(overlayElem);
-                                    }
-                                });
-                                // Remove Bootbox modal and backdrop
-                                var modals = document.querySelectorAll('.bootbox');
-                                modals.forEach(function(modal) {
-                                    if (modal && modal.parentNode) {
-                                        modal.parentNode.removeChild(modal);
-                                    }
-                                });
-                                var backdrops = document.querySelectorAll('.modal-backdrop');
-                                backdrops.forEach(function(backdrop) {
-                                    if (backdrop && backdrop.parentNode) {
-                                        backdrop.parentNode.removeChild(backdrop);
-                                    }
-                                });
-                                document.body.style.overflow = '';
-                                document.documentElement.style.overflow = '';
+                                // After first popup, show noise popup if needed
+                                showNoisePopup();
                                 return true;
                             }
                         }
@@ -60,12 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 // Fallback: native alert and remove overlay on OK
                 alert('You are assigned to be the first in the chain.');
-                var overlays = document.querySelectorAll('#firstchain-blocking-overlay');
-                overlays.forEach(function(overlayElem) {
-                    if (overlayElem && overlayElem.parentNode) {
-                        overlayElem.parentNode.removeChild(overlayElem);
-                    }
-                });
+                showNoisePopup();
             }
         }
     }, 0);
