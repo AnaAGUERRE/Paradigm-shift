@@ -79,11 +79,27 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 }
             };
+            var treatment = (window.js_vars && window.js_vars.treatment) ? window.js_vars.treatment : '';
+            var isSecondChain = (treatment === 'Transmission correct' || treatment === 'Transmission M&M');
+            var imgSrc = isSecondChain
+                ? (window.static ? window.static('img/SecondChain.png') : '/static/img/SecondChain.png')
+                : (window.static ? window.static('img/FirstChain.png') : '/static/img/FirstChain.png');
+            var treatmentLower = treatment.toLowerCase();
+            var extraImg = '';
+            if (treatment === 'Transmission correct') {
+                extraImg = `<img src='${window.static ? window.static('img/TransCorr.png') : '/static/img/TransCorr.png'}' style='height:220px; margin-top:1.5em;'>`;
+            } else if (treatment === 'Transmission M&M') {
+                extraImg = `<img src='${window.static ? window.static('img/TransMM.png') : '/static/img/TransMM.png'}' style='height:220px; margin-top:1.5em;'>`;
+            }
+            var popupText = isSecondChain
+                ? "<span style='font-size:0.95em;'>You are assigned to be second in the chain. Here is the previous participant's transmitted nutrient combination. You will be able to see it throughout the whole experiment.</span>"
+                : "<span style='font-size:0.95em;'>You are assigned to be the first in the chain.</span>";
             if (typeof bootbox !== 'undefined') {
                 bootbox.dialog({
                     message: `<div style='font-size:1.15em; text-align:center;'>
-                        <img src='${window.static ? window.static('img/FirstChain.png') : '/static/img/FirstChain.png'}' style='height:60px; margin-bottom:1em;'>
-                        <div style='margin-bottom:1em;'>You are assigned to be the first in the chain.</div>
+                        <img src='${imgSrc}' style='height:60px; margin-bottom:1em;'>
+                        <div style='margin-bottom:1em;'>${popupText}</div>
+                        ${extraImg}
                     </div>`,
                     buttons: [
                         {
@@ -100,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             } else {
                 // Fallback: native alert and remove overlay on OK
-                alert('You are assigned to be the first in the chain.');
+                alert(popupText.replace(/<[^>]+>/g, ''));
                 showNoisePopup();
             }
         }

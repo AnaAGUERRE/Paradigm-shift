@@ -12,6 +12,22 @@ SESSION_CONFIGS = [
         num_demo_participants=1,                # Number of demo participants
         scoring_system='anomaly',               # Scoring system identifier
     ),
+    # Transmission correct (copy of Anomaly no noise)
+    dict(
+        name='transmission_correct',
+        display_name='Transmission correct',
+        app_sequence=['flowerfieldtask'],
+        num_demo_participants=1,
+        scoring_system='anomaly',
+    ),
+    # Transmission M&M (copy of Anomaly no noise)
+    dict(
+        name='transmission_mm',
+        display_name='Transmission M&M',
+        app_sequence=['flowerfieldtask'],
+        num_demo_participants=1,
+        scoring_system='anomaly',
+    ),
     dict(
         name='mm_no_noise',                     # Internal name for the session
         display_name='M&M no noise',            # Shown in admin
