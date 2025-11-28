@@ -51,11 +51,13 @@ class FlowerField(Page):
         player.cumulative_earnings = player.participant.vars.get('total_earnings', 0)
         # Determine phase and flower colors for this round
         treatment = player.session.config.get('display_name', '').lower()
-        # Map noisy treatments to their no-noise logic for flower sequences
+        # Map noisy and transmission treatments to their no-noise logic for flower sequences
         if treatment == 'anomaly noisy':
             treatment_logic = 'anomaly no noise'
         elif treatment == 'no anomaly noisy':
             treatment_logic = 'no anomaly no noise'
+        elif treatment in ['transmission correct', 'transmission m&m']:
+            treatment_logic = 'anomaly no noise'
         else:
             treatment_logic = treatment
         if player.round_number <= C.TRAINING_ROUNDS:
@@ -186,11 +188,13 @@ class FlowerField(Page):
             scoring_system = player.session.config.get('scoring_system', 'anomaly')
             # Use the same treatment-dependent logic as vars_for_template
             treatment = player.session.config.get('display_name', '').lower()
-            # Map noisy treatments to their no-noise logic for flower sequences
+            # Map noisy and transmission treatments to their no-noise logic for flower sequences
             if treatment == 'anomaly noisy':
                 treatment_logic = 'anomaly no noise'
             elif treatment == 'no anomaly noisy':
                 treatment_logic = 'no anomaly no noise'
+            elif treatment in ['transmission correct', 'transmission m&m']:
+                treatment_logic = 'anomaly no noise'
             else:
                 treatment_logic = treatment
             if player.round_number <= C.TRAINING_ROUNDS:
