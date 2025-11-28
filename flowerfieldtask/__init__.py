@@ -14,7 +14,7 @@ import json
 class C(BaseConstants):
     NAME_IN_URL = 'flowerfieldtask'  # URL name for this app
     PLAYERS_PER_GROUP = None         # No grouping
-    TRAINING_ROUNDS = 5              # Number of training rounds
+    TRAINING_ROUNDS = 4              # Number of training rounds
     TEST1_ROUNDS = 1                 # Number of test1 rounds
     EXPLORATION_ROUNDS = 5           # Number of exploration rounds
     TEST2_ROUNDS = 1                 # Number of test2 rounds
@@ -50,16 +50,17 @@ class FlowerField(Page):
         # Pass variables to the template for display and JS logic
         player.cumulative_earnings = player.participant.vars.get('total_earnings', 0)
         # Determine phase and flower colors for this round
+        treatment = player.session.config.get('display_name', '').lower()
         if player.round_number <= C.TRAINING_ROUNDS:
             phase = 'Training phase'
             phase_round = player.round_number
             phase_total = C.TRAINING_ROUNDS
+            # Custom training sequence for both treatments (4 rounds)
             round_flower_types = [
-                ['Purple', 'Orange', 'Green'],
-                ['Green', 'Green', 'Orange'],
-                ['Purple', 'Green', 'Purple'],
-                ['Purple', 'Orange', 'Orange'],
-                ['Green', 'Orange', 'Purple']
+                ['Purple', 'Green'],      # R1
+                ['Green', 'Purple'],      # R2
+                ['Purple', 'Green', 'Green'], # R3
+                ['Green', 'Purple', 'Purple'] # R4
             ]
             flower_colors = round_flower_types[player.round_number - 1]
         elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS:
@@ -71,14 +72,32 @@ class FlowerField(Page):
             phase = 'Exploration phase'
             phase_round = player.round_number - C.TRAINING_ROUNDS - C.TEST1_ROUNDS
             phase_total = C.EXPLORATION_ROUNDS
-            # Exploration rounds flower colors
-            exploration_flower_types = [
-                ['Green', 'Purple', 'Blue'],
-                ['Green', 'Purple', 'Blue'],
-                ['Green', 'Purple', 'Yellow'],
-                ['Green', 'Purple', 'Yellow'],
-                ['Green', 'Purple', 'Yellow']
-            ]
+            # Custom exploration sequence for each treatment
+            if treatment == 'anomaly no noise':
+                exploration_flower_types = [
+                    ['Orange', 'Purple'],         # R1
+                    ['Orange', 'Green'],          # R2
+                    ['Green', 'Red', 'Green'],    # R3
+                    ['Blue', 'Purple', 'Purple'], # R4
+                    ['Purple', 'Green', 'Yellow'] # R5
+                ]
+            elif treatment == 'no anomaly no noise':
+                exploration_flower_types = [
+                    ['Orange', 'Orange'],         # R1
+                    ['Purple', 'Green'],          # R2
+                    ['Red', 'Blue', 'Yellow'],    # R3
+                    ['Green', 'Purple', 'Green'], # R4
+                    ['Purple', 'Purple', 'Green'] # R5
+                ]
+            else:
+                # Default (fallback)
+                exploration_flower_types = [
+                    ['Green', 'Purple', 'Blue'],
+                    ['Green', 'Purple', 'Blue'],
+                    ['Green', 'Purple', 'Yellow'],
+                    ['Green', 'Purple', 'Yellow'],
+                    ['Green', 'Purple', 'Yellow']
+                ]
             flower_colors = exploration_flower_types[phase_round - 1]
         else:
             phase = 'Test 2'
@@ -101,14 +120,20 @@ class FlowerField(Page):
         valid_flowers = ['Blue', 'Green', 'Orange', 'Purple', 'Red', 'Yellow']
         if phase in ["Training phase", "Exploration phase"]:
             history = player.participant.vars.get('nutrient_flower_history', [])
-            # Only show previous rounds (not current)
+            # Only show previous rounds (not current), and only those matching the current round_flower_types
+            round_flower_types = [
+                ['Purple', 'Green'],
+                ['Green', 'Purple'],
+                ['Purple', 'Green', 'Green'],
+                ['Green', 'Purple', 'Purple']
+            ]
             for entry in history:
                 if entry['phase'] == phase and entry['round'] < phase_round:
-                    print(f"DEBUG previous round {entry['round']} flower_colors: {entry['flower_colors']}")
+                    # Always use the expected flower set for this round
+                    expected_flowers = round_flower_types[entry['round'] - 1] if phase == 'Training phase' and 1 <= entry['round'] <= 4 else entry['flower_colors']
                     # Use growth values for flower size, not pennies
                     growths = entry.get('growths', None)
                     if not growths:
-                        # If not stored, try to infer from pennies (reverse calculation)
                         growths = []
                         for s in entry.get('scores', []):
                             try:
@@ -118,13 +143,13 @@ class FlowerField(Page):
                     filtered = [
                         (
                             f,
-                            [f"img/Nutr{nut}.png" if nut else None for nut in n],
-                            s,  # per-flower earnings as string (pennies)
+                            [f"img/Nutr{nut}.png" if nut else None for nut in (n if n is not None else [])],
+                            (s if s is not None else '0'),  # per-flower earnings as string (pennies, show 0 if missing)
                             f"img/Flw{f}.png" if f is not None and f != '' and f in valid_flowers else None,
                             g,  # growth value as float (for proportional size)
-                            int(18 + g * 18)  # flower_size in px (smaller base and scale)
+                            int(18 + (g if g is not None else 0.0) * 18)  # flower_size in px (smaller base and scale)
                         )
-                        for (f, n, s, g) in zip(entry['flower_colors'], entry.get('nutrients', []), entry.get('scores', []), growths)
+                        for (f, n, s, g) in zip(expected_flowers, entry.get('nutrients', []), entry.get('scores', []), growths)
                         if f is not None and f != '' and f in valid_flowers
                     ]
                     previous_combinations.append({
@@ -132,6 +157,8 @@ class FlowerField(Page):
                         'zipped': filtered
                     })
         valid_flowers = ['Purple', 'Orange', 'Green', 'Yellow', 'Red', 'Blue']
+        # Centering logic for flower placement (pass count to template)
+        flower_count = len(flower_colors)
         return dict(
             phase=phase,
             phase_round=phase_round,
@@ -140,7 +167,8 @@ class FlowerField(Page):
             cumulative_earnings=player.cumulative_earnings,
             phase_class=phase_class,
             previous_combinations=previous_combinations,
-            valid_flowers=valid_flowers
+            valid_flowers=valid_flowers,
+            flower_count=flower_count
         )
     live_method = "live_method"  # Name of live method for JS communication
     template_name = 'flowerfieldtask/FlowerField.html'  # HTML template to use
@@ -152,37 +180,54 @@ class FlowerField(Page):
             nutrients = data['data']
             # Select scoring system from session config
             scoring_system = player.session.config.get('scoring_system', 'anomaly')
-            # Get flower colors and phase for this round
+            # Use the same treatment-dependent logic as vars_for_template
+            treatment = player.session.config.get('display_name', '').lower()
             if player.round_number <= C.TRAINING_ROUNDS:
-                round_flower_types = [
-                    ['Purple', 'Orange', 'Green'],
-                    ['Green', 'Green', 'Orange'],
-                    ['Purple', 'Green', 'Purple'],
-                    ['Purple', 'Orange', 'Orange'],
-                    ['Green', 'Orange', 'Purple']
-                ]
-                flower_colors = round_flower_types[player.round_number - 1]
                 phase = 'Training phase'
                 display_round = player.round_number
+                round_flower_types = [
+                    ['Purple', 'Green'],      # R1
+                    ['Green', 'Purple'],      # R2
+                    ['Purple', 'Green', 'Green'], # R3
+                    ['Green', 'Purple', 'Purple'] # R4
+                ]
+                flower_colors = round_flower_types[player.round_number - 1]
             elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS:
-                flower_colors = ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
                 phase = 'Test 1'
                 display_round = player.round_number - C.TRAINING_ROUNDS
-            elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS + C.EXPLORATION_ROUNDS:
-                exploration_flower_types = [
-                    ['Green', 'Purple', 'Blue'],
-                    ['Green', 'Purple', 'Blue'],
-                    ['Green', 'Purple', 'Yellow'],
-                    ['Green', 'Purple', 'Yellow'],
-                    ['Green', 'Purple', 'Yellow']
-                ]
-                display_round = player.round_number - C.TRAINING_ROUNDS - C.TEST1_ROUNDS
-                flower_colors = exploration_flower_types[display_round - 1]
-                phase = 'Exploration phase'
-            else:
                 flower_colors = ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
+            elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS + C.EXPLORATION_ROUNDS:
+                phase = 'Exploration phase'
+                display_round = player.round_number - C.TRAINING_ROUNDS - C.TEST1_ROUNDS
+                if treatment == 'anomaly no noise':
+                    exploration_flower_types = [
+                        ['Orange', 'Purple'],         # R1
+                        ['Orange', 'Green'],          # R2
+                        ['Green', 'Red', 'Green'],    # R3
+                        ['Blue', 'Purple', 'Purple'], # R4
+                        ['Purple', 'Green', 'Yellow'] # R5
+                    ]
+                elif treatment == 'no anomaly no noise':
+                    exploration_flower_types = [
+                        ['Orange', 'Orange'],         # R1
+                        ['Purple', 'Green'],          # R2
+                        ['Red', 'Blue', 'Yellow'],    # R3
+                        ['Green', 'Purple', 'Green'], # R4
+                        ['Purple', 'Purple', 'Green'] # R5
+                    ]
+                else:
+                    exploration_flower_types = [
+                        ['Green', 'Purple', 'Blue'],
+                        ['Green', 'Purple', 'Blue'],
+                        ['Green', 'Purple', 'Yellow'],
+                        ['Green', 'Purple', 'Yellow'],
+                        ['Green', 'Purple', 'Yellow']
+                    ]
+                flower_colors = exploration_flower_types[display_round - 1]
+            else:
                 phase = 'Test 2'
                 display_round = player.round_number - C.TRAINING_ROUNDS - C.TEST1_ROUNDS - C.EXPLORATION_ROUNDS
+                flower_colors = ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
             # Run backend engine to calculate growth and points
             if scoring_system == 'mm':
                 output = run_engine(nutrients, flower_colors=flower_colors, scoring_system='mm')
@@ -211,49 +256,25 @@ class FlowerField(Page):
             else:
                 player.cumulative_earnings = player.participant.vars.get('total_earnings', 0.0)
 
-            # Get flower colors and phase for this round
-            if player.round_number <= C.TRAINING_ROUNDS:
-                round_flower_types = [
-                    ['Purple', 'Orange', 'Green'],
-                    ['Green', 'Green', 'Orange'],
-                    ['Purple', 'Green', 'Purple'],
-                    ['Purple', 'Orange', 'Orange'],
-                    ['Green', 'Orange', 'Purple']
-                ]
-                flower_colors = round_flower_types[player.round_number - 1]
-                phase = 'Training phase'
-                display_round = player.round_number
-            elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS:
-                flower_colors = ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
-                phase = 'Test 1'
-                display_round = player.round_number - C.TRAINING_ROUNDS
-            elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS + C.EXPLORATION_ROUNDS:
-                exploration_flower_types = [
-                    ['Green', 'Purple', 'Blue'],
-                    ['Green', 'Purple', 'Blue'],
-                    ['Green', 'Purple', 'Yellow'],
-                    ['Green', 'Purple', 'Yellow'],
-                    ['Green', 'Purple', 'Yellow']
-                ]
-                phase = 'Exploration phase'
-                display_round = player.round_number - C.TRAINING_ROUNDS - C.TEST1_ROUNDS
-                flower_colors = exploration_flower_types[display_round - 1]
-            else:
-                flower_colors = ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
-                phase = 'Test 2'
-                display_round = player.round_number - C.TRAINING_ROUNDS - C.TEST1_ROUNDS - C.EXPLORATION_ROUNDS
+            # (Removed duplicate/old block: always use the flower_colors and phase already set above)
 
             # Store nutrient-flower combinations and flower colors for each round
             if 'nutrient_flower_history' not in player.participant.vars:
                 player.participant.vars['nutrient_flower_history'] = []
+            # Ensure all lists are the same length and order as flower_colors
+            n_flowers = len(flower_colors)
+            safe_nutrients = (nutrients if len(nutrients) == n_flowers else [None]*n_flowers)
+            safe_scores = (flower_earnings if len(flower_earnings) == n_flowers else [None]*n_flowers)
+            safe_growths = (flower_scores if len(flower_scores) == n_flowers else [None]*n_flowers)
+            safe_noise = (noise_effects if len(noise_effects) == n_flowers else [None]*n_flowers)
             player.participant.vars['nutrient_flower_history'].append({
                 'phase': phase,
                 'round': display_round,
-                'flower_colors': flower_colors,
-                'nutrients': nutrients,
-                'scores': flower_earnings,
-                'growths': flower_scores,  # store growths for correct sizing
-                'noise_effects': noise_effects
+                'flower_colors': list(flower_colors),
+                'nutrients': list(safe_nutrients),
+                'scores': list(safe_scores),
+                'growths': list(safe_growths),
+                'noise_effects': list(safe_noise)
             })
 
             # Save all entries to Excel after every round (local analysis)

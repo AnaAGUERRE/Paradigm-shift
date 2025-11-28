@@ -30,7 +30,7 @@ SESSION_CONFIGS = [
     ),
     dict(
         name='mm_no_noise',                     # Internal name for the session
-        display_name='M&M no noise',            # Shown in admin
+        display_name='No Anomaly no noise',     # Shown in admin
         app_sequence=['flowerfieldtask'],       # Apps to run in sequence
         num_demo_participants=1,                # Number of demo participants
         scoring_system='mm',                    # Scoring system identifier

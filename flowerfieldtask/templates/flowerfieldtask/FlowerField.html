@@ -101,9 +101,9 @@
     {% if previous_combinations|length > 0 %}
     <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
         {% for combo in previous_combinations %}
-        <div class="prev-combo" style="border:1px solid #ccc; border-radius:8px; padding:6px 10px 10px 10px; background:#fafafa; min-width:160px; max-width:220px; font-size:0.85em; display:flex; flex-direction:column; align-items:center;">
+                <div class="prev-combo{% if combo.zipped|length == 2 %} two-flowers{% endif %}" style="border:1px solid #ccc; border-radius:8px; padding:6px 10px 10px 10px; background:#fafafa; min-width:160px; max-width:220px; font-size:0.85em; display:flex; flex-direction:column; align-items:center;">
             <div style="font-weight:bold; margin-bottom:2px; font-size:0.95em;">Round {{ combo.round }}</div>
-            <div style="display:flex; justify-content:space-between; align-items:flex-end; width:100%; gap:0;">
+            <div style="display:flex; justify-content:center; align-items:flex-end; width:100%; gap:40px;">
                 {% for flower, nutrient, score, flower_img, growth, flower_size in combo.zipped %}
                 <div style="display:flex; flex-direction:column; align-items:center; margin:0 1px;">
                     {% if flower_img %}
@@ -113,13 +113,7 @@
                             <img src="{% static flower_img %}" width="32" height="32" style="margin-bottom:2px;" alt="{{ flower }}">
                         {% endif %}
                     {% endif %}
-                </div>
-                {% endfor %}
-            </div>
-            <div style="display:flex; justify-content:space-between; width:100%; gap:0; margin-top:2px;">
-                {% for flower, nutrient, score, flower_img, growth, flower_size in combo.zipped %}
-                <div style="display:flex; flex-direction:column; align-items:center; margin:0 1px;">
-                    <div style="display:flex; gap:1px; margin-bottom:1px;">
+                    <div style="display:flex; gap:1px; margin-bottom:1px; margin-top:2px;">
                         {% for nutrient_img in nutrient %}
                         {% if nutrient_img %}<img src="{% static nutrient_img %}" style="width:16px; height:16px;" alt="nutrient">{% endif %}
                         {% endfor %}
@@ -133,6 +127,22 @@
     </div>
     {% endif %}
 </div>
+    <style>
+    .prev-combo.two-flowers .prev-combo-flowers-row,
+    .prev-combo.two-flowers .prev-combo-scores-row {
+        display: flex !important;
+        justify-content: center !important;
+        gap: 48px !important;
+    }
+    .prev-combo-flowers-row,
+    .prev-combo-scores-row {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        gap: 0;
+        margin-top: 2px;
+    }
+    </style>
 {% endif %}
 
     <style>
