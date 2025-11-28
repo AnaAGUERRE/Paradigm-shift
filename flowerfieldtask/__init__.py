@@ -51,11 +51,17 @@ class FlowerField(Page):
         player.cumulative_earnings = player.participant.vars.get('total_earnings', 0)
         # Determine phase and flower colors for this round
         treatment = player.session.config.get('display_name', '').lower()
+        # Map noisy treatments to their no-noise logic for flower sequences
+        if treatment == 'anomaly noisy':
+            treatment_logic = 'anomaly no noise'
+        elif treatment == 'no anomaly noisy':
+            treatment_logic = 'no anomaly no noise'
+        else:
+            treatment_logic = treatment
         if player.round_number <= C.TRAINING_ROUNDS:
             phase = 'Training phase'
             phase_round = player.round_number
             phase_total = C.TRAINING_ROUNDS
-            # Custom training sequence for both treatments (4 rounds)
             round_flower_types = [
                 ['Purple', 'Green'],      # R1
                 ['Green', 'Purple'],      # R2
@@ -72,8 +78,7 @@ class FlowerField(Page):
             phase = 'Exploration phase'
             phase_round = player.round_number - C.TRAINING_ROUNDS - C.TEST1_ROUNDS
             phase_total = C.EXPLORATION_ROUNDS
-            # Custom exploration sequence for each treatment
-            if treatment == 'anomaly no noise':
+            if treatment_logic == 'anomaly no noise':
                 exploration_flower_types = [
                     ['Orange', 'Purple'],         # R1
                     ['Orange', 'Green'],          # R2
@@ -81,7 +86,7 @@ class FlowerField(Page):
                     ['Blue', 'Purple', 'Purple'], # R4
                     ['Purple', 'Green', 'Yellow'] # R5
                 ]
-            elif treatment == 'no anomaly no noise':
+            elif treatment_logic == 'no anomaly no noise':
                 exploration_flower_types = [
                     ['Orange', 'Orange'],         # R1
                     ['Purple', 'Green'],          # R2
@@ -90,7 +95,6 @@ class FlowerField(Page):
                     ['Purple', 'Purple', 'Green'] # R5
                 ]
             else:
-                # Default (fallback)
                 exploration_flower_types = [
                     ['Green', 'Purple', 'Blue'],
                     ['Green', 'Purple', 'Blue'],
@@ -182,6 +186,13 @@ class FlowerField(Page):
             scoring_system = player.session.config.get('scoring_system', 'anomaly')
             # Use the same treatment-dependent logic as vars_for_template
             treatment = player.session.config.get('display_name', '').lower()
+            # Map noisy treatments to their no-noise logic for flower sequences
+            if treatment == 'anomaly noisy':
+                treatment_logic = 'anomaly no noise'
+            elif treatment == 'no anomaly noisy':
+                treatment_logic = 'no anomaly no noise'
+            else:
+                treatment_logic = treatment
             if player.round_number <= C.TRAINING_ROUNDS:
                 phase = 'Training phase'
                 display_round = player.round_number
@@ -199,7 +210,7 @@ class FlowerField(Page):
             elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS + C.EXPLORATION_ROUNDS:
                 phase = 'Exploration phase'
                 display_round = player.round_number - C.TRAINING_ROUNDS - C.TEST1_ROUNDS
-                if treatment == 'anomaly no noise':
+                if treatment_logic == 'anomaly no noise':
                     exploration_flower_types = [
                         ['Orange', 'Purple'],         # R1
                         ['Orange', 'Green'],          # R2
@@ -207,7 +218,7 @@ class FlowerField(Page):
                         ['Blue', 'Purple', 'Purple'], # R4
                         ['Purple', 'Green', 'Yellow'] # R5
                     ]
-                elif treatment == 'no anomaly no noise':
+                elif treatment_logic == 'no anomaly no noise':
                     exploration_flower_types = [
                         ['Orange', 'Orange'],         # R1
                         ['Purple', 'Green'],          # R2

@@ -33,8 +33,9 @@ SESSION_CONFIGS = [
         display_name='No Anomaly no noise',     # Shown in admin
         app_sequence=['flowerfieldtask'],       # Apps to run in sequence
         num_demo_participants=1,                # Number of demo participants
-        scoring_system='mm',                    # Scoring system identifier
+        scoring_system='anomaly',               # Scoring system identifier (now matches Anomaly no noise)
     ),
+    # Anomaly noisy: duplicate of Anomaly no noise but with noise
     dict(
         name='anomaly_noisy',
         display_name='Anomaly noisy',
@@ -44,12 +45,13 @@ SESSION_CONFIGS = [
         epsilon=0.2,  # 20% noise
         noisy=True,
     ),
+    # No Anomaly noisy: duplicate of No Anomaly no noise but with noise
     dict(
-        name='mm_noisy',
-        display_name='M&M noisy',
+        name='no_anomaly_noisy',
+        display_name='No Anomaly noisy',
         app_sequence=['flowerfieldtask'],
         num_demo_participants=1,
-        scoring_system='mm',
+        scoring_system='anomaly',
         epsilon=0.2,  # 20% noise
         noisy=True,
     ),
