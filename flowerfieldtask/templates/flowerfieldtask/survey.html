@@ -1,0 +1,48 @@
+{% block content %}
+    <style>
+        .survey-container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 30px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        }
+        h2 { margin-bottom: 24px; }
+        label { display: block; margin-top: 18px; margin-bottom: 6px; }
+        select, textarea {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            margin-bottom: 18px;
+        }
+        button, input[type=submit] {
+            background: #1976d2;
+            color: #fff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover, input[type=submit]:hover {
+            background: #125ea2;
+        }
+    </style>
+    <div class="survey-container">
+        <h2>Survey</h2>
+        <form method="post">
+            <label for="year_of_birth">What is your year of birth?</label>
+            <select name="year_of_birth" id="year_of_birth" required>
+                <option value="">--------</option>
+                {% for year in years %}
+                    <option value="{{ year }}">{{ year }}</option>
+                {% endfor %}
+            </select>
+            <label for="feedback">Do you have any feedback for us? Were there any problems? (optional)</label>
+            <textarea name="feedback" id="feedback" rows="3"></textarea>
+            <input type="submit" value="Next">
+        </form>
+    </div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% block content %}
+    <div class="survey-container" style="max-width: 700px; margin: 40px auto; padding: 30px; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.07);">
+        <h2>Results</h2>
+        <p>Thank you for participating in this experiment.<br>
+        Your bonus from the task is: <b>£{{ total_earnings }}</b></p>
+        <p><b>Current total is <span style="font-size: 1.2em;">£{{ total_earnings }}</span></b></p>
+        <p>Your bonus from the earnings of the next player will be calculated and added to this amount after we complete collecting the data.<br>
+        Then we will send your bonus payment. It usually takes a couple of days.</p>
+        <p>Click [Next] to complete the study and go back to Prolific.</p>
+        <form method="post">
+            <button type="submit" class="otree-btn-next btn btn-primary">Next</button>
+        </form>
+    </div>
+{% endblock %}

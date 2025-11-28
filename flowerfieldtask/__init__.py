@@ -382,6 +382,80 @@ class FlowerField(Page):
             }
 
 
+
+# Survey page at the end
+class Survey(Page):
+
+        form_model = 'player'
+        form_fields = ['year_of_birth', 'feedback']
+
+        def before_next_page(player, timeout_happened):
+            # On survey page, add a single row with phase='Survey' for this participant
+            import pandas as pd
+            import os
+            excel_path = 'nutrient_flower_data.xlsx'
+            if os.path.exists(excel_path):
+                df_all = pd.read_excel(excel_path)
+            else:
+                df_all = pd.DataFrame()
+            # Add a new row for the survey
+            new_entry = {
+                'participant_code': player.participant.code,
+                'phase': 'Survey',
+                'year_of_birth': player.year_of_birth,
+                'feedback': player.feedback,
+            }
+            df_all = pd.concat([df_all, pd.DataFrame([new_entry])], ignore_index=True)
+            df_all.to_excel(excel_path, index=False)
+            # Auto-adjust column widths for readability
+            try:
+                from openpyxl import load_workbook
+                wb = load_workbook(excel_path)
+                ws = wb.active
+                for col in ws.columns:
+                    max_length = 0
+                    column = col[0].column_letter # Get the column name
+                    for cell in col:
+                        try:
+                            cell_length = len(str(cell.value)) if cell.value is not None else 0
+                            if cell_length > max_length:
+                                max_length = cell_length
+                        except:
+                            pass
+                    adjusted_width = (max_length + 2)
+                    ws.column_dimensions[column].width = adjusted_width
+                wb.save(excel_path)
+            except Exception as e:
+                print(f"Excel auto-width error: {e}")
+
+        def vars_for_template(player):
+            # Years from 1940 to current year
+            import datetime
+            current_year = datetime.datetime.now().year
+            years = list(range(current_year, 1939, -1))
+            return dict(years=years)
+
+        def is_displayed(player):
+            # Only show after the last round (after Test2)
+            return player.round_number == C.NUM_ROUNDS
+
+        template_name = 'flowerfieldtask/survey.html'
+
+# Add fields to Player model
+Player.year_of_birth = models.IntegerField(blank=True, null=True, label="What is your year of birth?")
+Player.feedback = models.LongStringField(blank=True, null=True, label="Do you have any feedback for us? Were there any problems? (optional)")
+
+
+# Results page at the very end
+class Results(Page):
+    def vars_for_template(player):
+        # Use the participant's total earnings (in £, formatted)
+        total = player.participant.vars.get('total_earnings', 0)
+        return dict(total_earnings="{:.2f}".format(total))
+    def is_displayed(player):
+        return player.round_number == C.NUM_ROUNDS
+    template_name = 'flowerfieldtask/results.html'
+
 # Sequence of pages in the experiment
-page_sequence = [Instructions, FlowerField]
+page_sequence = [Instructions, FlowerField, Survey, Results]
 
