@@ -19,9 +19,9 @@ document.addEventListener('DOMContentLoaded', function() {
             style.innerHTML = '.bootbox.modal { z-index: 10000 !important; } .modal-backdrop { z-index: 9999 !important; }';
             document.head.appendChild(style);
             var showNoisePopup = function() {
-                // Only show for Anomaly noisy and M&M noisy
+                // Only show for Anomaly noisy and No Anomaly noisy
                 var treatment = (window.js_vars && window.js_vars.treatment) ? window.js_vars.treatment : '';
-                if (treatment === 'Anomaly noisy' || treatment === 'M&M noisy') {
+                if (treatment === 'Anomaly noisy' || treatment === 'No Anomaly noisy') {
                     if (typeof bootbox !== 'undefined') {
                         bootbox.dialog({
                             message: `<div style='font-size:1.15em; text-align:center;'>
