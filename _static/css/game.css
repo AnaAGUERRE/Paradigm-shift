@@ -11,7 +11,7 @@ body {
 
 
 .bottomborder {
-    border-bottom: 1px solid #ddd;
+    border-bottom: none !important;
 }
 
 .not-selectable {
@@ -32,17 +32,22 @@ body {
     width: 1130px;
     min-width: 1130px;
     margin: 0 auto; /* This centers the container */
-    background-color: #e0e0e0; /* Light grey background */
+    background-color: #fff !important; /* Force white background */
+    border: none !important;
+  background: white !important;
+  border: none !important;
 }
 
 #left-panel {
-    background-color: #f0f0f0;
+    background-color: #fff !important;
+    border: none !important;
     width: 320px; /* Adjust as needed */
     margin-right: 10px;  /* Optional gap between left and right panels */
 }
 
 #left-panel-understanding {
-    background-color: #f0f0f0;
+    background-color: #fff !important;
+    border: none !important;
     width: 550px; /* Adjust as needed */
     
 }
@@ -51,7 +56,8 @@ body {
 
 #right-panel-understanding {
     width: 550px; /* Adjust to fit remaining width */
-    background-color: #f4f4f4; /* Adjust as per your requirement */
+    background-color: #fff !important;
+    border: none !important;
     
 }
 
@@ -65,7 +71,9 @@ body {
   
 
   #currentRound {
-    background-color: #e0e0e0; /* Light grey background */
+    background-color: transparent !important;
+      background: transparent !important;
+      border: none !important;
     /* Removed position: fixed and related properties to allow normal flow */
     /* Add other styles as needed */
   }
@@ -88,6 +96,7 @@ body {
 
 
 .page-header {
+    border: none !important;
   margin-top: 0px;
   margin-bottom: 0px;
   padding-top: 0px;

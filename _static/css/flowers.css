@@ -1,5 +1,22 @@
+.otree-title-box {
+        background: transparent !important;
+        background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+.otree-title-box, .otree-title, .otree-title-row, .page-header {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+body {
+    background: white !important;
+}
 /* Make previous combinations panel smaller */
 #previous-combinations {
+        background: white !important;
     max-height: 80px;
     min-height: 0;
     overflow-y: auto;
@@ -123,8 +140,8 @@
     user-select: none;
     background-color: #fff;
     transition: all 0.2s ease;
-    width: 36px;
-    height: 36px;
+    width: 24px;
+    height: 24px;
     margin: 2px;
 }
 
@@ -158,7 +175,7 @@
 
 #nutrient-panel {
     padding: 8px 12px;
-    background-color: white;
+    background-color: white !important;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     min-width: 160px;
@@ -189,17 +206,19 @@
     display: flex;
     flex-direction: row;
     width: 100%;
-        max-width: 700px;
-        margin: 0 auto;
-        gap: 12px;
-        padding: 20px 0;
-        align-items: flex-start;
-        justify-content: flex-start;
+    max-width: 700px;
+    margin: 0 auto;
+    gap: 12px;
+    padding: 20px 0;
+    align-items: flex-start;
+    justify-content: flex-start;
+    background: white !important;
 }
 #flower-field {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 32px;
+    background: white !important;
     .nutrient-slot {
         width: 90px;
         height: 48px;
@@ -211,7 +230,7 @@
         position: relative;
         transition: all 0.2s ease;
         overflow: hidden;
-        background: #f8f8f8;
+        background: white !important;
         margin: 2px;
     }
     width: auto;
@@ -293,7 +312,7 @@
 
 /* White panel around the flower field */
 #flower-field-panel.white-panel {
-    background: white;
+    background: white !important;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     padding: 12px 24px 12px 24px; /* less vertical padding */
@@ -311,6 +330,7 @@
 
 /* Side Panel Stack */
 .side-panel-stack {
+        background: white !important;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -321,7 +341,7 @@
 
 #results-section {
     width: 100%;
-    background: none;
+    background: white !important;
     box-shadow: none;
     border-radius: 0;
     margin-top: 0;
