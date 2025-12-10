@@ -1,9 +1,8 @@
 .otree-title-box {
-        background: transparent !important;
-        background-color: transparent !important;
+    background: white !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
     border: none !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
 }
 .otree-title-box, .otree-title, .otree-title-row, .page-header {
     background: transparent !important;
@@ -179,8 +178,9 @@ body {
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     min-width: 160px;
-    min-height: 60px;
-    max-height: 120px;
+    min-height: 0;
+    max-height: 80px;
+    height: auto !important;
     overflow-y: auto;
 }
 
@@ -195,8 +195,9 @@ body {
     flex-wrap: nowrap;
     gap: 25px;
     justify-content: center;
-    align-items: center;
-    min-height: 50px;
+    align-items: flex-start;
+    min-height: 0;
+    height: auto !important;
 }
 
 

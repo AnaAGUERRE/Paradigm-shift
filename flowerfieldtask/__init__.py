@@ -165,6 +165,10 @@ class FlowerField(Page):
         valid_flowers = ['Purple', 'Orange', 'Green', 'Yellow', 'Red', 'Blue']
         # Centering logic for flower placement (pass count to template)
         flower_count = len(flower_colors)
+        # Determine treatment for template logic
+        treatment = player.session.config.get('display_name', '')
+        # Example: transmitted_photo could be set in participant.vars or elsewhere
+        transmitted_photo = player.participant.vars.get('transmitted_photo', None)
         return dict(
             phase=phase,
             phase_round=phase_round,
@@ -174,7 +178,9 @@ class FlowerField(Page):
             phase_class=phase_class,
             previous_combinations=previous_combinations,
             valid_flowers=valid_flowers,
-            flower_count=flower_count
+            flower_count=flower_count,
+            treatment=treatment,
+            transmitted_photo=transmitted_photo
         )
     live_method = "live_method"  # Name of live method for JS communication
     template_name = 'flowerfieldtask/FlowerField.html'  # HTML template to use
