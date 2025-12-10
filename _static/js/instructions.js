@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <p>Each flower can receive <b>one or two nutrients</b>. There are three types of nutrients: blue, red, and yellow. You will drag and drop the nutrients below each flower before confirming your choice. If you use two nutrients, <b>order does not matter</b>, for example, <i>BLUE–YELLOW</i> is the same as <i>YELLOW–BLUE</i>.</p>
                                 <p><b>Each flower is independent:</b> there is no interaction between the flowers, and the placement of a flower in the field does not affect its growth. The outcome for each flower depends only on the nutrients you give to that specific flower.</p>
                                 <p>An interactive example is displayed on the right.</p>
-                                <p>To continue, please <b>drag and drop one blue nutrient and one red nutrient</b> under the flower and click on [Next].</p>
+                                <p>To continue, please drag and drop one blue nutrient and one red nutrient under the flower and click on [Next].</p>
                             </div>
                             <div style="flex: none; min-width: 0; max-width: 40vw;">
                                 <div class="flower-demo-box" id="interactive-demo"></div>
@@ -184,8 +184,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div class="slide-content-block" style="margin-top: 0; max-width: 90vw;">
                         <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">7/10</span>
                         <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 1em;">Learning from previous participants</div>
-                        <p>At the beginning of the experiment, <b>you will have the opportunity to observe a set of nutrient configurations transmitted by the previous participant, after they have completed their training and exploration,</b> unless you are the first in the chain.</p>
-                        <p>Similarly, <b>the next participant will be able to observe the configurations you will transmit.</b> In addition to your earnings, you will be rewarded the same amount as the next participant will earn in their first <b>two</b> trials.</p>
+                        <p>At the beginning of the experiment, <b>you might have the opportunity to observe a set of nutrient configurations produced by a previous participant,</b> unless you are the first in the chain.</p>
+                        <p>Similarly, <b>a following participant will be able to observe the configurations you will produce.</b> </p>
                         <div class="slide-visual center" style="margin-top: 1em; text-align: center; width: 100%;">
                             <img src="/static/img/indicationPreviousParticipant.png" class="slide-img-centered" style="width: 220px; max-width: 90vw; display: inline-block;">
                         </div>
@@ -202,14 +202,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em; text-align: left;">8/10</span>
                         <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 1em; text-align: left;">Monetary reward summary</div>
                         <p style="margin-bottom: 1.2em;">Your final payoff will be calculated as a sum of the following scores:</p>
-                        <div style="display: flex; gap: 2em; margin-bottom: 1em;">
-                            <div style="background: #f5f5f5; border-radius: 12px; padding: 1.2em 1.5em; min-width: 220px; font-size: 1.1em; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #e0e0e0; text-align: center;">
-                                The earnings from each of your trials.
-                            </div>
-                            <div style="background: #f5f5f5; border-radius: 12px; padding: 1.2em 1.5em; min-width: 220px; font-size: 1.1em; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #e0e0e0; text-align: center;">
-                                The earnings from the first two trials of the next participant in the chain.
-                            </div>
-                        </div>
+                        <ul style="font-size: 1.1em; margin-bottom: 1em; padding-left: 1.5em;">
+                            <li style="margin-bottom: 0.7em;">The earnings from each of your trials.</li>
+                            <li>The earnings from the first two trials of the next participant in the chain.</li>
+                        </ul>
                     </div>
                 </div>
             `,
