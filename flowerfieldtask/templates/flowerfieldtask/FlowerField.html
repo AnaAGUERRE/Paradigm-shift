@@ -38,7 +38,12 @@
     {# Top row: phase and round info #}
     <div class="row m-0 p-0" id="toprow" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
         <div class="col-12 p-1 border mt-1" style="width: 100%; max-width: 700px; text-align: center;">
-            <h4 style="margin-bottom:0.5em;">{{ phase }}</h4>
+            <h4 style="margin-bottom:0.5em;">
+                {% if phase == 'Training phase' %}First phase
+                {% elif phase == 'Exploration phase' %}Second phase
+                {% else %}{{ phase }}
+                {% endif %}
+            </h4>
             <h5>Round {{ phase_round }} / {{ phase_total }}</h5>
             <div id="top-earnings" style="font-size:1.1em; margin-top:0.5em;">
                 Total earnings: £<span id="totalEarningsResult">{{ cumulative_earnings }}</span>
