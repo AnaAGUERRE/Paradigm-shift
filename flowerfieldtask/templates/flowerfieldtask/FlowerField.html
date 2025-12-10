@@ -61,8 +61,8 @@
     </div>
 
     {# Main game and results area #}
-    <div class="row m-0 p-0" style="width: 100%; min-height: 400px;">
-        <div class="col-12" id="currentRound" style="min-height: 700px; width: 100%; display: flex; justify-content: center; align-items: flex-start;">
+    <div class="row m-0 p-0" style="width: 100%;">
+        <div class="col-12" id="currentRound" style="width: 100%; display: flex; justify-content: center; align-items: flex-start;">
             <!-- Flower Field Game -->
             <div class="flower-game-container" style="width: 100%;">
                 <div id="flower-field-panel" class="white-panel">
@@ -97,7 +97,7 @@
     </div>
 </div>
 {% if phase == 'Training phase' or phase == 'Exploration phase' %}
-<div id="previous-combinations" style="width:100%; position:fixed; left:0; bottom:0; background:rgba(245,245,245,0.98); padding:12px 0 18px 0; text-align:center; z-index:10;">
+<div id="previous-combinations" style="width:100%; background:rgba(245,245,245,0.98); padding:8px 0 8px 0; text-align:center; margin:24px auto 0 auto; max-height:120px; overflow-y:auto;">
     {% if previous_combinations|length > 0 %}
     <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
         {% for combo in previous_combinations %}
