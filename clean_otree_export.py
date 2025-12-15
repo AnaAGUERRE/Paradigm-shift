@@ -1,22 +1,26 @@
 import csv
 
+# For Excel export with auto-fit columns
+import openpyxl
+from openpyxl.utils import get_column_letter
+
 # Fichier d'entrée et de sortie
 INPUT_FILE = 'otree_exported_data.csv'
 OUTPUT_FILE = 'clean_file.csv'
 
-# Colonnes à extraire et leur nouvel ordre/nom (correspondent aux nouveaux champs Player)
+# Columns to extract and their new order/name (in English)
 COLUMNS = [
-    ('participant.code', 'code_participant'),
-    ('player.treatment', 'traitement'),
-    ('player.phase', 'phase'),
-    ('subsession.round_number', 'round'),
-    ('player.flower_colors', 'couleur_fleurs'),
-    ('player.nutrient_choice', 'nutrients'),
-    ('player.score_per_flower', 'score_fleurs'),
-    ('player.noise_applied', 'noise'),
-    ('player.cumulative_earnings', 'score_total_fin_exp'),
-    ('player.year_of_birth', 'annee_naissance'),
-    ('player.feedback', 'feedback'),
+    ('participant.code', 'Participant_code'),
+    ('player.treatment', 'Treatment'),
+    ('player.phase', 'Phase'),
+    ('subsession.round_number', 'Round'),
+    ('player.flower_colors', 'Flower_colors'),
+    ('player.nutrient_choice', 'Nutrient_choice'),
+    ('player.score_per_flower', 'Score_per_flower'),
+    ('player.noise_applied', 'Noise_applied'),
+    ('player.cumulative_earnings', 'Total_earnings'),
+    ('player.year_of_birth', 'Birth_year'),
+    ('player.feedback', 'Feedback'),
 ]
 
 def clean_otree_export(input_path=INPUT_FILE, output_path=OUTPUT_FILE):
@@ -24,28 +28,101 @@ def clean_otree_export(input_path=INPUT_FILE, output_path=OUTPUT_FILE):
         reader = csv.DictReader(infile, delimiter=';')
         rows = list(reader)
 
-    # Adapter la taille des colonnes à leur contenu
-    output_rows = []
+    # Regrouper par participant
+    from collections import defaultdict
+    by_participant = defaultdict(list)
     for row in rows:
-        output_row = {}
-        for old, new in COLUMNS:
-            output_row[new] = row.get(old, '')
-        output_rows.append(output_row)
+        code = row.get('participant.code', '')
+        by_participant[code].append(row)
 
-    # Calculer la largeur max de chaque colonne
-    col_widths = {col[1]: len(col[1]) for col in COLUMNS}
+    output_rows = []
+    for code, rounds in by_participant.items():
+        # Trouver la dernière ligne (round max) pour Test 2
+        last_round = None
+        max_round = -1
+        for row in rounds:
+            try:
+                r = int(row.get('subsession.round_number', '0'))
+            except Exception:
+                r = 0
+            if r > max_round:
+                max_round = r
+                last_round = row
+
+        # Pour chaque ligne, corriger phase et ne jamais mettre Results sauf pour la ligne de synthèse
+        for row in rounds:
+            output_row = {}
+            phase = row.get('player.phase', '')
+            round_num = row.get('subsession.round_number', '')
+            # Si c'est la dernière ligne (max round), forcer phase à 'Test 2'
+            if round_num and int(round_num) == max_round:
+                phase = 'Test 2'
+            # Ne jamais mettre feedback/birthyear sauf pour la synthèse
+            for old, new in COLUMNS:
+                if new in ('Feedback', 'Birth_year'):
+                    output_row[new] = ''
+                else:
+                    output_row[new] = row.get(old, '')
+            output_row['Phase'] = phase
+            output_row['Round'] = round_num
+            output_rows.append(output_row)
+
+        # Add a summary Results row with only selected fields
+        summary = {new: '' for _, new in COLUMNS}
+        if last_round:
+            summary['Participant_code'] = last_round.get('participant.code', '')
+            summary['Treatment'] = last_round.get('player.treatment', '')
+            summary['Phase'] = 'Results'
+            summary['Round'] = ''
+            summary['Total_earnings'] = last_round.get('player.cumulative_earnings', '')
+            summary['Birth_year'] = last_round.get('player.year_of_birth', '')
+            summary['Feedback'] = last_round.get('player.feedback', '')
+            # All other fields remain blank
+        output_rows.append(summary)
+
+    # Write the clean file with ',' as separator (no manual padding)
+
+    # Write only Excel file with auto-fit columns
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Data"
+    # Write header
+    ws.append([col[1] for col in COLUMNS])
+    # Write data rows
     for row in output_rows:
-        for col in col_widths:
-            col_widths[col] = max(col_widths[col], len(str(row[col]) if row[col] is not None else ''))
+        ws.append([row[col[1]] for col in COLUMNS])
+    # Auto-fit columns
+    for col_idx, col in enumerate(COLUMNS, 1):
+        max_length = len(col[1])
+        for row in ws.iter_rows(min_col=col_idx, max_col=col_idx, min_row=1, max_row=ws.max_row):
+            for cell in row:
+                try:
+                    max_length = max(max_length, len(str(cell.value)) if cell.value is not None else 0)
+                except:
+                    pass
+        ws.column_dimensions[get_column_letter(col_idx)].width = max_length + 2
+    wb.save(output_path.replace('.csv', '.xlsx'))
 
-    # Écriture du fichier clean
-    with open(output_path, 'w', newline='', encoding='utf-8') as outfile:
-        writer = csv.writer(outfile)
-        # En-tête
-        writer.writerow([col[1] for col in COLUMNS])
-        # Lignes de données
-        for row in output_rows:
-            writer.writerow([row[col[1]] for col in COLUMNS])
+    # Write Excel file with auto-fit columns
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Data"
+    # Write header
+    ws.append([col[1] for col in COLUMNS])
+    # Write data rows
+    for row in output_rows:
+        ws.append([row[col[1]] for col in COLUMNS])
+    # Auto-fit columns
+    for col_idx, col in enumerate(COLUMNS, 1):
+        max_length = len(col[1])
+        for row in ws.iter_rows(min_col=col_idx, max_col=col_idx, min_row=1, max_row=ws.max_row):
+            for cell in row:
+                try:
+                    max_length = max(max_length, len(str(cell.value)) if cell.value is not None else 0)
+                except:
+                    pass
+        ws.column_dimensions[get_column_letter(col_idx)].width = max_length + 2
+    wb.save(output_path.replace('.csv', '.xlsx'))
 
 if __name__ == '__main__':
     clean_otree_export()

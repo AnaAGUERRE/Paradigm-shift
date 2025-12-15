@@ -430,7 +430,6 @@ class FlowerGame {
         this.currentDraggedNutrient = null;
         console.log('onDrop: nutrient =', nutrient, 'event:', e, 'draggedElement:', this.draggedElement);
         if (!nutrient || !this.nutrientImages[nutrient]) {
-            alert('Error: undetermined nutrient! Please try again.');
             return;
         }
         // Get flower index from slot id

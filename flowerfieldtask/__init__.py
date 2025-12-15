@@ -34,8 +34,20 @@ class Group(BaseGroup):
     pass  # No group logic needed
 
 class Player(BasePlayer):
-    cumulative_earnings = models.FloatField(initial=0)  # Tracks total earnings for this player
+
+    # Tracks total earnings for this player
+    cumulative_earnings = models.FloatField(initial=0)
     test1_pending_earnings = models.FloatField(initial=0)  # Holds Test 1 earnings until Test 2
+
+    # Fields for raw export
+    treatment = models.StringField(blank=True, null=True, label="Treatment")
+    phase = models.StringField(blank=True, null=True, label="Phase")
+    flower_colors = models.LongStringField(blank=True, null=True, label="Flower colors (JSON)")
+    nutrient_choice = models.LongStringField(blank=True, null=True, label="Nutrient choice (JSON)")
+    score_per_flower = models.LongStringField(blank=True, null=True, label="Score per flower (JSON)")
+    noise_applied = models.LongStringField(blank=True, null=True, label="Noise (JSON)")
+    # cumulative_earnings already present
+    # year_of_birth and feedback added below
 
 
 class Instructions(Page):
@@ -300,7 +312,26 @@ class FlowerField(Page):
                 player.participant.vars['total_earnings'] = round(float(player.participant.vars['total_earnings']) + round_earnings, 2)
                 player.cumulative_earnings = player.participant.vars['total_earnings']
 
-            # (Removed duplicate/old block: always use the flower_colors and phase already set above)
+            # --- Save all relevant fields to Player for oTree export ---
+            player.treatment = player.session.config.get('display_name', '')
+            # Map phase to user-friendly label
+            if phase == 'Training phase':
+                player.phase = 'First phase'
+            elif phase == 'Exploration phase':
+                player.phase = 'Second phase'
+            elif phase == 'Test 1':
+                player.phase = 'Test 1'
+            elif phase == 'Test 2':
+                player.phase = 'Test 2'
+            else:
+                player.phase = phase
+            import json as _json
+            player.flower_colors = _json.dumps(flower_colors)
+            player.nutrient_choice = _json.dumps(nutrients)
+            player.score_per_flower = _json.dumps(flower_scores)
+            player.noise_applied = _json.dumps(noise_effects)
+            player.cumulative_earnings = player.participant.vars['total_earnings']
+            
 
             # Store nutrient-flower combinations and flower colors for each round
             if 'nutrient_flower_history' not in player.participant.vars:
@@ -321,85 +352,7 @@ class FlowerField(Page):
                 'noise_effects': list(safe_noise)
             })
 
-            # Save all entries to Excel after every round (local analysis)
-            try:
-                import pandas as pd
-                import os
-                # Prepare the new entry for Excel
-                new_entry = {
-                    'participant_code': player.participant.code,
-                    'Treatment': player.session.config.get('display_name', player.session.config.get('name', '')),
-                    'phase': phase,
-                    'round': display_round,
-                    'flower_colors': flower_colors,
-                    'nutrients': nutrients,
-                    'scores (p)': flower_earnings,  # in pennies as strings
-                    'noise_effects': noise_effects
-                }
-                excel_path = 'nutrient_flower_data.xlsx'
-                if os.path.exists(excel_path):
-                    df_existing = pd.read_excel(excel_path)
-                    df_new = pd.DataFrame([new_entry])
-                    df_all = pd.concat([df_existing, df_new], ignore_index=True)
-                else:
-                    df_all = pd.DataFrame([new_entry])
-
-                # Remove any old 'final_total_earnings' or 'final_total_earnings (£)' column if present
-                for col in ['final_total_earnings', 'final_total_earnings (£)']:
-                    if col in df_all.columns:
-                        df_all = df_all.drop(columns=[col])
-                # Only keep 'final_total_earnings (£)' and only fill it for the last row of each participant
-                df_all['final_total_earnings (£)'] = None
-                for code in df_all['participant_code'].unique():
-                    mask = df_all['participant_code'] == code
-                    # Only include non-test phases
-                    mask_non_test = mask & (~df_all['phase'].isin(['Test 1', 'Test 2']))
-                    total = 0.0
-                    for idx, row in df_all[mask_non_test].iterrows():
-                        # Use the 'scores (p)' column, which is a list of penny strings
-                        scores_p = row.get('scores (p)')
-                        if isinstance(scores_p, list):
-                            try:
-                                total += sum([int(s) for s in scores_p])
-                            except:
-                                pass
-                        elif isinstance(scores_p, str):
-                            try:
-                                import ast
-                                scores = ast.literal_eval(scores_p)
-                                total += sum([int(s) for s in scores])
-                            except:
-                                pass
-                    last_idx = df_all[mask].index[-1]
-                    # Convert pennies to £ and format to two decimals
-                    df_all.at[last_idx, 'final_total_earnings (£)'] = '{:.2f}'.format(total / 100)
-
-                # Reorder columns to put 'Treatment' first
-                cols = list(df_all.columns)
-                if 'Treatment' in cols:
-                    cols.insert(0, cols.pop(cols.index('Treatment')))
-                    df_all = df_all[cols]
-                df_all.to_excel(excel_path, index=False)
-
-                # Auto-adjust column widths for readability
-                from openpyxl import load_workbook
-                wb = load_workbook(excel_path)
-                ws = wb.active
-                for col in ws.columns:
-                    max_length = 0
-                    column = col[0].column_letter # Get the column name
-                    for cell in col:
-                        try:
-                            cell_length = len(str(cell.value)) if cell.value is not None else 0
-                            if cell_length > max_length:
-                                max_length = cell_length
-                        except:
-                            pass
-                    adjusted_width = (max_length + 2)
-                    ws.column_dimensions[column].width = adjusted_width
-                wb.save(excel_path)
-            except Exception as e:
-                print(f"Excel export error: {e}")
+            # (Excel writing removed)
 
             # Return results to JS for display
             # Only after Test 2 submission, send both Test 1 and Test 2 raw data for animation
@@ -449,43 +402,7 @@ class Survey(Page):
         form_fields = ['year_of_birth', 'feedback']
 
         def before_next_page(player, timeout_happened):
-            # On survey page, add a single row with phase='Survey' for this participant
-            import pandas as pd
-            import os
-            excel_path = 'nutrient_flower_data.xlsx'
-            if os.path.exists(excel_path):
-                df_all = pd.read_excel(excel_path)
-            else:
-                df_all = pd.DataFrame()
-            # Add a new row for the survey
-            new_entry = {
-                'participant_code': player.participant.code,
-                'phase': 'Survey',
-                'year_of_birth': player.year_of_birth,
-                'feedback': player.feedback,
-            }
-            df_all = pd.concat([df_all, pd.DataFrame([new_entry])], ignore_index=True)
-            df_all.to_excel(excel_path, index=False)
-            # Auto-adjust column widths for readability
-            try:
-                from openpyxl import load_workbook
-                wb = load_workbook(excel_path)
-                ws = wb.active
-                for col in ws.columns:
-                    max_length = 0
-                    column = col[0].column_letter # Get the column name
-                    for cell in col:
-                        try:
-                            cell_length = len(str(cell.value)) if cell.value is not None else 0
-                            if cell_length > max_length:
-                                max_length = cell_length
-                        except:
-                            pass
-                    adjusted_width = (max_length + 2)
-                    ws.column_dimensions[column].width = adjusted_width
-                wb.save(excel_path)
-            except Exception as e:
-                print(f"Excel auto-width error: {e}")
+            pass  # (Excel writing removed)
 
         def vars_for_template(player):
             # Years from 1940 to current year
@@ -510,6 +427,10 @@ Player.feedback = models.LongStringField(blank=True, null=True, label="Do you ha
 # Results page at the very end
 class Results(Page):
     def vars_for_template(player):
+        # Set phase and treatment for results row in export
+        player.treatment = player.session.config.get('display_name', '')
+        player.phase = 'Results'
+        
         # Use the participant's total earnings (in £, formatted)
         total = player.participant.vars.get('total_earnings', 0)
         # Always provide test1_zipped and test2_zipped as empty lists for template robustness
