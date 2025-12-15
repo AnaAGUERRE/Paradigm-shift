@@ -35,6 +35,7 @@ class Group(BaseGroup):
 
 class Player(BasePlayer):
     cumulative_earnings = models.FloatField(initial=0)  # Tracks total earnings for this player
+    test1_pending_earnings = models.FloatField(initial=0)  # Holds Test 1 earnings until Test 2
 
 
 class Instructions(Page):
@@ -48,7 +49,21 @@ class FlowerField(Page):
     import json
     def vars_for_template(player):
         # Pass variables to the template for display and JS logic
-        player.cumulative_earnings = player.participant.vars.get('total_earnings', 0)
+        # For Test 1, show total_earnings without Test 1 reward
+        # For Test 2, show total_earnings including both Test 1 and Test 2 rewards
+        phase = None
+        if player.round_number <= C.TRAINING_ROUNDS:
+            phase = 'Training phase'
+        elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS:
+            phase = 'Test 1'
+        elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS + C.EXPLORATION_ROUNDS:
+            phase = 'Exploration phase'
+        else:
+            phase = 'Test 2'
+        if phase == 'Test 1':
+            player.cumulative_earnings = player.participant.vars.get('total_earnings', 0)
+        else:
+            player.cumulative_earnings = player.participant.vars.get('total_earnings', 0)
         # Determine phase and flower colors for this round
         treatment = player.session.config.get('display_name', '').lower()
         # Map noisy and transmission treatments to their no-noise logic for flower sequences
@@ -257,25 +272,33 @@ class FlowerField(Page):
             total_growth = sum(f['growth'] for f in output) / len(output)
             total_points = calculate_points_from_growth(total_growth)
             flower_scores = [f['growth'] for f in output]
-            # Per-flower earnings as integer pennies (e.g., 8p, 10p), not £
-            if phase in ["Test 1", "Test 2"]:
-                flower_earnings = ["0" for _ in flower_scores]
-                round_earnings = 0.0
-            else:
-                # Each earning: growth * 10 (to get pennies), rounded to nearest int
-                flower_earnings = [str(int(round(g * 10))) for g in flower_scores]
-                # For total, sum as £
-                round_earnings = sum([int(e) for e in flower_earnings]) / 100.0
+            # Multiply by 2 only for Test 1 and Test 2
+            if phase in ['Test 1', 'Test 2']:
+                flower_scores = [g * 2 for g in flower_scores]
+            # Each earning: growth * 10 (to get pennies), rounded to nearest int
+            flower_earnings = [str(int(round(g * 10))) for g in flower_scores]
+            # For total, sum as £
+            round_earnings = sum([int(e) for e in flower_earnings]) / 100.0
             # Track noise effects for noisy configs
             noise_effects = [f.get('noise') for f in output]
-            # Update participant's total earnings (only for non-test phases)
-            if phase not in ["Test 1", "Test 2"]:
-                if 'total_earnings' not in player.participant.vars:
-                    player.participant.vars['total_earnings'] = 0.0
+            # Update participant's total earnings
+            if 'total_earnings' not in player.participant.vars:
+                player.participant.vars['total_earnings'] = 0.0
+            if phase == 'Test 1':
+                # Store Test 1 earnings but do not add to total yet
+                player.test1_pending_earnings = round_earnings
+                player.participant.vars['test1_pending_earnings'] = round_earnings
+                # Do not update total_earnings yet
+            elif phase == 'Test 2':
+                # Add both Test 1 and Test 2 earnings to total_earnings
+                test1_earnings = player.participant.vars.get('test1_pending_earnings', 0.0)
+                player.participant.vars['total_earnings'] = round(float(player.participant.vars['total_earnings']) + test1_earnings + round_earnings, 2)
+                player.cumulative_earnings = player.participant.vars['total_earnings']
+                player.participant.vars['test1_pending_earnings'] = 0.0
+            else:
+                # For all other phases, update as usual
                 player.participant.vars['total_earnings'] = round(float(player.participant.vars['total_earnings']) + round_earnings, 2)
                 player.cumulative_earnings = player.participant.vars['total_earnings']
-            else:
-                player.cumulative_earnings = player.participant.vars.get('total_earnings', 0.0)
 
             # (Removed duplicate/old block: always use the flower_colors and phase already set above)
 
@@ -379,13 +402,43 @@ class FlowerField(Page):
                 print(f"Excel export error: {e}")
 
             # Return results to JS for display
-            return {
-                player.id_in_group: dict(
-                    flower_scores=flower_scores,
-                    flower_earnings=flower_earnings,
-                    cumulative_earnings="{:.2f}".format(player.cumulative_earnings)
+            # Only after Test 2 submission, send both Test 1 and Test 2 raw data for animation
+            test1_data = None
+            test2_data = None
+            if phase == 'Test 2':
+                history = player.participant.vars.get('nutrient_flower_history', [])
+                # Find the first Test 1 and the last Test 2 entries in history
+                test1_entry = None
+                test2_entry = None
+                for entry in history:
+                    if entry.get('phase') == 'Test 1' and test1_entry is None:
+                        test1_entry = entry
+                for entry in reversed(history):
+                    if entry.get('phase') == 'Test 2' and test2_entry is None:
+                        test2_entry = entry
+                        break
+                test1_data = dict(
+                    flower_colors = test1_entry['flower_colors'] if test1_entry else [],
+                    nutrients = test1_entry['nutrients'] if test1_entry else [],
+                    scores = test1_entry['scores'] if test1_entry else [],
+                    growths = test1_entry['growths'] if test1_entry else []
                 )
-            }
+                test2_data = dict(
+                    flower_colors = test2_entry['flower_colors'] if test2_entry else [],
+                    nutrients = test2_entry['nutrients'] if test2_entry else [],
+                    scores = test2_entry['scores'] if test2_entry else [],
+                    growths = test2_entry['growths'] if test2_entry else []
+                )
+                print("[FEEDBACK] Test 1 and Test 2 results found and sent for animation.")
+            result_dict = dict(
+                flower_scores=flower_scores,
+                flower_earnings=flower_earnings,
+                cumulative_earnings="{:.2f}".format(player.cumulative_earnings)
+            )
+            if phase == 'Test 2':
+                result_dict['test1_data'] = test1_data
+                result_dict['test2_data'] = test2_data
+            return {player.id_in_group: result_dict}
 
 
 
@@ -453,15 +506,66 @@ Player.feedback = models.LongStringField(blank=True, null=True, label="Do you ha
 
 
 # Results page at the very end
+
+# Results page at the very end
 class Results(Page):
     def vars_for_template(player):
         # Use the participant's total earnings (in £, formatted)
         total = player.participant.vars.get('total_earnings', 0)
-        return dict(total_earnings="{:.2f}".format(total))
+        # Always provide test1_zipped and test2_zipped as empty lists for template robustness
+        return dict(
+            total_earnings="{:.2f}".format(total),
+            test1_zipped=[],
+            test2_zipped=[],
+            test1_result=None,
+            test2_result=None
+        )
     def is_displayed(player):
         return player.round_number == C.NUM_ROUNDS
     template_name = 'flowerfieldtask/results.html'
 
+# TestResults page to show both Test 1 and Test 2 results after Test 2
+class TestResults(Page):
+    def is_displayed(player):
+        # Only show after Test 2 round
+        return player.round_number == C.TRAINING_ROUNDS + C.TEST1_ROUNDS + C.EXPLORATION_ROUNDS + C.TEST2_ROUNDS
+    def vars_for_template(player):
+        # Get test1_data and test2_data from participant vars (populated after Test 2)
+        history = player.participant.vars.get('nutrient_flower_history', [])
+        test1_entry = None
+        test2_entry = None
+        for entry in history:
+            if entry.get('phase') == 'Test 1' and test1_entry is None:
+                test1_entry = entry
+        for entry in reversed(history):
+            if entry.get('phase') == 'Test 2' and test2_entry is None:
+                test2_entry = entry
+                break
+        test1_data = dict(
+            flower_colors = test1_entry['flower_colors'] if test1_entry else [],
+            nutrients = test1_entry['nutrients'] if test1_entry else [],
+            scores = test1_entry['scores'] if test1_entry else [],
+            growths = test1_entry['growths'] if test1_entry else []
+        )
+        test2_data = dict(
+            flower_colors = test2_entry['flower_colors'] if test2_entry else [],
+            nutrients = test2_entry['nutrients'] if test2_entry else [],
+            scores = test2_entry['scores'] if test2_entry else [],
+            growths = test2_entry['growths'] if test2_entry else []
+        )
+        import json
+        # Add phase and earnings for top bar
+        total = player.participant.vars.get('total_earnings', 0)
+        return dict(
+            test1_data=json.dumps(test1_data),
+            test2_data=json.dumps(test2_data),
+            phase='Test Results',
+            phase_round='',
+            phase_total='',
+            cumulative_earnings="{:.2f}".format(total)
+        )
+    template_name = 'flowerfieldtask/test_results.html'
+
 # Sequence of pages in the experiment
-page_sequence = [Instructions, FlowerField, Survey, Results]
+page_sequence = [Instructions, FlowerField, TestResults, Survey, Results]
 

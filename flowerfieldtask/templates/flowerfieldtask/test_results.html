@@ -1,0 +1,151 @@
+{% extends "global/Page.html" %}
+{% load static %}
+{% block content %}
+<style>
+    .results-flex {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 40px;
+        margin-top: 40px;
+    }
+    .recap-column {
+        background: #f8f8f8;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        padding: 18px;
+        min-width: 320px;
+        max-width: 400px;
+    }
+    .flower-slots-row {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+    .flower-row {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+    }
+    .flower-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0 8px;
+    }
+    .flower-image {
+        width: 48px;
+        height: 48px;
+    }
+    .flower-score {
+        font-weight: bold;
+        margin-top: 2px;
+    }
+</style>
+<div style="width:100%; display:flex; flex-direction:column; align-items:center; margin-bottom: 24px; margin-top:0 !important; padding-top:0 !important;">
+    <div style="width:100%; max-width:900px; margin:0 auto; text-align:center; padding-top:0 !important; margin-top:0 !important;">
+        <div style="border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); background: white; padding: 0 0 6px 0; margin-bottom: 0.5em; margin-top:0 !important;">
+            <h4 style="margin-bottom:0.5em;">Test Results</h4>
+            <div id="top-earnings" style="font-size:1.1em; margin-top:0.5em;">Total earnings: £<span id="totalEarningsResult">{{ cumulative_earnings }}</span></div>
+        </div>
+        <div style="margin-top: 0.3em; font-size: 1.18em; color: #222;">
+            Here are the sets you produced during tests in this experiment. Compared to regular phases, the earnings for each flower are doubled. Those are now added to your total earning.
+        </div>
+    </div>
+</div>
+<div id="main-container" style="margin-top:40px;">
+    <div class="results-flex">
+        <div id="test1-interactive-panel" class="recap-column">
+            <h4 style="text-align:center; margin-bottom:12px;">Test 1</h4>
+            <div id="test1-flower-field" class="flower-slots-row"></div>
+        </div>
+        <div id="test2-interactive-panel" class="recap-column">
+            <h4 style="text-align:center; margin-bottom:12px;">Test 2</h4>
+            <div id="test2-flower-field" class="flower-slots-row"></div>
+        </div>
+    </div>
+    <div style="width:100%; display:flex; justify-content:center; align-items:center; margin-top:40px;">
+        <button id="continueAfterResults" class="btn btn-primary" style="padding:10px 32px; font-size:1.1em; min-width:220px;">End the task</button>
+    </div>
+</div>
+<script>
+    // These variables should be set by the backend when rendering the page
+    const test1_data = JSON.parse('{{ test1_data|safe }}');
+    const test2_data = JSON.parse('{{ test2_data|safe }}');
+    function renderFlowerField(fieldElem, colors, nutrients, scores, growths) {
+        if (colors.length === 6) {
+            let row1 = document.createElement('div');
+            row1.className = 'flower-row';
+            row1.style.gap = '64px';
+            let row2 = document.createElement('div');
+            row2.className = 'flower-row';
+            row2.style.gap = '64px';
+            row2.style.marginTop = '48px'; // Add vertical space between rows
+            for (let i = 0; i < 3; i++) {
+                row1.appendChild(createFlowerElem(i, colors, nutrients, scores, growths));
+            }
+            for (let i = 3; i < 6; i++) {
+                row2.appendChild(createFlowerElem(i, colors, nutrients, scores, growths));
+            }
+            fieldElem.appendChild(row1);
+            fieldElem.appendChild(row2);
+        } else {
+            let row = document.createElement('div');
+            row.className = 'flower-row';
+            row.style.gap = '64px';
+            for (let i = 0; i < colors.length; i++) {
+                row.appendChild(createFlowerElem(i, colors, nutrients, scores, growths));
+            }
+            fieldElem.appendChild(row);
+        }
+    }
+    function createFlowerElem(i, colors, nutrients, scores, growths) {
+        let flowerElem = document.createElement('div');
+        flowerElem.className = 'flower-container';
+        let flowerImg = document.createElement('img');
+        flowerImg.src = '/static/img/Flw' + colors[i] + '.png';
+        flowerImg.className = 'flower-image';
+        flowerImg.alt = colors[i];
+        // Use the same formula as other phases: 18 + 18*growth
+        let baseSize = 18; // px
+        let scale = 18; // px per growth unit
+        let growth = (growths && growths[i] !== undefined) ? parseFloat(growths[i]) : 0;
+        let size = baseSize + scale * growth;
+        flowerImg.style.width = size + 'px';
+        flowerImg.style.height = size + 'px';
+        flowerElem.appendChild(flowerImg);
+        let nutrientsDiv = document.createElement('div');
+        nutrientsDiv.style.display = 'flex';
+        nutrientsDiv.style.gap = '1px';
+        nutrientsDiv.style.marginBottom = '1px';
+        nutrientsDiv.style.marginTop = '2px';
+        let nutArr = nutrients[i] || [];
+        for (let nut of nutArr) {
+            if (nut) {
+                let nutImg = document.createElement('img');
+                nutImg.src = '/static/img/Nutr' + nut + '.png';
+                nutImg.className = 'nutrient-image';
+                nutImg.style.width = '24px';
+                nutImg.style.height = '24px';
+                nutImg.alt = 'nutrient';
+                nutrientsDiv.appendChild(nutImg);
+            }
+        }
+        flowerElem.appendChild(nutrientsDiv);
+        let scoreDiv = document.createElement('div');
+        scoreDiv.className = 'flower-score';
+        scoreDiv.textContent = (scores[i] || '0') + 'p';
+        flowerElem.appendChild(scoreDiv);
+        return flowerElem;
+    }
+    renderFlowerField(document.getElementById('test1-flower-field'), test1_data.flower_colors, test1_data.nutrients, test1_data.scores, test1_data.growths);
+    renderFlowerField(document.getElementById('test2-flower-field'), test2_data.flower_colors, test2_data.nutrients, test2_data.scores, test2_data.growths);
+    document.getElementById('continueAfterResults').onclick = function() {
+        let form = document.createElement('form');
+        form.method = 'post';
+        document.body.appendChild(form);
+        form.submit();
+    };
+</script>
+{% endblock %}

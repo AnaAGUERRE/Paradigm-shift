@@ -252,6 +252,7 @@ body {
     margin-top: 20px;
 }
 
+
 .submit-button {
     padding: 12px 30px;
     background-color: #4CAF50;
@@ -262,6 +263,13 @@ body {
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
+}
+
+/* Make 'Go to the next round' button blue and not bold for first/second phase */
+#nextRoundButton {
+    background-color: #007bff !important;
+    color: #fff !important;
+    font-weight: normal !important;
 }
 
 .submit-button:hover:not(:disabled) {

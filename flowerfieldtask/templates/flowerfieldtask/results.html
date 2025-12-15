@@ -1,14 +1,62 @@
 {% block content %}
+    <!-- Test Results Title and Explanation (always visible, not sticky) -->
+    {% if test1_zipped and test2_zipped %}
+    <div id="recap-panel" style="margin: 32px auto 0 auto; max-width: 900px; display: flex; gap: 48px; justify-content: center;">
+        <div class="recap-column" style="flex:1; background: #f8f8f8; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 18px;">
+            <h4 style="text-align:center; margin-bottom:12px;">Test 1 Results</h4>
+            <div style="display:flex; flex-wrap:wrap; gap:56px; justify-content:center;">
+                {% for flower, nutrients, score, flower_img, growth, flower_size in test1_zipped %}
+                    <div class="flower-container" style="align-items:center;">
+                        <img src="/static/{{ flower_img }}" class="flower-image" style="width:{{ flower_size }}px; height:{{ flower_size }}px; transition: width 0.5s, height 0.5s;">
+                        <div style="display:flex; gap:8px; margin-bottom:1px; margin-top:2px;">
+                            {% for nut in nutrients %}
+                                {% if nut %}<img src="/static/{{ nut }}" class="nutrient-image" style="width:24px; height:24px;">{% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="flower-score">{{ score }}p</div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="recap-column" style="flex:1; background: #f8f8f8; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 18px;">
+            <h4 style="text-align:center; margin-bottom:12px;">Test 2 Results</h4>
+            <div style="display:flex; flex-wrap:wrap; gap:56px; justify-content:center;">
+                {% for flower, nutrients, score, flower_img, growth, flower_size in test2_zipped %}
+                    <div class="flower-container" style="align-items:center;">
+                        <img src="/static/{{ flower_img }}" class="flower-image" style="width:{{ flower_size }}px; height:{{ flower_size }}px; transition: width 0.5s, height 0.5s;">
+                        <div style="display:flex; gap:8px; margin-bottom:1px; margin-top:2px;">
+                            {% for nut in nutrients %}
+                                {% if nut %}<img src="/static/{{ nut }}" class="nutrient-image" style="width:24px; height:24px;">{% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="flower-score">{{ score }}p</div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% if test1_result and test1_result.feedback %}
+    <div class="feedback-panel" style="margin: 24px auto 0 auto; max-width: 700px; background: #f0f8ff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 18px;">
+        <h4 style="margin-bottom:8px;">Test 1 Feedback</h4>
+        <div style="font-size:1.05em; color:#333;">{{ test1_result.feedback }}</div>
+    </div>
+    {% endif %}
+    {% if test2_result and test2_result.feedback %}
+    <div class="feedback-panel" style="margin: 24px auto 0 auto; max-width: 700px; background: #fff8f0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 18px;">
+        <h4 style="margin-bottom:8px;">Test 2 Feedback</h4>
+        <div style="font-size:1.05em; color:#333;">{{ test2_result.feedback }}</div>
+    </div>
+    {% endif %}
     <div class="survey-container" style="max-width: 700px; margin: 40px auto; padding: 30px; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.07);">
         <h2>Results</h2>
-        <p>Thank you for participating in this experiment.<br>
-        Your bonus from the task is: <b>£{{ total_earnings }}</b></p>
+        <p>Thank you for participating in this experiment</p>
+        {% if total_earnings %}
         <p><b>Current total is <span style="font-size: 1.2em;">£{{ total_earnings }}</span></b></p>
-        <p>Your bonus from the earnings of the next player will be calculated and added to this amount after we complete collecting the data.<br>
-        Then we will send your bonus payment. It usually takes a couple of days.</p>
-        <p>Click [Next] to complete the study and go back to Prolific.</p>
+        {% endif %}
+        <p>Click on the following button to complete the study and go back to Prolific.</p>
         <form method="post">
-            <button type="submit" class="otree-btn-next btn btn-primary">Next</button>
+            <button type="submit" class="otree-btn-next btn btn-primary">Return to the website</button>
         </form>
     </div>
 {% endblock %}

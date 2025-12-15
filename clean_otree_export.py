@@ -4,16 +4,16 @@ import csv
 INPUT_FILE = 'otree_exported_data.csv'
 OUTPUT_FILE = 'clean_file.csv'
 
-# Colonnes à extraire et leur nouvel ordre/nom
+# Colonnes à extraire et leur nouvel ordre/nom (correspondent aux nouveaux champs Player)
 COLUMNS = [
     ('participant.code', 'code_participant'),
     ('player.treatment', 'traitement'),
     ('player.phase', 'phase'),
     ('subsession.round_number', 'round'),
     ('player.flower_colors', 'couleur_fleurs'),
-    ('player.nutrient_choices', 'nutrients'),
-    ('player.flower_display_scores', 'score_fleurs'),
-    ('player.noise_effects', 'noise'),
+    ('player.nutrient_choice', 'nutrients'),
+    ('player.score_per_flower', 'score_fleurs'),
+    ('player.noise_applied', 'noise'),
     ('player.cumulative_earnings', 'score_total_fin_exp'),
     ('player.year_of_birth', 'annee_naissance'),
     ('player.feedback', 'feedback'),

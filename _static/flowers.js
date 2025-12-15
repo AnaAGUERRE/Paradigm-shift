@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 extraImg = `<img src='${window.static ? window.static('img/TransMM.png') : '/static/img/TransMM.png'}' style='height:220px; margin-top:1.5em;'>`;
             }
             var popupText = isSecondChain
-                ? "<span style='font-size:0.95em;'>You are assigned to be second in the chain. Here is the previous participant's transmitted nutrient combination. You will be able to see it throughout the whole experiment.</span>"
+                ? "<span style='font-size:0.95em;'>You are assigned to be second in the chain. Here is the combination produced by a previous participant. You will be able to see it throughout the whole experiment.</span>"
                 : "<span style='font-size:0.95em;'>You are assigned to be the first in the chain.</span>";
             if (typeof bootbox !== 'undefined') {
                 bootbox.dialog({
@@ -251,11 +251,7 @@ class FlowerGame {
             nutrientSlot.ondragover = (e) => this.onDragOver(e);
             nutrientSlot.ondragleave = (e) => this.onDragLeave(e);
 
-            // Add a label if empty
-            const label = document.createElement('span');
-            label.className = 'slot-label';
-            label.textContent = `+`;
-            nutrientSlot.appendChild(label);
+            // No label or + sign added to slot
 
             flower.appendChild(flowerImg);
             flower.appendChild(nutrientSlot);

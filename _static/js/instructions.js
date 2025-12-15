@@ -63,14 +63,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 return false;
             }
         });
-    // Build slides array
+    // Build slides array (9 slides)
     let slides = [
-        // 1. Welcome
+        // 1. Welcome (1/9)
         {
             render: () => `
                 <div class="slide slide-1">
                     <div class="slide-content-block" style="margin-top: 0; max-width: 700px;">
-                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">1/10</span>
+                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">1/9</span>
                         <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 1em;">Welcome to the experiment !</div>
                         <div class="slide-intro-text" style="text-align: left; margin-top: 0;">
                             <p style="margin-top: 0;">In the upcoming slides, we will outline the experiment's rules and guide you on how to maximize your bonus reward.</p>
@@ -81,17 +81,17 @@ document.addEventListener('DOMContentLoaded', function () {
             `,
             nextEnabled: true,
         },
-        // 2. The task (static images)
+        // 2. The task (static images) (2/9)
         {
             render: () => `
                 <div class="slide slide-2">
                     <div class="slide-content-block" style="margin-top: 0; max-width: 90vw;">
-                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">2/10</span>
+                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">2/9</span>
                         <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 1em;">The Task</div>
                         <div style="max-width: 80vw;">
                             <p>In this task, you will take part in a virtual flower-growing experiment (see below).<br>
                                 Your goal is to make each flower grow as much as possible by selecting the right combination of nutrients.</p>
-                            <p>After you choose the combinations for the entire flower field, the software will show you the growth results of the flowers represented by their size and the corresponding earnings (in pennies).</p>
+                            <p>After you choose the combinations for the entire flower field, the software will show you the growth results of the flowers represented by their size and the corresponding earnings (in pennies, ex: 5p).</p>
                             <b>There is a relationship between the nutrient combinations, the growth outcomes of the flowers, and your earnings.</b>
                         </div>
                         <div class="slide-visual center" style="margin-top: 1em; text-align: center; width: 100%;">
@@ -102,12 +102,12 @@ document.addEventListener('DOMContentLoaded', function () {
             `,
             nextEnabled: true,
         },
-        // 3. Dragging the nutrients (interactive)
+        // 3. Dragging the nutrients (interactive) (3/9)
         {
             render: () => `
                 <div class="slide slide-3">
                     <div class="slide-content-block" style="margin-top: 0; max-width: 90vw;">
-                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">3/10</span>
+                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">3/9</span>
                         <div style="display: flex; align-items: flex-start; gap: 60px;">
                             <div style="max-width: 80vw;">
                                 <p>Each flower can receive <b>one or two nutrients</b>. There are three types of nutrients: blue, red, and yellow. You will drag and drop the nutrients below each flower before confirming your choice. If you use two nutrients, <b>order does not matter</b>, for example, <i>BLUE–YELLOW</i> is the same as <i>YELLOW–BLUE</i>.</p>
@@ -125,27 +125,30 @@ document.addEventListener('DOMContentLoaded', function () {
             nextEnabled: false, // Will be enabled by JS when task is complete
             interactive: true,
         },
-        // 4. Earnings
+        // 4. Earnings (4/9)
         {
             render: () => `
                 <div class="slide slide-4">
                     <div class="slide-content-block" style="margin-top: 0; max-width: 90vw;">
-                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">4/10</span>
+                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">4/9</span>
                         <div style="max-width: 80vw;">
-                            <p>You will interact with the task for 10 trials. In each trial, you can change the configuration of the nutrients.<br>
-                            <b>The growth of each flower will determine your corresponding monetary earnings in each trial.</b> Your earnings in each trial will be added up to your bonus payment.</p>
+                            <p>During each of the two phases of the experiment, you will complete several rounds of the task. In every round, you may adjust the nutrient configuration. After each phase, you will complete a test round.</p>
+                            <br>
+                            <b>The growth of each flower will determine your monetary earnings for that round.</b>
+                            <br><br>
+                            <p>Your earnings from all rounds will be added to your total payoff for the entire experiment. The earnings from the test rounds will be revealed and added only at the end.</p>
                         </div>
                     </div>
                 </div>
             `,
             nextEnabled: true,
         },
-        // 5. Comprehension check 1
+        // 5. Comprehension check 1 (5/9)
         {
             render: () => `
                 <div class="slide slide-5">
                     <div class="slide-content-block" style="margin-top: 0; max-width: 90vw;">
-                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">5/10</span>
+                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">5/9</span>
                         <div class="slide-question" style="text-align: left; margin-bottom: 0.5em;">Please answer the question below to continue.</div>
                         <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 0.7em; text-align: center; width: 100%;">What factors determine your earnings in each round?</div>
                         <div class="answer-buttons" style="display: flex; flex-direction: column; align-items: center; gap: 1em; width: 100%; max-width: 900px; margin: 0 auto;">
@@ -160,69 +163,54 @@ document.addEventListener('DOMContentLoaded', function () {
             nextEnabled: false,
             comprehension: true,
         },
-        // 6. Collective task
+        // 6. Collective task (6/9)
         {
             render: () => `
                 <div class="slide slide-6">
                     <div class="slide-content-block" style="margin-top: 0; max-width: 90vw;">
-                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">6/10</span>
-                        <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 1em;">This is a collective task</div>
-                        <p><b>You may be able to learn from another player who participated in the task before you.</b> Learning from experienced participants can help you maximize your monetary reward.</p>
-                        <p><b>The player you may receive information from is also part of a group of players, called a chain.</b> Each player had the same number of trials. If you are the first player in a chain, you will not receive information from another participant.</p>
-                        <div class="slide-visual center" style="margin-top: 1em; text-align: center; width: 100%;">
-                            <img src="/static/img/indicationChain.png" class="slide-img-centered" style="width: 220px; max-width: 90vw; display: inline-block;">
-                        </div>
-                    </div>
-                </div>
-            `,
-            nextEnabled: true,
-        },
-        // 7. Learning from previous participants
-        {
-            render: () => `
-                <div class="slide slide-7">
-                    <div class="slide-content-block" style="margin-top: 0; max-width: 90vw;">
-                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">7/10</span>
+                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">6/9</span>
                         <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 1em;">Learning from previous participants</div>
-                        <p>At the beginning of the experiment, <b>you might have the opportunity to observe a set of nutrient configurations produced by a previous participant,</b> unless you are the first in the chain.</p>
-                        <p>Similarly, <b>a following participant will be able to observe the configurations you will produce.</b> </p>
-                        <div class="slide-visual center" style="margin-top: 1em; text-align: center; width: 100%;">
-                            <img src="/static/img/indicationPreviousParticipant.png" class="slide-img-centered" style="width: 220px; max-width: 90vw; display: inline-block;">
+                        <p><b>You may be able to learn from another player who participated in the task before you by seeing a configuration they produced.</b></p>
+                        <p><b>The player you may receive the configuration from is also part of a group of players, called a chain.</b> Each player had the same number of trials. If you are the first player in a chain, you will not receive a configuration produced by another participant.</p>
+                        <div class="slide-visual center" style="margin-top: 1em; text-align: center; width: 100%; display: flex; justify-content: center; align-items: center; gap: 32px;">
+                            <img src="/static/img/indicationChain.png" class="slide-img-centered" style="width: 220px; max-width: 40vw; display: inline-block;">
+                            <img src="/static/img/indicationPreviousParticipant.png" class="slide-img-centered" style="width: 220px; max-width: 40vw; display: inline-block;">
                         </div>
                     </div>
                 </div>
             `,
             nextEnabled: true,
         },
-        // 8. Monetary rewards summary
+
+        // 7. Monetary rewards summary (7/9)
         {
             render: () => `
                 <div class="slide slide-8">
                     <div class="slide-content-block" style="margin-top: 0; max-width: 700px; text-align: left; margin-left: 0;">
-                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em; text-align: left;">8/10</span>
+                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em; text-align: left;">7/9</span>
                         <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 1em; text-align: left;">Monetary reward summary</div>
                         <p style="margin-bottom: 1.2em;">Your final payoff will be calculated as a sum of the following scores:</p>
                         <ul style="font-size: 1.1em; margin-bottom: 1em; padding-left: 1.5em;">
-                            <li style="margin-bottom: 0.7em;">The earnings from each of your trials.</li>
-                            <li>The earnings from the first two trials of the next participant in the chain.</li>
+                            <li style="margin-bottom: 0.7em;">The earnings from each round.</li>
+                            <li>The earnings from the two tests, added at the end.</li>
                         </ul>
                     </div>
                 </div>
             `,
             nextEnabled: true,
         },
-        // 9. Comprehension check 2
+        // 8. Comprehension check 2 (8/9)
         {
             render: () => `
                 <div class="slide slide-9">
                     <div class="slide-content-block" style="margin-top: 0; max-width: 90vw;">
-                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">9/10</span>
+                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">8/9</span>
                         <div class="slide-question" style="text-align: left; margin-bottom: 0.5em;">Please answer the question below to continue.</div>
                         <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 0.7em; text-align: center; width: 100%;">How is your final payoff calculated?</div>
                         <div class="answer-buttons" style="display: flex; flex-direction: column; align-items: center; gap: 1em; width: 100%; max-width: 900px; margin: 0 auto;">
-                            <button type="button" class="answer-btn wide-square" style="width: 700px; max-width: 99vw; min-width: 400px;" data-correct="false">Your final payoff is calculated by adding the earnings from each of your trials.</button>
-                            <button type="button" class="answer-btn wide-square" style="width: 700px; max-width: 99vw; min-width: 400px;" data-correct="true">Your final payoff is calculated by adding the earnings from each of your trials, plus the earnings of the first two trials of the next participant in the chain.</button>
-                            <button type="button" class="answer-btn wide-square" style="width: 700px; max-width: 99vw; min-width: 400px;" data-correct="false">Your final payoff is calculated by adding the earnings from each of your trials, plus some random amount of pounds between 1 and 2.</button>
+                            <button type="button" class="answer-btn wide-square" style="width: 700px; max-width: 99vw; min-width: 400px;" data-correct="false">Your final payoff is calculated by adding the earnings from each round.</button>
+                            <button type="button" class="answer-btn wide-square" style="width: 700px; max-width: 99vw; min-width: 400px;" data-correct="true">Your final payoff is calculated by adding the earnings from each round, plus the earnings of the  two tests added to the total at the end.</button>
+                            <button type="button" class="answer-btn wide-square" style="width: 700px; max-width: 99vw; min-width: 400px;" data-correct="false">Your final payoff is calculated by adding the earnings from each round, plus some random amount of pounds between 1 and 2.</button>
                         </div>
                         <div class="answer-feedback"></div>
                     </div>
@@ -231,13 +219,13 @@ document.addEventListener('DOMContentLoaded', function () {
             nextEnabled: false,
             comprehension: true,
         },
-        // 10. Final slide
+        // 9. Final slide (9/9)
         {
             render: () => {
                 return `
                 <div class="slide slide-10">
                     <div class="slide-content-block" style="margin-top: 0; max-width: 700px; text-align: left; margin-left: 0;">
-                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em; text-align: left;">10/10</span>
+                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em; text-align: left;">9/9</span>
                         <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 1em; text-align: left;">You are ready to start!</div>
                         <p style="margin-bottom: 1.2em;">You have completed the instructions. When you are ready, click the button below to start the experiment.</p>
                         <form method="post" id="otree-instructions-form" style="display:none;">

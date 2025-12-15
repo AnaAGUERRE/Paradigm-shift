@@ -1,0 +1,12 @@
+﻿participant.id_in_session;participant.code;participant.label;participant._is_bot;participant._index_in_pages;participant._max_page_index;participant._current_app_name;participant._current_page_name;participant.time_started_utc;participant.visited;participant.mturk_worker_id;participant.mturk_assignment_id;participant.payoff;player.id_in_group;player.role;player.payoff;player.cumulative_earnings;player.test1_pending_earnings;player.year_of_birth;player.feedback;group.id_in_subsession;subsession.round_number;session.code;session.label;session.mturk_HITId;session.mturk_HITGroupId;session.comment;session.is_demo
+1;hho0xjgu;;0;56;55;flowerfieldtask;Results;2025-12-15 10:22:19.004251;1;;;0.0;1;;0.0;0.07;0.0;;;1;1;9mk6e89j;;;;;1
+1;hho0xjgu;;0;56;55;flowerfieldtask;Results;2025-12-15 10:22:19.004251;1;;;0.0;1;;0.0;0.14;0.0;;;1;2;9mk6e89j;;;;;1
+1;hho0xjgu;;0;56;55;flowerfieldtask;Results;2025-12-15 10:22:19.004251;1;;;0.0;1;;0.0;0.23;0.0;;;1;3;9mk6e89j;;;;;1
+1;hho0xjgu;;0;56;55;flowerfieldtask;Results;2025-12-15 10:22:19.004251;1;;;0.0;1;;0.0;0.29;0.0;;;1;4;9mk6e89j;;;;;1
+1;hho0xjgu;;0;56;55;flowerfieldtask;Results;2025-12-15 10:22:19.004251;1;;;0.0;1;;0.0;0.29;0.55;;;1;5;9mk6e89j;;;;;1
+1;hho0xjgu;;0;56;55;flowerfieldtask;Results;2025-12-15 10:22:19.004251;1;;;0.0;1;;0.0;0.33;0.0;;;1;6;9mk6e89j;;;;;1
+1;hho0xjgu;;0;56;55;flowerfieldtask;Results;2025-12-15 10:22:19.004251;1;;;0.0;1;;0.0;0.4;0.0;;;1;7;9mk6e89j;;;;;1
+1;hho0xjgu;;0;56;55;flowerfieldtask;Results;2025-12-15 10:22:19.004251;1;;;0.0;1;;0.0;0.47;0.0;;;1;8;9mk6e89j;;;;;1
+1;hho0xjgu;;0;56;55;flowerfieldtask;Results;2025-12-15 10:22:19.004251;1;;;0.0;1;;0.0;0.53;0.0;;;1;9;9mk6e89j;;;;;1
+1;hho0xjgu;;0;56;55;flowerfieldtask;Results;2025-12-15 10:22:19.004251;1;;;0.0;1;;0.0;0.62;0.0;;;1;10;9mk6e89j;;;;;1
+1;hho0xjgu;;0;56;55;flowerfieldtask;Results;2025-12-15 10:22:19.004251;1;;;0.0;1;;0.0;1.77;0.0;2017;;1;11;9mk6e89j;;;;;1

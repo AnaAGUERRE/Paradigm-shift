@@ -50,13 +50,13 @@
             </div>
         </div>
     </div>
-    {% if treatment == 'Transmitted Correct' or treatment == 'Transmitted M&M' %}
-    <div id="transmitted-panel" style="padding: 8px 12px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); min-width: 160px; min-height: 60px; max-width: 220px; margin: 16px auto 0 auto; text-align: center;">
+    {% if treatment == 'submitted Correct' or treatment == 'submitted M&M' %}
+    <div id="submitted-panel" style="padding: 8px 12px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); min-width: 160px; min-height: 60px; max-width: 220px; margin: 16px auto 0 auto; text-align: center;">
         <h5 style="margin-bottom: 10px; color: #333;">Previously produced configuration</h5>
-        {% if transmitted_photo %}
-            <img src="{% static transmitted_photo %}" alt="Transmitted configuration" style="max-width: 120px; max-height: 120px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 8px;">
+        {% if submitted_photo %}
+            <img src="{% static submitted_photo %}" alt="submitted configuration" style="max-width: 120px; max-height: 120px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 8px;">
         {% else %}
-            <span style="color: #888; font-size: 0.95em;">No configuration transmitted yet.</span>
+            <span style="color: #888; font-size: 0.95em;">No configuration submitted yet.</span>
         {% endif %}
     </div>
     {% endif %}
@@ -66,8 +66,8 @@
         <div class="col-12 p-2 text-center" style="font-size: 0.9rem; color: #333;">
             {% if phase == 'Test 1' or phase == 'Test 2' %}
                 <span style="color: #a80000; font-weight: bold;">Select the configuration that fits best with your understanding of what causes flowers to grow.<br>
-                This set will be transmitted to following participants.</span> <br><br>
-                Click the <b>“Transmit"</b> button when you are ready.
+                The score for each flower will be doubled. This set may be shown to following participants.</span> <br><br>
+                Click the <b>“submit"</b> button when you are ready.
             {% else %}
                 Drag <b> one or two nutrients </b> under each flower to select your configuration.<br>
                 Click the <b> “Submit" </b> button when you are ready to grow the flowers.
@@ -98,21 +98,23 @@
                         </div>
                         <div class="game-controls">
                             <button class="reset-button" id="resetButton">Reset</button>
-                            <button class="submit-button" id="submitButton">{% if phase == 'Test 1' or phase == 'Test 2' %}Transmit{% else %}Submit{% endif %}</button>
+                            <button class="submit-button" id="submitButton">Submit</button>
+                            <button class="submit-button" id="nextRoundButton" style="display:none;">Go to the next round</button>
                         </div>
+                        <!-- Feedback panels are injected dynamically after submitting Test 2. Test 1 feedback is NOT shown immediately after Test 1. -->
                     </div>
                 </div>
                 <div class="side-panel-stack">
                     <div id="nutrient-panel" style="height:48px; min-height:32px; max-height:60px;"></div>
                     {% if treatment == 'Transmission correct' %}
-                    <div id="transmitted-panel" class="transmitted-visible" style="padding: 8px 12px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); min-width: 160px; min-height: 40px; max-width: 220px; margin: 16px auto 0 auto; text-align: center;">
+                    <div id="submitted-panel" class="submitted-visible" style="padding: 8px 12px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); min-width: 160px; min-height: 40px; max-width: 220px; margin: 16px auto 0 auto; text-align: center;">
                         <h6 style="margin-bottom: 6px; color: #333; font-size: 0.9em;">Previously produced configuration</h6>
-                        <img src="{% static 'img/TransCorr.png' %}" alt="Transmitted configuration" style="max-width: 150px; max-height: 150px; border-radius: 7px; box-shadow: 0 1px 3px rgba(0,0,0,0.10); margin-bottom: 6px;">
+                        <img src="{% static 'img/TransCorr.png' %}" alt="submitted configuration" style="max-width: 150px; max-height: 150px; border-radius: 7px; box-shadow: 0 1px 3px rgba(0,0,0,0.10); margin-bottom: 6px;">
                     </div>
                     {% elif treatment == 'Transmission M&M' %}
-                    <div id="transmitted-panel" class="transmitted-visible" style="padding: 8px 12px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); min-width: 160px; min-height: 40px; max-width: 220px; margin: 16px auto 0 auto; text-align: center;">
+                    <div id="submitted-panel" class="submitted-visible" style="padding: 8px 12px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); min-width: 160px; min-height: 40px; max-width: 220px; margin: 16px auto 0 auto; text-align: center;">
                         <h6 style="margin-bottom: 6px; color: #333; font-size: 0.9em;">Previously produced configuration</h6>
-                        <img src="{% static 'img/TransMM.png' %}" alt="Transmitted configuration" style="max-width: 150px; max-height: 150px; border-radius: 7px; box-shadow: 0 1px 3px rgba(0,0,0,0.10); margin-bottom: 6px;">
+                        <img src="{% static 'img/TransMM.png' %}" alt="submitted configuration" style="max-width: 150px; max-height: 150px; border-radius: 7px; box-shadow: 0 1px 3px rgba(0,0,0,0.10); margin-bottom: 6px;">
                     </div>
                     {% endif %}
                     <!-- Results section removed -->
@@ -297,7 +299,7 @@
                 bootbox.dialog({
                     message: `<div style='font-size:1.15em; text-align:center;'>
                         <img src='${window.static ? window.static('img/Chain.png') : '/static/img/Chain.png'}' style='height:60px; margin-bottom:1em;'>
-                        <div style='margin-bottom:1em;'>Please note that in the next round, the configuration you will choose will be seen by the next participant(s) in the chain.</div>
+                        <div style='margin-bottom:1em;'>Please note that the next round is a test. <b>The monetary reward for each flower is doubled. Your score and feedback will be revealed and added to your total earnings at the end of the experiment.</b> The configuration you produce may be seen by following participant(s).</div>
                     </div>`,
                     buttons: [
                         {
@@ -342,7 +344,7 @@
                     closeButton: false
                 });
             } else {
-                alert('Please note that in the next round, the configuration you will choose will be seen by the next participant(s) in the chain.');
+                alert('Please note that the next round is a test. <b>The monetary reward for each flower is doubled. Your score and feedback will be revealed and added to your total earnings at the end of the experiment.</b> The configuration you produce may be seen by following participant(s).');
                 if (overlay && overlay.parentNode === document.body) {
                     document.body.removeChild(overlay);
                 }
@@ -369,10 +371,15 @@
                     return;
                 }
                 const resetButton = document.getElementById('resetButton');
+                const nextRoundButton = document.getElementById('nextRoundButton');
                 if (window.js_vars.phase === 'Test 1' || window.js_vars.phase === 'Test 2') {
+                    // Hide all control buttons during submit
+                    submitButton.style.display = 'none';
+                    if (resetButton) resetButton.style.display = 'none';
+                    if (nextRoundButton) nextRoundButton.style.display = 'none';
                     // Show confirmation popup only for Test 1 and Test 2
-                    let popupMessage = "Are you sure you’ve put the desired nutrients and want to transmit your configuration to following participants ?";
-                    let yesLabel = 'Yes transmit';
+                    let popupMessage = "Are you sure you’ve put the desired nutrients ?";
+                    let yesLabel = 'Yes submit';
                     if (typeof bootbox !== 'undefined') {
                         bootbox.dialog({
                             message: `<div style='font-size:1.1em; text-align:center;'>${popupMessage}</div>`,
@@ -398,6 +405,8 @@
                                         if (resetButton) {
                                             resetButton.style.display = '';
                                         }
+                                        submitButton.style.display = '';
+                                        if (nextRoundButton) nextRoundButton.style.display = 'none';
                                         return true;
                                     }
                                 }
@@ -409,7 +418,7 @@
                     if (resetButton) {
                         resetButton.style.display = 'none';
                     }
-                    submitButton.disabled = true;
+                    submitButton.style.display = 'none';
                     document.getElementById('status-message').innerHTML = '';
                     const flowerChoices = window.flowerGame.getFlowerChoices();
                     liveSend({
@@ -417,6 +426,22 @@
                         data: flowerChoices
                     });
                 }
+            });
+        }
+        // Next round button handler
+        const nextRoundButton = document.getElementById('nextRoundButton');
+        if (nextRoundButton) {
+            nextRoundButton.addEventListener('click', function(event) {
+                event.preventDefault();
+                let form = document.getElementById('nextRoundForm');
+                if (!form) {
+                    form = document.createElement('form');
+                    form.id = 'nextRoundForm';
+                    form.method = 'post';
+                    form.style.display = 'none';
+                    document.body.appendChild(form);
+                }
+                form.submit();
             });
         }
         // Listen for liveRecv to handle server response
@@ -434,110 +459,60 @@
                 }
             }
             if (responseData && responseData.cumulative_earnings !== undefined) {
+                // Special handling for Test 1 and Test 2 only
+                if (window.js_vars && window.js_vars.phase === 'Test 1') {
+                    // Immediately submit form to go to next phase
+                    let form = document.getElementById('nextRoundForm');
+                    if (!form) {
+                        form = document.createElement('form');
+                        form.id = 'nextRoundForm';
+                        form.method = 'post';
+                        form.style.display = 'none';
+                        document.body.appendChild(form);
+                    }
+                    form.submit();
+                    return;
+                }
+                if (window.js_vars && window.js_vars.phase === 'Test 2' && responseData.test1_data && responseData.test2_data) {
+                    // Store test results for later use if needed
+                    sessionStorage.setItem('test1_data', JSON.stringify(responseData.test1_data));
+                    sessionStorage.setItem('test2_data', JSON.stringify(responseData.test2_data));
+                    // Submit form to advance to next oTree page (TestResults)
+                    let form = document.getElementById('nextRoundForm');
+                    if (!form) {
+                        form = document.createElement('form');
+                        form.id = 'nextRoundForm';
+                        form.method = 'post';
+                        form.style.display = 'none';
+                        document.body.appendChild(form);
+                    }
+                    form.submit();
+                    return;
+                }
+                // For all other phases (Training, Exploration), show feedback and allow normal progression
                 if (typeof disableNutrientPanelAndSlots === 'function') {
                     disableNutrientPanelAndSlots();
                 }
-                // Animate flower sizes and show results
-                const isTestPhase = window.js_vars.phase === 'Test 1' || window.js_vars.phase === 'Test 2';
-                if (!isTestPhase) {
-                    if (window.flowerGame && typeof window.flowerGame.animateFlowerSizes === 'function') {
-                        window.flowerGame.animateFlowerSizes(responseData.flower_scores);
-                    }
-                    if (window.flowerGame && typeof window.flowerGame.showAllScores === 'function') {
-                        let scaledScores;
-                        if (window.js_vars && window.js_vars.treatment && window.js_vars.treatment.toLowerCase().includes('m&m')) {
-                            // For M&M config, min growth is 0.3, scale 0.3->100, 1.0->400
-                            const minGrowth = 0.3, minPx = 100, maxPx = 400;
-                            scaledScores = responseData.flower_scores.map(x => {
-                                if (x <= minGrowth) return minPx;
-                                return Math.round(minPx + (x - minGrowth) * (maxPx - minPx) / (1.0 - minGrowth));
-                            });
-                        } else {
-                            // Default scaling
-                            scaledScores = responseData.flower_scores.map(x => Math.round(x * 400));
-                        }
-                        window.flowerGame.showAllScores(scaledScores, responseData.flower_earnings);
-                    }
-                } else {
-                    if (window.flowerGame && typeof window.flowerGame.hideAllScores === 'function') {
-                        window.flowerGame.hideAllScores();
-                    }
+                if (window.flowerGame && typeof window.flowerGame.animateFlowerSizes === 'function') {
+                    window.flowerGame.animateFlowerSizes(responseData.flower_scores);
                 }
-                // Update total earnings display immediately after feedback
+                if (window.flowerGame && typeof window.flowerGame.showAllScores === 'function') {
+                    let scaledScores = responseData.flower_scores.map(x => Math.round(x * 400));
+                    window.flowerGame.showAllScores(scaledScores, responseData.flower_earnings);
+                }
                 if (responseData.cumulative_earnings !== undefined) {
                     const totalEarningsElem = document.getElementById('totalEarningsResult');
                     if (totalEarningsElem) {
                         totalEarningsElem.textContent = responseData.cumulative_earnings;
                     }
                 }
-                setTimeout(() => {
-                    // Hide nutrient panel and center everything after feedback
-                    submitButton.style.display = 'none';
-                    resetButton.style.display = 'none';
-                    document.getElementById('status-message').innerHTML = '';
-                    const nutrientPanel = document.getElementById('nutrient-panel');
-                    if (nutrientPanel) {
-                        nutrientPanel.style.display = 'none';
+                // Show next round button after feedback animation
+                if (window.js_vars.phase === 'Training phase' || window.js_vars.phase === 'Exploration phase') {
+                    const nextRoundButton = document.getElementById('nextRoundButton');
+                    if (nextRoundButton) {
+                        nextRoundButton.style.display = '';
                     }
-                    const currentRound = document.getElementById('currentRound');
-                    if (currentRound) {
-                        currentRound.style.justifyContent = 'center';
-                        currentRound.style.alignItems = 'flex-start';
-                        // Force the main game container to be centered horizontally
-                        const gameContainer = currentRound.querySelector('.flower-game-container');
-                        if (gameContainer) {
-                            gameContainer.style.marginLeft = 'auto';
-                            gameContainer.style.marginRight = 'auto';
-                            gameContainer.style.display = 'block';
-                        }
-                    }
-                    // Add Continue button below the flower field if not present
-                    let continueBtn = document.getElementById('continueAfterResults');
-                    if (!continueBtn) {
-                        continueBtn = document.createElement('button');
-                        continueBtn.id = 'continueAfterResults';
-                        continueBtn.className = 'btn btn-primary mt-3';
-                        continueBtn.style.display = 'block';
-                        continueBtn.style.margin = '32px auto 0 auto';
-                        continueBtn.style.padding = '10px 20px';
-                        continueBtn.style.fontSize = '1em';
-                        continueBtn.style.minWidth = '220px';
-                        continueBtn.style.maxWidth = '90vw';
-                        continueBtn.style.whiteSpace = 'normal';
-                        continueBtn.style.lineHeight = '1.25';
-                        // Set button label based on phase
-                        let phase = window.js_vars && window.js_vars.phase;
-                        if (phase === 'Test 1') {
-                            continueBtn.textContent = 'Continue to the Next Phase';
-                        } else if (phase === 'Test 2') {
-                            continueBtn.textContent = 'End task';
-                        } else {
-                            continueBtn.textContent = 'Continue to Next Round';
-                        }
-                        continueBtn.onclick = function() {
-                            // Submit the hidden form to advance round
-                            let form = document.getElementById('nextRoundForm');
-                            if (!form) {
-                                form = document.createElement('form');
-                                form.id = 'nextRoundForm';
-                                form.method = 'post';
-                                form.style.display = 'none';
-                                document.body.appendChild(form);
-                            }
-                            form.submit();
-                        };
-                        // Center the button below the flower field
-                        const flowerPanel = document.getElementById('flower-field-panel');
-                        if (flowerPanel) {
-                            const panelCol = document.createElement('div');
-                            panelCol.style.textAlign = 'center';
-                            panelCol.appendChild(continueBtn);
-                            flowerPanel.appendChild(panelCol);
-                        } else {
-                            document.body.appendChild(continueBtn);
-                        }
-                    }
-                }, 700);
+                }
             }
         };
         // Format total earnings on page load
