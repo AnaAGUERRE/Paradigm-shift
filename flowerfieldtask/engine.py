@@ -6,6 +6,8 @@ def run_engine(nutrient_choices, flower_colors=None, scoring_system='anomaly'):
     [["red", "blue"], ["yellow", "yellow"], ["blue", "blue"]]
     # flower_colors and scoring_system are unused; only anomaly scoring is implemented
     """
+    # Debug: count noise types
+    noise_type_counts = {'increase': 0, 'decrease': 0, 'none': 0}
     import random
     results = []
     # Check for noise config
@@ -19,29 +21,33 @@ def run_engine(nutrient_choices, flower_colors=None, scoring_system='anomaly'):
         config = session_config.config
         noisy = config.get('noisy', False)
         epsilon = config.get('epsilon', 0.0)
-    # Pick 1/3 of flowers to apply noise
+    # Appliquer le bruit à toutes les fleurs dans les traitements bruyants
     n_flowers = len(nutrient_choices)
-    noise_indices = set()
-    if noisy and n_flowers > 0:
-        noise_indices = set(random.sample(range(n_flowers), max(1, n_flowers // 3)))
-    noise_effects = []
     for i, nutrients in enumerate(nutrient_choices):
         noise = None
         growth = calculate_growth(nutrients)
-        if noisy and i in noise_indices:
-            if random.random() < 0.5:
-                new_growth = min(1.0, growth + epsilon)
+        if noisy:
+            # Choix aléatoire : aucune modification, augmentation ou diminution
+            noise_choice = random.choice(['none', 'decrease', 'increase'])
+            noise_type_counts[noise_choice] += 1
+            if noise_choice == 'increase':
+                new_growth = growth + epsilon
                 noise = {'index': i, 'type': 'increase', 'amount': round(new_growth - growth, 3), 'before': round(growth, 3), 'after': round(new_growth, 3)}
                 growth = new_growth
-            else:
+            elif noise_choice == 'decrease':
                 new_growth = max(0.0, growth - epsilon)
                 noise = {'index': i, 'type': 'decrease', 'amount': round(new_growth - growth, 3), 'before': round(growth, 3), 'after': round(new_growth, 3)}
                 growth = new_growth
+            else:
+                # bruit = none, enregistrer quand même l'état
+                noise = {'index': i, 'type': 'none', 'amount': 0.0, 'before': round(growth, 3), 'after': round(growth, 3)}
         results.append({
             'nutrients': nutrients,
             'growth': growth,
             'noise': noise
         })
+    # Debug: print noise type distribution
+    print('Noise type counts this call:', noise_type_counts)
     return results
 
 
