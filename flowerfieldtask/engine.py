@@ -13,7 +13,6 @@ def run_engine(nutrient_choices, flower_colors=None, scoring_system='anomaly'):
     # Check for noise config
     noisy = False
     epsilon = 0.0
-    # If called with extra kwargs, use them
     import inspect
     frame = inspect.currentframe().f_back
     session_config = getattr(frame.f_locals.get('player', None), 'session', None)
@@ -21,13 +20,26 @@ def run_engine(nutrient_choices, flower_colors=None, scoring_system='anomaly'):
         config = session_config.config
         noisy = config.get('noisy', False)
         epsilon = config.get('epsilon', 0.0)
-    # Appliquer le bruit à toutes les fleurs dans les traitements bruyants
+
+    # 1. Calculer la croissance brute de chaque fleur
+    raw_growths = []
     n_flowers = len(nutrient_choices)
     for i, nutrients in enumerate(nutrient_choices):
-        noise = None
         growth = calculate_growth(nutrients)
+        raw_growths.append(growth)
+
+    # 2. Trouver la croissance maximale du round
+    max_growth = max(raw_growths) if raw_growths else 1.0
+    if max_growth == 0:
+        max_growth = 1.0  # éviter division par zéro
+
+    # 3. Appliquer la normalisation relative
+    for i, nutrients in enumerate(nutrient_choices):
+        noise = None
+        growth = raw_growths[i] / max_growth  # 1.0 pour la meilleure fleur, proportionnel sinon
+        # Appliquer le bruit si nécessaire
         if noisy:
-            # Choix aléatoire : aucune modification, augmentation ou diminution
+            import random
             noise_choice = random.choice(['none', 'decrease', 'increase'])
             noise_type_counts[noise_choice] += 1
             if noise_choice == 'increase':
@@ -39,14 +51,12 @@ def run_engine(nutrient_choices, flower_colors=None, scoring_system='anomaly'):
                 noise = {'index': i, 'type': 'decrease', 'amount': round(new_growth - growth, 3), 'before': round(growth, 3), 'after': round(new_growth, 3)}
                 growth = new_growth
             else:
-                # bruit = none, enregistrer quand même l'état
                 noise = {'index': i, 'type': 'none', 'amount': 0.0, 'before': round(growth, 3), 'after': round(growth, 3)}
         results.append({
             'nutrients': nutrients,
             'growth': growth,
             'noise': noise
         })
-    # Debug: print noise type distribution
     print('Noise type counts this call:', noise_type_counts)
     return results
 
@@ -106,4 +116,6 @@ def calculate_points_from_growth(growth):
     """
     Converts growth percentage to points for payment.
     """
-    return round(growth, 2)  # Round to 2 decimal places
+    # growth est déjà normalisé (0 à 1)
+    # On veut un max de 10p (0.10£), donc score * 10, arrondi à l'entier
+    return int(round(growth * 10))

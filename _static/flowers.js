@@ -478,12 +478,12 @@ class FlowerGame {
 
     // Updates the score display for a specific flower based on its nutrients.
     updateFlowerScore(flowerIdx, earningsPenny) {
-        // If earningsPenny is a string, always show as pennies with 'p' (e.g., 8p, 10p)
-        if (typeof earningsPenny === 'string') {
+        // Afficher toujours en pennies (max 10p)
+        if (typeof earningsPenny === 'string' || typeof earningsPenny === 'number') {
             this.flowers[flowerIdx].scoreDiv.textContent = `${earningsPenny}p`;
             return;
         }
-        // Otherwise, calculate as before
+        // Sinon, calculer comme avant mais pennies
         const nutrients = this.flowers[flowerIdx].nutrients;
         let score = 0;
         if (nutrients[0] && nutrients[1]) {
@@ -494,24 +494,37 @@ class FlowerGame {
         } else {
             score = 0;
         }
-        let earnings = (typeof earningsPenny === 'number') ? earningsPenny : Math.round(score * 100);
-        let earningsPounds = (earnings / 100).toFixed(2);
-        this.flowers[flowerIdx].scoreDiv.textContent = `£${earningsPounds}`;
+        let earnings = Math.round(score * 10);
+        this.flowers[flowerIdx].scoreDiv.textContent = `${earnings}p`;
     }
 
     // Shows the score for all flowers by updating and displaying each scoreDiv.
-    // If scores argument is provided, use those values directly (already scaled)
+    // Now normalizes all scores relative to the best of the round (max = 1.0)
     showAllScores(scores, earnings) {
         // After showing scores, mask nutrients and disable slots
         disableNutrientPanelAndSlots();
+        // Si scores non fournis, les calculer
+        let localScores = scores;
+        if (!localScores) {
+            localScores = this.flowers.map(f => {
+                const n1 = f.nutrients[0];
+                const n2 = f.nutrients[1];
+                return this.calculateGrowth(n1, n2);
+            });
+        }
+        // Trouver le score max du round
+        let maxScore = Math.max(...localScores);
+        if (maxScore === 0) maxScore = 1.0;
+        // Normaliser tous les scores
+        let relScores = localScores.map(s => s / maxScore);
         for (let i = 0; i < this.flowers.length; i++) {
-            if (earnings && earnings[i] !== undefined) {
-                this.updateFlowerScore(i, earnings[i]);
-            } else {
-                this.updateFlowerScore(i);
-            }
+            // Afficher le score en pennies (max 10p)
+            let earningsPenny = Math.round(relScores[i] * 10);
+            this.updateFlowerScore(i, earningsPenny);
             this.flowers[i].scoreDiv.style.display = '';
         }
+        // Mettre à jour la taille des fleurs avec les scores relatifs (toujours 0-1)
+        this.animateFlowerSizes(relScores);
     }
 
     // Animates the size of each flower image based on its score.
