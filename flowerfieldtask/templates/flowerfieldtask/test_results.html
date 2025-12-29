@@ -17,30 +17,50 @@
         min-width: 320px;
         max-width: 400px;
     }
-    .flower-slots-row {
+    .flower-nutrient-stack {
+        width: 100%;
         display: flex;
         flex-direction: column;
         align-items: center;
-        width: 100%;
-    }
-    .flower-row {
-        display: flex;
         justify-content: center;
-        width: 100%;
+        margin-bottom: 16px;
     }
-    .flower-container {
+    .flower-row-aligned {
         display: flex;
-        flex-direction: column;
-        align-items: center;
-        margin: 0 8px;
+        flex-direction: row;
+        justify-content: center;
+        align-items: flex-end;
+        width: 100%;
+        gap: 56px; /* Increased horizontal space between columns */
+        margin-bottom: 15px; /* Add vertical space below flower row */
+    }
+    .nutrient-row-aligned {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: flex-start;
+        width: 100%;
+        gap: 56px; /* Increased horizontal space between columns */
+        margin-top: 0;
+        margin-bottom: 48px; /* Add vertical space below nutrient row */
     }
     .flower-image {
-        width: 48px;
-        height: 48px;
+        display: block;
+        margin: 0 auto;
+        /* width/height set dynamically */
+        position: relative;
+        z-index: 2;
+    }
+    .nutrient-image {
+        width: 24px;
+        height: 24px;
+        margin: 0 2px;
+        display: block;
     }
     .flower-score {
         font-weight: bold;
         margin-top: 2px;
+        text-align: center;
     }
 </style>
 <div style="width:100%; display:flex; flex-direction:column; align-items:center; margin-bottom: 24px; margin-top:0 !important; padding-top:0 !important;">
@@ -74,64 +94,91 @@
     const test1_data = JSON.parse('{{ test1_data|safe }}');
     const test2_data = JSON.parse('{{ test2_data|safe }}');
     function renderFlowerField(fieldElem, colors, nutrients, scores, growths) {
-        if (colors.length === 6) {
-            let row1 = document.createElement('div');
-            row1.className = 'flower-row';
-            row1.style.gap = '64px';
-            let row2 = document.createElement('div');
-            row2.className = 'flower-row';
-            row2.style.gap = '64px';
-            row2.style.marginTop = '48px'; // Add vertical space between rows
-            for (let i = 0; i < 3; i++) {
-                row1.appendChild(createFlowerElem(i, colors, nutrients, scores, growths));
+        // Render as two rows of 3 flowers each, each with its own flower and nutrient row
+        let stack = document.createElement('div');
+        stack.className = 'flower-nutrient-stack';
+        for (let row = 0; row < 2; row++) {
+            let flowerRow = document.createElement('div');
+            flowerRow.className = 'flower-row-aligned';
+            let nutrientRow = document.createElement('div');
+            nutrientRow.className = 'nutrient-row-aligned';
+            for (let col = 0; col < 3; col++) {
+                let i = row * 3 + col;
+                // Flower (centered above its nutrients)
+                let flowerCol = document.createElement('div');
+                flowerCol.style.display = 'flex';
+                flowerCol.style.flexDirection = 'column';
+                flowerCol.style.alignItems = 'center';
+                // Flower image
+                let flowerImg = document.createElement('img');
+                flowerImg.src = '/static/img/Flw' + colors[i] + '.png';
+                flowerImg.className = 'flower-image';
+                flowerImg.alt = colors[i];
+                let baseSize = 18;
+                let scale = 18;
+                let growth = (growths && growths[i] !== undefined) ? parseFloat(growths[i]) : 0;
+                let size = baseSize + scale * growth;
+                flowerImg.style.width = size + 'px';
+                flowerImg.style.height = size + 'px';
+                flowerCol.appendChild(flowerImg);
+                // Score
+                let scoreDiv = document.createElement('div');
+                scoreDiv.className = 'flower-score';
+                scoreDiv.textContent = (scores[i] || '0') + 'p';
+                flowerCol.appendChild(scoreDiv);
+                flowerRow.appendChild(flowerCol);
+                // Nutrients (always same vertical position for all flowers in row)
+                let nutrientsDiv = document.createElement('div');
+                nutrientsDiv.style.display = 'flex';
+                nutrientsDiv.style.flexDirection = 'row';
+                nutrientsDiv.style.justifyContent = 'center';
+                nutrientsDiv.style.alignItems = 'flex-start';
+                let nutArr = nutrients[i] || [];
+                for (let nut of nutArr) {
+                    if (nut) {
+                        let nutImg = document.createElement('img');
+                        nutImg.src = '/static/img/Nutr' + nut + '.png';
+                        nutImg.className = 'nutrient-image';
+                        nutImg.alt = 'nutrient';
+                        nutrientsDiv.appendChild(nutImg);
+                    }
+                }
+                nutrientRow.appendChild(nutrientsDiv);
             }
-            for (let i = 3; i < 6; i++) {
-                row2.appendChild(createFlowerElem(i, colors, nutrients, scores, growths));
-            }
-            fieldElem.appendChild(row1);
-            fieldElem.appendChild(row2);
-        } else {
-            let row = document.createElement('div');
-            row.className = 'flower-row';
-            row.style.gap = '64px';
-            for (let i = 0; i < colors.length; i++) {
-                row.appendChild(createFlowerElem(i, colors, nutrients, scores, growths));
-            }
-            fieldElem.appendChild(row);
+            stack.appendChild(flowerRow);
+            stack.appendChild(nutrientRow);
         }
+        fieldElem.appendChild(stack);
     }
     function createFlowerElem(i, colors, nutrients, scores, growths) {
         let flowerElem = document.createElement('div');
         flowerElem.className = 'flower-container';
+        // Flower image
         let flowerImg = document.createElement('img');
         flowerImg.src = '/static/img/Flw' + colors[i] + '.png';
         flowerImg.className = 'flower-image';
         flowerImg.alt = colors[i];
-        // Use the same formula as other phases: 18 + 18*growth
         let baseSize = 18; // px
         let scale = 18; // px per growth unit
         let growth = (growths && growths[i] !== undefined) ? parseFloat(growths[i]) : 0;
         let size = baseSize + scale * growth;
         flowerImg.style.width = size + 'px';
         flowerImg.style.height = size + 'px';
-        flowerElem.appendChild(flowerImg);
+        // Nutrients row (always same height for all flowers)
         let nutrientsDiv = document.createElement('div');
-        nutrientsDiv.style.display = 'flex';
-        nutrientsDiv.style.gap = '1px';
-        nutrientsDiv.style.marginBottom = '1px';
-        nutrientsDiv.style.marginTop = '2px';
+        nutrientsDiv.className = 'nutrient-row';
         let nutArr = nutrients[i] || [];
         for (let nut of nutArr) {
             if (nut) {
                 let nutImg = document.createElement('img');
                 nutImg.src = '/static/img/Nutr' + nut + '.png';
                 nutImg.className = 'nutrient-image';
-                nutImg.style.width = '24px';
-                nutImg.style.height = '24px';
                 nutImg.alt = 'nutrient';
                 nutrientsDiv.appendChild(nutImg);
             }
         }
+        // Stack: flower image, then nutrients, then score
+        flowerElem.appendChild(flowerImg);
         flowerElem.appendChild(nutrientsDiv);
         let scoreDiv = document.createElement('div');
         scoreDiv.className = 'flower-score';
