@@ -1,3 +1,5 @@
+
+DEBUG = False
 from os import environ
 import os
 

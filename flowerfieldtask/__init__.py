@@ -8,7 +8,7 @@ doc = """Flower Field Task — version indépendante (pas de transmission)"""
 
 # oTree imports and engine functions
 from otree.api import *
-from .engine import run_engine, calculate_points_from_growth
+from .engine import run_engine, calculate_p_from_growth
 import json
 
 class C(BaseConstants):
@@ -38,6 +38,8 @@ class Player(BasePlayer):
     # Tracks total earnings for this player
     cumulative_earnings = models.FloatField(initial=0)
     test1_pending_earnings = models.FloatField(initial=0)  # Holds Test 1 earnings until Test 2
+    qcm_click_sequence = models.LongStringField(blank=True, null=True, label="QCM click sequence")
+    dummy_field = models.StringField(initial="ok", blank=True)
 
     # Fields for raw export
     treatment = models.StringField(blank=True, null=True, label="Treatment")
@@ -56,6 +58,19 @@ class Instructions(Page):
     def vars_for_template(player):
         return {}
     template_name = '_templates/instructions.html'
+    form_model = 'player'
+    form_fields = ['dummy_field', 'qcm_click_sequence']
+
+    def before_next_page(player, timeout_happened):
+        import json as _json
+        qcm_seq = player.qcm_click_sequence
+        # ...
+        if qcm_seq:
+            try:
+                _json.loads(qcm_seq)
+                player.qcm_click_sequence = qcm_seq
+            except Exception:
+                player.qcm_click_sequence = ''
 
 class FlowerField(Page):
     import json
@@ -282,13 +297,13 @@ class FlowerField(Page):
             else:
                 output = run_engine(nutrients)
             total_growth = sum(f['growth'] for f in output) / len(output)
-            total_points = calculate_points_from_growth(total_growth)
+            total_points = calculate_p_from_growth(total_growth)
             flower_scores = [f['growth'] for f in output]
             # Multiply by 2 only for Test 1 and Test 2
             if phase in ['Test 1', 'Test 2']:
                 flower_scores = [g * 2 for g in flower_scores]
-            # Each earning: growth * 10 (to get pennies), rounded to nearest int
-            flower_earnings = [str(int(round(g * 10))) for g in flower_scores]
+            # Each earning: growth * 10 (to get pennies), PAS d'arrondi, juste troncature
+            flower_earnings = [str(int(g * 10)) for g in flower_scores]
             # For total, sum as £
             round_earnings = sum([int(e) for e in flower_earnings]) / 100.0
             # Track noise effects for noisy configs

@@ -1,52 +1,87 @@
-// Add two-step confirmation popup for Start Experiment button click on final slide
+window.qcmClickSequence = [];
+
+window.qcmClickSequence = [];
+
 document.addEventListener('click', function (e) {
     const btn = e.target;
-        if (btn && btn.id === 'start-experiment-btn') {
-            e.preventDefault();
-            // Ensure the hidden form exists in the DOM
-            var form = document.getElementById('otree-instructions-form');
-            if (!form) {
-                // Try to find it in the current slide
-                var slide = document.querySelector('.slide-10');
-                if (slide) {
-                    var temp = document.createElement('div');
-                    temp.innerHTML = '<form method="post" id="otree-instructions-form" style="display:none;"><input type="hidden" name="csrfmiddlewaretoken" value="' + (window.getCSRFToken ? window.getCSRFToken() : '') + '"></form>';
-                    slide.appendChild(temp.firstChild);
-                    form = document.getElementById('otree-instructions-form');
-                }
-            }
-            var doFinalSubmit = function() {
-                if (form) {
-                    form.submit();
-                } else {
-                    alert('Error: Could not find the form to submit.');
-                }
-            };
-            var msg = 'Do you confirm that you have read and understood the instructions and that you want to start the game?';
-            if (window.bootbox) {
-                bootbox.confirm({
-                    title: 'Ready to start?',
-                    message: msg,
-                    buttons: {
-                        cancel: {
-                            label: 'Cancel',
-                            className: 'btn-secondary'
-                        },
-                        confirm: {
-                            label: 'Yes',
-                            className: 'btn-success'
-                        }
-                    },
-                    callback: function (result) {
-                        if (result) doFinalSubmit();
-                    }
-                });
-            } else {
-                if (confirm(msg)) {
-                    doFinalSubmit();
-                }
+    // Capture clics sur les boutons de QCM
+    if (btn && btn.classList.contains('answer-btn')) {
+        const slide = btn.closest('.slide');
+        let slideNum = null;
+        if (slide) {
+            const counter = slide.querySelector('.slide-counter');
+            if (counter) {
+                slideNum = counter.textContent.trim();
             }
         }
+        window.qcmClickSequence.push({
+            slide: slideNum,
+            text: btn.textContent.trim(),
+            correct: btn.dataset.correct === 'true',
+            timestamp: Date.now()
+        });
+        // Met à jour le champ caché
+        const input = document.getElementById('id_qcm_click_sequence');
+        if (input) {
+            input.value = JSON.stringify(window.qcmClickSequence);
+        }
+    }
+    // Soumission finale
+    if (btn && btn.id === 'start-experiment-btn') {
+        e.preventDefault();
+        // Met à jour le champ caché du vrai formulaire oTree avant soumission
+        const input = document.getElementById('id_qcm_click_sequence');
+        if (input) {
+            input.value = JSON.stringify(window.qcmClickSequence);
+        }
+        var form = document.querySelector('form');
+        var doFinalSubmit = function() {
+            if (form) {
+                form.submit();
+            } else {
+                alert('Error: Could not find the form to submit.');
+            }
+        };
+        var msg = 'Do you confirm that you have read and understood the instructions and that you want to start the game?';
+        if (window.bootbox) {
+            // Patch Bootbox pour rendre le focus à la page principale après fermeture du modal
+            var origHide = bootbox.dialog.prototype.hide;
+            bootbox.dialog.prototype.hide = function() {
+                var modal = this.$modal && this.$modal[0];
+                var active = document.activeElement;
+                var result = origHide.apply(this, arguments);
+                // Rendre le focus à l'élément principal après fermeture
+                setTimeout(function() {
+                    if (modal && modal.parentNode) {
+                        var main = document.getElementById('instructions-root') || document.body;
+                        main.focus && main.focus();
+                    }
+                }, 10);
+                return result;
+            };
+            bootbox.confirm({
+                title: 'Ready to start?',
+                message: msg,
+                buttons: {
+                    cancel: {
+                        label: 'Cancel',
+                        className: 'btn-secondary'
+                    },
+                    confirm: {
+                        label: 'Yes',
+                        className: 'btn-success'
+                    }
+                },
+                callback: function (result) {
+                    if (result) doFinalSubmit();
+                }
+            });
+        } else {
+            if (confirm(msg)) {
+                doFinalSubmit();
+            }
+        }
+    }
 });
 // instructions.js
 // This script renders the full instruction sequence as described, with all navigation, interactivity, and popups.
@@ -314,7 +349,7 @@ window.getCSRFToken = function() {
             nextBtn.textContent = 'Next';
             nextBtn.className = 'nav-btn next-btn';
             nextBtn.onclick = () => {
-                console.log('Current slide before next:', currentSlide, 'idx:', idx);
+                // ...
                 if (slides[idx].nextEnabled !== false) {
                     if (currentSlide < slides.length - 1) {
                         currentSlide = currentSlide + 1;
@@ -412,7 +447,7 @@ window.getCSRFToken = function() {
                 if (nextBtn) {
                     nextBtn.disabled = false;
                     nextBtn.style.display = '';
-                    console.log('Next button enabled on slide 3 after correct nutrients dropped.');
+                    // ...
                 }
                 let msg = document.querySelector('.nav-msg');
                 if (msg) msg.style.display = 'none';

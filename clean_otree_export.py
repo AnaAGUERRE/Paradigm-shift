@@ -21,6 +21,8 @@ COLUMNS = [
     ('player.cumulative_earnings', 'Total_earnings'),
     ('player.year_of_birth', 'Birth_year'),
     ('player.feedback', 'Feedback'),
+    ('player.qcm_click_sequence', 'QCM_sequence_raw'),
+    ('QCM_sequence_bool', 'QCM_sequence_bool'),
 ]
 
 def clean_otree_export(input_path=INPUT_FILE, output_path=OUTPUT_FILE):
@@ -35,7 +37,9 @@ def clean_otree_export(input_path=INPUT_FILE, output_path=OUTPUT_FILE):
         code = row.get('participant.code', '')
         by_participant[code].append(row)
 
+
     output_rows = []
+    import json
     for code, rounds in by_participant.items():
         # Trouver la dernière ligne (round max) pour Test 2
         last_round = None
@@ -61,6 +65,14 @@ def clean_otree_export(input_path=INPUT_FILE, output_path=OUTPUT_FILE):
             for old, new in COLUMNS:
                 if new in ('Feedback', 'Birth_year'):
                     output_row[new] = ''
+                elif new == 'QCM_sequence_bool':
+                    # Extraire la séquence booléenne à partir du JSON
+                    seq_raw = row.get('player.qcm_click_sequence', '')
+                    try:
+                        seq = json.loads(seq_raw) if seq_raw else []
+                        output_row[new] = str([item.get('correct', False) for item in seq])
+                    except Exception:
+                        output_row[new] = ''
                 else:
                     output_row[new] = row.get(old, '')
             output_row['Phase'] = phase

@@ -2,6 +2,9 @@
 {% block title %}Instructions{% endblock %}
 {% block content %}
 <div id="instructions-root"></div>
+{% block formfields %}
+<input type="hidden" id="id_qcm_click_sequence" name="qcm_click_sequence" value="">
+{% endblock %}
 <link rel="stylesheet" href="{% static 'css/instructions.css' %}">
 <script src="{% static 'libraries/bootbox/bootbox.js' %}"></script>
 <script src="{% static 'js/instructions.js' %}"></script>
