@@ -92,6 +92,13 @@
                     {% endif %}
                     <div class="game-main">
                         <div id="status-message"></div>
+                        {# Affiche les paramètres environnementaux uniquement après le feedback (quand le score apparaît) #}
+                        {% if phase == 'Training phase' or phase == 'Exploration phase' %}
+                        <div id="env-params" style="font-size:0.98em; margin-bottom:0.7em; color:black; display:none; text-align:center;">
+                            During this season, the average daily temperature and rainfall were :
+                            <span style="font-weight:bold">{{ temperature }} °C</span> and <span style="font-weight:bold">{{ rainfall }} mm</span>.
+                        </div>
+                        {% endif %}
                         <div id="flower-field-wrapper" class="{{ phase_class }}">
                             <!-- JS will fill flower-field with correct layout -->
                             <div id="flower-field" class="flower-slots-row" style="display: flex; justify-content: center; align-items: flex-end; width: 100%;"></div>
@@ -102,6 +109,22 @@
                             <button class="submit-button" id="nextRoundButton" style="display:none;">Go to the next round</button>
                         </div>
                         <!-- Feedback panels are injected dynamically after submitting Test 2. Test 1 feedback is NOT shown immediately after Test 1. -->
+                        <script>
+                        // Affiche les paramètres environnementaux uniquement après le feedback (après soumission)
+                        document.addEventListener('DOMContentLoaded', function() {
+                            var submitBtn = document.getElementById('submitButton');
+                            var envParams = document.getElementById('env-params');
+                            // Affiche uniquement pour training et exploration
+                            var phase = '{{ phase }}';
+                            if (submitBtn && envParams && (phase === 'Training phase' || phase === 'Exploration phase')) {
+                                submitBtn.addEventListener('click', function() {
+                                    setTimeout(function() {
+                                        envParams.style.display = 'block';
+                                    }, 100);
+                                });
+                            }
+                        });
+                        </script>
                     </div>
                 </div>
                 <div class="side-panel-stack">

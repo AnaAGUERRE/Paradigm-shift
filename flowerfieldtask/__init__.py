@@ -16,7 +16,7 @@ class C(BaseConstants):
     PLAYERS_PER_GROUP = None         # No grouping
     TRAINING_ROUNDS = 4              # Number of training rounds
     TEST1_ROUNDS = 1                 # Number of test1 rounds
-    EXPLORATION_ROUNDS = 5           # Number of exploration rounds
+    EXPLORATION_ROUNDS = 6           # Number of exploration rounds
     TEST2_ROUNDS = 1                 # Number of test2 rounds
     NUM_ROUNDS = TRAINING_ROUNDS + TEST1_ROUNDS + EXPLORATION_ROUNDS + TEST2_ROUNDS  # Total rounds
 
@@ -47,6 +47,8 @@ class Player(BasePlayer):
     flower_colors = models.LongStringField(blank=True, null=True, label="Flower colors (JSON)")
     nutrient_choice = models.LongStringField(blank=True, null=True, label="Nutrient choice (JSON)")
     score_per_flower = models.LongStringField(blank=True, null=True, label="Score per flower (JSON)")
+    Vround = models.IntegerField(blank=True, null=True, label="Vround (variation saisonnière)")
+    score_reel = models.LongStringField(blank=True, null=True, label="Score réel (JSON, bruit total)")
     noise_applied = models.LongStringField(blank=True, null=True, label="Noise (JSON)")
     # cumulative_earnings already present
     # year_of_birth and feedback added below
@@ -75,6 +77,24 @@ class Instructions(Page):
 class FlowerField(Page):
     import json
     def vars_for_template(player):
+        # Paramètres environnementaux fixes par round (1-indexé)
+        env_params = [
+            {'temp': 18, 'rain': 5.6},
+            {'temp': 21, 'rain': 6.8},
+            {'temp': 15, 'rain': 7.3},
+            {'temp': 23, 'rain': 8.1},
+            {'temp': 22, 'rain': 10.0},
+            {'temp': 14, 'rain': 4.2},
+            {'temp': 17, 'rain': 8.2},
+            {'temp': 19, 'rain': 11.6},
+            {'temp': 20, 'rain': 12.4},
+            {'temp': 16, 'rain': 13.9},
+            {'temp': 18, 'rain': 9.5},
+            {'temp': 24, 'rain': 9.3},
+        ]
+        round_index = player.round_number - 1
+        temperature = env_params[round_index]['temp']
+        rainfall = env_params[round_index]['rain']
         # Pass variables to the template for display and JS logic
         # For Test 1, show total_earnings without Test 1 reward
         # For Test 2, show total_earnings including both Test 1 and Test 2 rewards
@@ -96,10 +116,10 @@ class FlowerField(Page):
         # Map noisy and transmission treatments to their no-noise logic for flower sequences
         if treatment == 'anomaly noisy':
             treatment_logic = 'anomaly no noise'
-        elif treatment == 'no anomaly noisy':
-            treatment_logic = 'no anomaly no noise'
         elif treatment in ['transmission correct', 'transmission m&m']:
             treatment_logic = 'anomaly no noise'
+        elif treatment == 'no anomaly no noise':
+            treatment_logic = 'no anomaly no noise'
         else:
             treatment_logic = treatment
         if player.round_number <= C.TRAINING_ROUNDS:
@@ -124,27 +144,21 @@ class FlowerField(Page):
             phase_total = C.EXPLORATION_ROUNDS
             if treatment_logic == 'anomaly no noise':
                 exploration_flower_types = [
-                    ['Orange', 'Purple'],         # R1
-                    ['Orange', 'Green'],          # R2
-                    ['Green', 'Red', 'Green'],    # R3
-                    ['Blue', 'Purple', 'Purple'], # R4
-                    ['Purple', 'Green', 'Yellow'] # R5
+                    ['Green', 'Orange'],          # R1
+                    ['Orange', 'Purple'],         # R2
+                    ['Red', 'Green'],             # R3
+                    ['Blue', 'Purple'],           # R4
+                    ['Purple', 'Yellow'],         # R5
+                    ['Green', 'Blue']             # R6
                 ]
             elif treatment_logic == 'no anomaly no noise':
                 exploration_flower_types = [
                     ['Orange', 'Orange'],         # R1
-                    ['Purple', 'Green'],          # R2
-                    ['Red', 'Blue', 'Yellow'],    # R3
-                    ['Green', 'Purple', 'Green'], # R4
-                    ['Purple', 'Purple', 'Green'] # R5
-                ]
-            else:
-                exploration_flower_types = [
-                    ['Green', 'Purple', 'Blue'],
-                    ['Green', 'Purple', 'Blue'],
-                    ['Green', 'Purple', 'Yellow'],
-                    ['Green', 'Purple', 'Yellow'],
-                    ['Green', 'Purple', 'Yellow']
+                    ['Green', 'Purple'],          # R2
+                    ['Red', 'Yellow'],            # R3
+                    ['Purple', 'Green'],          # R4
+                    ['Blue', 'Blue'],             # R5
+                    ['Green', 'Purple']           # R6
                 ]
             flower_colors = exploration_flower_types[phase_round - 1]
         else:
@@ -222,7 +236,9 @@ class FlowerField(Page):
             valid_flowers=valid_flowers,
             flower_count=flower_count,
             treatment=treatment,
-            transmitted_photo=transmitted_photo
+            transmitted_photo=transmitted_photo,
+            temperature=temperature,
+            rainfall=rainfall
         )
     live_method = "live_method"  # Name of live method for JS communication
     template_name = 'flowerfieldtask/FlowerField.html'  # HTML template to use
@@ -239,10 +255,10 @@ class FlowerField(Page):
             # Map noisy and transmission treatments to their no-noise logic for flower sequences
             if treatment == 'anomaly noisy':
                 treatment_logic = 'anomaly no noise'
-            elif treatment == 'no anomaly noisy':
-                treatment_logic = 'no anomaly no noise'
             elif treatment in ['transmission correct', 'transmission m&m']:
                 treatment_logic = 'anomaly no noise'
+            elif treatment == 'no anomaly no noise':
+                treatment_logic = 'no anomaly no noise'
             else:
                 treatment_logic = treatment
             if player.round_number <= C.TRAINING_ROUNDS:
@@ -264,33 +280,31 @@ class FlowerField(Page):
                 display_round = player.round_number - C.TRAINING_ROUNDS - C.TEST1_ROUNDS
                 if treatment_logic == 'anomaly no noise':
                     exploration_flower_types = [
-                        ['Orange', 'Purple'],         # R1
-                        ['Orange', 'Green'],          # R2
-                        ['Green', 'Red', 'Green'],    # R3
-                        ['Blue', 'Purple', 'Purple'], # R4
-                        ['Purple', 'Green', 'Yellow'] # R5
+                        ['Green', 'Orange'],          # R1
+                        ['Orange', 'Purple'],         # R2
+                        ['Red', 'Green'],             # R3
+                        ['Blue', 'Purple'],           # R4
+                        ['Purple', 'Yellow'],         # R5
+                        ['Green', 'Blue']             # R6
                     ]
                 elif treatment_logic == 'no anomaly no noise':
                     exploration_flower_types = [
                         ['Orange', 'Orange'],         # R1
-                        ['Purple', 'Green'],          # R2
-                        ['Red', 'Blue', 'Yellow'],    # R3
-                        ['Green', 'Purple', 'Green'], # R4
-                        ['Purple', 'Purple', 'Green'] # R5
-                    ]
-                else:
-                    exploration_flower_types = [
-                        ['Green', 'Purple', 'Blue'],
-                        ['Green', 'Purple', 'Blue'],
-                        ['Green', 'Purple', 'Yellow'],
-                        ['Green', 'Purple', 'Yellow'],
-                        ['Green', 'Purple', 'Yellow']
+                        ['Green', 'Purple'],          # R2
+                        ['Red', 'Yellow'],            # R3
+                        ['Purple', 'Green'],          # R4
+                        ['Blue', 'Blue'],             # R5
+                        ['Green', 'Purple']           # R6
                     ]
                 flower_colors = exploration_flower_types[display_round - 1]
             else:
                 phase = 'Test 2'
                 display_round = player.round_number - C.TRAINING_ROUNDS - C.TEST1_ROUNDS - C.EXPLORATION_ROUNDS
                 flower_colors = ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
+            # Variation inter-round en pennies (par round, même pour toutes les fleurs)
+            round_score_variation = [0, 1, -1, 0, 1, -1, 0, -1, 0, -1, 1, 1]  # R1 à R12
+            round_index = player.round_number - 1
+            variation_pennies = round_score_variation[round_index] if 0 <= round_index < len(round_score_variation) else 0
             # Run backend engine to calculate growth and points
             if scoring_system == 'mm':
                 output = run_engine(nutrients, flower_colors=flower_colors, scoring_system='mm')
@@ -302,8 +316,19 @@ class FlowerField(Page):
             # Multiply by 2 only for Test 1 and Test 2
             if phase in ['Test 1', 'Test 2']:
                 flower_scores = [g * 2 for g in flower_scores]
-            # Each earning: growth * 10 (to get pennies), PAS d'arrondi, juste troncature
-            flower_earnings = [str(int(g * 10)) for g in flower_scores]
+            # Apply noise as fixed penny adjustment (+2p, -2p, 0p)
+            noise_effects = [f.get('noise') for f in output]
+            flower_earnings = []
+            for g, noise in zip(flower_scores, noise_effects):
+                base_pennies = int(g * 10)
+                if noise:
+                    if noise['type'] == 'increase':
+                        base_pennies += 2
+                    elif noise['type'] == 'decrease':
+                        base_pennies -= 2
+                # Add per-round variation
+                earning = max(0, base_pennies + variation_pennies)
+                flower_earnings.append(str(earning))
             # For total, sum as £
             round_earnings = sum([int(e) for e in flower_earnings]) / 100.0
             # Track noise effects for noisy configs
@@ -344,6 +369,8 @@ class FlowerField(Page):
             player.flower_colors = _json.dumps(flower_colors)
             player.nutrient_choice = _json.dumps(nutrients)
             player.score_per_flower = _json.dumps(flower_scores)
+            player.Vround = variation_pennies
+            player.score_reel = _json.dumps(flower_earnings)
             player.noise_applied = _json.dumps(noise_effects)
             player.cumulative_earnings = player.participant.vars['total_earnings']
             
@@ -490,7 +517,24 @@ class TestResults(Page):
             growths = test2_entry['growths'] if test2_entry else []
         )
         import json
-        # Add phase and earnings for top bar
+        # Paramètres environnementaux fixes par round (1-indexé)
+        env_params = [
+            {'temp': 18, 'rain': 5.6},
+            {'temp': 21, 'rain': 6.8},
+            {'temp': 15, 'rain': 7.3},
+            {'temp': 23, 'rain': 8.1},
+            {'temp': 22, 'rain': 10.0},
+            {'temp': 14, 'rain': 4.2},
+            {'temp': 17, 'rain': 8.2},
+            {'temp': 19, 'rain': 11.6},
+            {'temp': 20, 'rain': 12.4},
+            {'temp': 16, 'rain': 13.9},
+            {'temp': 18, 'rain': 9.5},
+            {'temp': 24, 'rain': 9.3},
+        ]
+        # Test 1 = round 5, Test 2 = round 12 (index 4 et 11)
+        test1_env = env_params[4]
+        test2_env = env_params[11]
         total = player.participant.vars.get('total_earnings', 0)
         return dict(
             test1_data=json.dumps(test1_data),
@@ -498,7 +542,11 @@ class TestResults(Page):
             phase='Test Results',
             phase_round='',
             phase_total='',
-            cumulative_earnings="{:.2f}".format(total)
+            cumulative_earnings="{:.2f}".format(total),
+            test1_temperature=test1_env['temp'],
+            test1_rainfall=test1_env['rain'],
+            test2_temperature=test2_env['temp'],
+            test2_rainfall=test2_env['rain']
         )
     template_name = 'flowerfieldtask/test_results.html'
 

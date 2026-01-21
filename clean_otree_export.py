@@ -17,6 +17,8 @@ COLUMNS = [
     ('player.flower_colors', 'Flower_colors'),
     ('player.nutrient_choice', 'Nutrient_choice'),
     ('player.score_per_flower', 'Score_per_flower'),
+    ('player.Vround', 'Vround'),
+    ('player.score_reel', 'Score_reel_flower'),
     ('player.noise_applied', 'Noise_applied'),
     ('player.cumulative_earnings', 'Total_earnings'),
     ('player.year_of_birth', 'Birth_year'),

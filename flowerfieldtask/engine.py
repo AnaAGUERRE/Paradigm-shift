@@ -25,16 +25,8 @@ def run_engine(nutrient_choices, flower_colors=None, scoring_system='anomaly'):
         if noisy:
             noise_choice = random.choice(['none', 'decrease', 'increase'])
             noise_type_counts[noise_choice] += 1
-            if noise_choice == 'increase':
-                new_growth = growth + epsilon
-                noise = {'index': i, 'type': 'increase', 'amount': round(new_growth - growth, 3), 'before': round(growth, 3), 'after': round(new_growth, 3)}
-                growth = new_growth
-            elif noise_choice == 'decrease':
-                new_growth = max(0.0, growth - epsilon)
-                noise = {'index': i, 'type': 'decrease', 'amount': round(new_growth - growth, 3), 'before': round(growth, 3), 'after': round(new_growth, 3)}
-                growth = new_growth
-            else:
-                noise = {'index': i, 'type': 'none', 'amount': 0.0, 'before': round(growth, 3), 'after': round(growth, 3)}
+            # Only record the noise type, do NOT modify growth
+            noise = {'index': i, 'type': noise_choice}
         results.append({
             'nutrients': nutrients,
             'growth': growth,
