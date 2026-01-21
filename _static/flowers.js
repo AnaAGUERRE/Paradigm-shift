@@ -197,8 +197,40 @@ class FlowerGame {
 
 // Initializes the game UI by creating the flower field and nutrient panel.
     init() {
-        this.createFlowerField();
-        this.createNutrientPanel();
+       this.createFlowerField();
+       this.createNutrientPanel();
+       // Restore nutrients in slots if round_submitted and backend data is available
+       if (window.js_vars && window.js_vars.round_submitted && window.js_vars.flower_nutrients) {
+          this.restoreNutrients(window.js_vars.flower_nutrients);
+       }
+    }
+    // Restores nutrients in slots after refresh using backend data
+    restoreNutrients(nutrientsData) {
+        // nutrientsData: array of arrays, each subarray is nutrients for a flower (e.g. [["Red","Blue"], ["Yellow",null], ...])
+        for (let i = 0; i < this.flowers.length; i++) {
+            const slot = document.getElementById(`flower-${i}-slot`);
+            if (!slot) continue;
+            // Clear any existing nutrients in slot
+            slot.innerHTML = '';
+            const nutrients = nutrientsData[i] || [];
+            for (let j = 0; j < nutrients.length; j++) {
+                const nutrient = nutrients[j];
+                if (nutrient && this.nutrientImages[nutrient]) {
+                    const nutrientDisplay = document.createElement('div');
+                    nutrientDisplay.className = 'dropped-nutrient';
+                    const nutrientImg = document.createElement('img');
+                    nutrientImg.src = window.static(`img/${this.nutrientImages[nutrient]}`);
+                    nutrientImg.alt = `${nutrient} Nutrient`;
+                    nutrientImg.className = 'dropped-nutrient-image';
+                    nutrientDisplay.appendChild(nutrientImg);
+                    slot.appendChild(nutrientDisplay);
+                    // Also update internal data
+                    this.flowers[i].nutrients[j] = nutrient;
+                } else {
+                    this.flowers[i].nutrients[j] = null;
+                }
+            }
+        }
     }
 // Prepares the flower field container and resets the flowers array.
     createFlowerField() {

@@ -221,9 +221,9 @@ document.addEventListener('DOMContentLoaded', function () {
         // 7. Collective task (7/10)
         {
             render: () => `
-                <div class="slide slide-6">
+                <div class="slide slide-7">
                     <div class="slide-content-block" style="margin-top: 0; max-width: 90vw;">
-                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">6/9</span>
+                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">7/10</span>
                         <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 1em;">Learning from previous participants</div>
                         <p><b>You may be able to learn from another player who participated in the task before you by seeing a configuration they produced.</b></p>
                         <p><b>The player you may receive the configuration from is also part of a group of players, called a chain.</b> Each player had the same number of trials. If you are the first player in a chain, you will not receive a configuration produced by another participant.</p>

@@ -75,8 +75,15 @@ class Instructions(Page):
                 player.qcm_click_sequence = ''
 
 class FlowerField(Page):
+    def is_round_submitted(player):
+        # Utilise participant.vars pour stocker l'état de soumission par round
+        submitted_rounds = player.participant.vars.get('submitted_rounds', set())
+        return player.round_number in submitted_rounds
     import json
     def vars_for_template(player):
+        # Indique si le round a déjà été soumis
+        submitted_rounds = player.participant.vars.get('submitted_rounds', set())
+        round_submitted = player.round_number in submitted_rounds
         # Paramètres environnementaux fixes par round (1-indexé)
         env_params = [
             {'temp': 18, 'rain': 5.6},
@@ -225,6 +232,16 @@ class FlowerField(Page):
         treatment = player.session.config.get('display_name', '')
         # Example: transmitted_photo could be set in participant.vars or elsewhere
         transmitted_photo = player.participant.vars.get('transmitted_photo', None)
+        # If round_submitted, get feedback data for this round from history
+        flower_scores = None
+        flower_earnings = None
+        if round_submitted and phase in ["Training phase", "Exploration phase"]:
+            history = player.participant.vars.get('nutrient_flower_history', [])
+            for entry in history:
+                if entry['phase'] == phase and entry['round'] == phase_round:
+                    flower_scores = entry.get('growths', None)
+                    flower_earnings = entry.get('scores', None)
+                    break
         return dict(
             phase=phase,
             phase_round=phase_round,
@@ -238,13 +255,20 @@ class FlowerField(Page):
             treatment=treatment,
             transmitted_photo=transmitted_photo,
             temperature=temperature,
-            rainfall=rainfall
+            rainfall=rainfall,
+            round_submitted=round_submitted,
+            flower_scores=flower_scores,
+            flower_earnings=flower_earnings
         )
     live_method = "live_method"  # Name of live method for JS communication
     template_name = 'flowerfieldtask/FlowerField.html'  # HTML template to use
 
 
     def live_method(player, data):
+        # Empêche la resoumission si le round est déjà soumis
+        submitted_rounds = player.participant.vars.get('submitted_rounds', set())
+        if player.round_number in submitted_rounds:
+            return {player.id_in_group: {"error": "Round already submitted"}}
         # Handles live communication from JS (nutrient submission)
         if data['type'] == 'flowerSubmit':
             nutrients = data['data']
@@ -353,6 +377,9 @@ class FlowerField(Page):
                 player.cumulative_earnings = player.participant.vars['total_earnings']
 
             # --- Save all relevant fields to Player for oTree export ---
+            # Marque le round comme soumis
+            submitted_rounds.add(player.round_number)
+            player.participant.vars['submitted_rounds'] = submitted_rounds
             player.treatment = player.session.config.get('display_name', '')
             # Map phase to user-friendly label
             if phase == 'Training phase':

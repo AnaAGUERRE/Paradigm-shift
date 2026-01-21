@@ -104,9 +104,9 @@
                             <div id="flower-field" class="flower-slots-row" style="display: flex; justify-content: center; align-items: flex-end; width: 100%;"></div>
                         </div>
                         <div class="game-controls">
-                            <button class="reset-button" id="resetButton">Reset</button>
-                            <button class="submit-button" id="submitButton">Submit</button>
-                            <button class="submit-button" id="nextRoundButton" style="display:none;">Go to the next round</button>
+                            <button class="reset-button" id="resetButton" {% if round_submitted %}disabled style="display:none;"{% endif %}>Reset</button>
+                            <button class="submit-button" id="submitButton" {% if round_submitted %}disabled style="display:none;"{% endif %}>Submit</button>
+                            <button class="submit-button" id="nextRoundButton" {% if round_submitted %}style=""{% else %}style="display:none;"{% endif %}>Go to the next round</button>
                         </div>
                         <!-- Feedback panels are injected dynamically after submitting Test 2. Test 1 feedback is NOT shown immediately after Test 1. -->
                         <script>
@@ -114,12 +114,23 @@
                         document.addEventListener('DOMContentLoaded', function() {
                             var submitBtn = document.getElementById('submitButton');
                             var envParams = document.getElementById('env-params');
-                            // Affiche uniquement pour training et exploration
+                            var nextRoundBtn = document.getElementById('nextRoundButton');
                             var phase = '{{ phase }}';
-                            if (submitBtn && envParams && (phase === 'Training phase' || phase === 'Exploration phase')) {
+                            var roundSubmitted = {{ round_submitted|json }};
+                            if (roundSubmitted) {
+                                // Affiche le feedback directement
+                                if (envParams) envParams.style.display = 'block';
+                                if (submitBtn) submitBtn.disabled = true;
+                                if (submitBtn) submitBtn.style.display = 'none';
+                                if (nextRoundBtn) nextRoundBtn.style.display = '';
+                                if (resetButton) resetButton.disabled = true;
+                                if (resetButton) resetButton.style.display = 'none';
+                            } else if (submitBtn && envParams && (phase === 'Training phase' || phase === 'Exploration phase')) {
                                 submitBtn.addEventListener('click', function() {
                                     setTimeout(function() {
-                                        envParams.style.display = 'block';
+                                        if (window.flowerGame && window.flowerGame.isComplete()) {
+                                            envParams.style.display = 'block';
+                                        }
                                     }, 100);
                                 });
                             }
@@ -272,10 +283,21 @@
     </style>
     <script>
         window.js_vars = window.js_vars || {};
-                    window.js_vars.treatment = "{{ session.config.display_name }}";
+        window.js_vars.treatment = "{{ session.config.display_name }}";
         window.js_vars.current_round = "{{ player.round_number }}";
         window.js_vars.phase = "{{ phase }}";
         window.js_vars.flower_colors = JSON.parse('{{ flower_colors|safe }}');
+        window.js_vars.round_submitted = {{ round_submitted|json }};
+        window.js_vars.flower_scores = {% if flower_scores %}{{ flower_scores|json }}{% else %}null{% endif %};
+        window.js_vars.flower_earnings = {% if flower_earnings %}{{ flower_earnings|json }}{% else %}null{% endif %};
+        // Pass nutrients for this round if submitted
+        {% if round_submitted and phase in ['Training phase', 'Exploration phase'] %}
+        {% for entry in participant.vars.nutrient_flower_history %}
+            {% if entry.phase == phase and entry.round == phase_round %}
+                window.js_vars.flower_nutrients = {{ entry.nutrients|safe }};
+            {% endif %}
+        {% endfor %}
+        {% endif %}
 
         console.log('Flowers template loaded, initializing...');
         // Initialize the game
@@ -297,6 +319,16 @@
                 // Now initialize the game (populate the DOM)
                 console.log('Initializing game UI...');
                 window.flowerGame.init();
+                // If round_submitted, show feedback immediately (for Training/Exploration)
+                if (window.js_vars.round_submitted && (window.js_vars.phase === 'Training phase' || window.js_vars.phase === 'Exploration phase')) {
+                    if (window.js_vars.flower_scores && window.flowerGame.animateFlowerSizes) {
+                        window.flowerGame.animateFlowerSizes(window.js_vars.flower_scores);
+                    }
+                    if (window.js_vars.flower_scores && window.js_vars.flower_earnings && window.flowerGame.showAllScores) {
+                        let scaledScores = window.js_vars.flower_scores.map(x => Math.round(x * 400));
+                        window.flowerGame.showAllScores(scaledScores, window.js_vars.flower_earnings);
+                    }
+                }
                 console.log('Game UI initialized');
             } else {
                 console.error('FlowerGame class not found!');
