@@ -98,14 +98,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 return false;
             }
         });
-    // Build slides array (9 slides)
+    // Build slides array (10 slides)
     let slides = [
-        // 1. Welcome (1/9)
+        // 1. Welcome (1/10)
         {
             render: () => `
                 <div class="slide slide-1">
                     <div class="slide-content-block" style="margin-top: 0; max-width: 700px;">
-                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">1/9</span>
+                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">1/10</span>
                         <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 1em;">Welcome to the experiment !</div>
                         <div class="slide-intro-text" style="text-align: left; margin-top: 0;">
                             <p style="margin-top: 0;">In the upcoming slides, we will outline the experiment's rules and guide you on how to maximize your bonus reward.</p>
@@ -116,18 +116,18 @@ document.addEventListener('DOMContentLoaded', function () {
             `,
             nextEnabled: true,
         },
-        // 2. The task (static images) (2/9)
+        // 2. The task (static images) (2/10)
         {
             render: () => `
                 <div class="slide slide-2">
                     <div class="slide-content-block" style="margin-top: 0; max-width: 90vw;">
-                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">2/9</span>
+                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">2/10</span>
                         <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 1em;">The Task</div>
                         <div style="max-width: 80vw;">
                             <p>In this task, you will take part in a virtual flower-growing experiment (see below).<br>
                                 Your goal is to make each flower grow as much as possible by selecting the right combination of nutrients.</p>
                             <p>After you choose the combinations for the entire flower field, the software will show you the growth results of the flowers represented by their size and the corresponding earnings (in pennies, ex: 5p).</p>
-                            <b>There is a relationship between the nutrient combinations, the growth outcomes of the flowers, and your earnings.</b>
+                            <b>The nutrient combinations you choose have an impact on the growth outcomes of the flowers, and your earnings.</b>
                         </div>
                         <div class="slide-visual center" style="margin-top: 1em; text-align: center; width: 100%;">
                             <img src="/static/img/indicationFlowerfield.png" class="slide-img-centered" style="width: 320px; max-width: 98vw; display: inline-block;">
@@ -137,16 +137,16 @@ document.addEventListener('DOMContentLoaded', function () {
             `,
             nextEnabled: true,
         },
-        // 3. Dragging the nutrients (interactive) (3/9)
+        // 3. Dragging the nutrients (interactive) (3/10)
         {
             render: () => `
                 <div class="slide slide-3">
                     <div class="slide-content-block" style="margin-top: 0; max-width: 90vw;">
-                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">3/9</span>
+                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">3/10</span>
                         <div style="display: flex; align-items: flex-start; gap: 60px;">
                             <div style="max-width: 80vw;">
                                 <p>Each flower can receive <b>one or two nutrients</b>. There are three types of nutrients: blue, red, and yellow. You will drag and drop the nutrients below each flower before confirming your choice. If you use two nutrients, <b>order does not matter</b>, for example, <i>BLUE–YELLOW</i> is the same as <i>YELLOW–BLUE</i>.</p>
-                                <p><b>Each flower is independent:</b> there is no interaction between the flowers, and the placement of a flower in the field does not affect its growth. The outcome for each flower depends only on the nutrients you give to that specific flower.</p>
+                                <p><b>Each flower is independent:</b> there is no interaction between the flowers, and the placement of a flower in the field does not affect its growth. The outcome for each flower depends on the nutrients you give to that specific flower.</p>
                                 <p>An interactive example is displayed on the right.</p>
                                 <p>To continue, please drag and drop one blue nutrient and one red nutrient under the flower and click on [Next].</p>
                             </div>
@@ -160,14 +160,15 @@ document.addEventListener('DOMContentLoaded', function () {
             nextEnabled: false, // Will be enabled by JS when task is complete
             interactive: true,
         },
-        // 4. Earnings (4/9)
+        // 4. Earnings (4/10)
         {
             render: () => `
                 <div class="slide slide-4">
                     <div class="slide-content-block" style="margin-top: 0; max-width: 90vw;">
-                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">4/9</span>
+                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">4/10</span>
                         <div style="max-width: 80vw;">
-                            <p>During each of the two phases of the experiment, you will complete several rounds of the task. In every round, you may adjust the nutrient configuration. After each phase, you will complete a test round.</p>
+                            <p>During each of the two phases of the experiment, you will complete several rounds of the task. In every round, you may adjust the nutrient configuration you choose for that growing season.</p>
+                            <p>After each phase, you will complete a test.</p>
                             <br>
                             <b>The growth of each flower will determine your monetary earnings for that round.</b>
                             <br><br>
@@ -178,12 +179,12 @@ document.addEventListener('DOMContentLoaded', function () {
             `,
             nextEnabled: true,
         },
-        // 5. Comprehension check 1 (5/9)
+        // 5. Comprehension check 1 (5/10)
         {
             render: () => `
                 <div class="slide slide-5">
                     <div class="slide-content-block" style="margin-top: 0; max-width: 90vw;">
-                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">5/9</span>
+                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">5/10</span>
                         <div class="slide-question" style="text-align: left; margin-bottom: 0.5em;">Please answer the question below to continue.</div>
                         <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 0.7em; text-align: center; width: 100%;">What factors determine your earnings in each round?</div>
                         <div class="answer-buttons" style="display: flex; flex-direction: column; align-items: center; gap: 1em; width: 100%; max-width: 900px; margin: 0 auto;">
@@ -198,7 +199,26 @@ document.addEventListener('DOMContentLoaded', function () {
             nextEnabled: false,
             comprehension: true,
         },
-        // 6. Collective task (6/9)
+        // 6. Seasonal environmental conditions (6/10)
+        {
+            render: () => `
+                <div class="slide slide-6">
+                    <div class="slide-content-block" style="margin-top: 0; max-width: 90vw;">
+                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">6/10</span>
+                        <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 1em;">Seasonal environmental conditions</div>
+                        <p><b>Each round represents a growing season</b> and <b>environmental conditions vary from one growing season (round) to another and might affect flower growth.</b> </p>
+                        <br>
+                        <p>These conditions are summarized by <b>average daily temperature (°C) and rainfall (mm)</b> over the season.</p>
+                        <p> For instance : "During this season, the average daily temperature and rainfall were : X°C and X,X mm."</p>
+                        <br>
+                        <p> Importantly, when you choose the nutrient configurations for a given season, the environmental conditions of the given growing season are yet to be observed and are <b>summarized only once the growing season is completed</b>, together with the growth outcome of the flowers.</p>
+                        <br><br>
+                    </div>
+                </div>
+            `,
+            nextEnabled: true,
+        },
+        // 7. Collective task (7/10)
         {
             render: () => `
                 <div class="slide slide-6">
@@ -217,12 +237,12 @@ document.addEventListener('DOMContentLoaded', function () {
             nextEnabled: true,
         },
 
-        // 7. Monetary rewards summary (7/9)
+        // 8. Monetary rewards summary (8/10)
         {
             render: () => `
                 <div class="slide slide-8">
                     <div class="slide-content-block" style="margin-top: 0; max-width: 700px; text-align: left; margin-left: 0;">
-                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em; text-align: left;">7/9</span>
+                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em; text-align: left;">8/10</span>
                         <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 1em; text-align: left;">Monetary reward summary</div>
                         <p style="margin-bottom: 1.2em;">Your final payoff will be calculated as a sum of the following scores:</p>
                         <ul style="font-size: 1.1em; margin-bottom: 1em; padding-left: 1.5em;">
@@ -234,12 +254,12 @@ document.addEventListener('DOMContentLoaded', function () {
             `,
             nextEnabled: true,
         },
-        // 8. Comprehension check 2 (8/9)
+        // 9. Comprehension check 2 (9/10)
         {
             render: () => `
                 <div class="slide slide-9">
                     <div class="slide-content-block" style="margin-top: 0; max-width: 90vw;">
-                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">8/9</span>
+                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">9/10</span>
                         <div class="slide-question" style="text-align: left; margin-bottom: 0.5em;">Please answer the question below to continue.</div>
                         <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 0.7em; text-align: center; width: 100%;">How is your final payoff calculated?</div>
                         <div class="answer-buttons" style="display: flex; flex-direction: column; align-items: center; gap: 1em; width: 100%; max-width: 900px; margin: 0 auto;">
@@ -254,13 +274,13 @@ document.addEventListener('DOMContentLoaded', function () {
             nextEnabled: false,
             comprehension: true,
         },
-        // 9. Final slide (9/9)
+        // 10. Final slide (10/10)
         {
             render: () => {
                 return `
                 <div class="slide slide-10">
                     <div class="slide-content-block" style="margin-top: 0; max-width: 700px; text-align: left; margin-left: 0;">
-                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em; text-align: left;">9/9</span>
+                        <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em; text-align: left;">10/10</span>
                         <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 1em; text-align: left;">You are ready to start!</div>
                         <p style="margin-bottom: 1.2em;">You have completed the instructions. When you are ready, click the button below to start the experiment.</p>
                         <form method="post" id="otree-instructions-form" style="display:none;">
