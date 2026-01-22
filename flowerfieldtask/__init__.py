@@ -134,10 +134,10 @@ class FlowerField(Page):
             phase_round = player.round_number
             phase_total = C.TRAINING_ROUNDS
             round_flower_types = [
-                ['Purple', 'Green'],      # R1
-                ['Green', 'Purple'],      # R2
+                ['Purple', 'Green'],          # R1
+                ['Green', 'Purple', 'Purple'],# R2
                 ['Purple', 'Green', 'Green'], # R3
-                ['Green', 'Purple', 'Purple'] # R4
+                ['Green', 'Purple']           # R4
             ]
             flower_colors = round_flower_types[player.round_number - 1]
         elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS:
@@ -191,10 +191,10 @@ class FlowerField(Page):
             history = player.participant.vars.get('nutrient_flower_history', [])
             # Only show previous rounds (not current), and only those matching the current round_flower_types
             round_flower_types = [
-                ['Purple', 'Green'],
-                ['Green', 'Purple'],
-                ['Purple', 'Green', 'Green'],
-                ['Green', 'Purple', 'Purple']
+                ['Purple', 'Green'],          # R1
+                ['Green', 'Purple', 'Purple'],# R2
+                ['Purple', 'Green', 'Green'], # R3
+                ['Green', 'Purple']           # R4
             ]
             for entry in history:
                 if entry['phase'] == phase and entry['round'] < phase_round:
@@ -289,10 +289,10 @@ class FlowerField(Page):
                 phase = 'Training phase'
                 display_round = player.round_number
                 round_flower_types = [
-                    ['Purple', 'Green'],      # R1
-                    ['Green', 'Purple'],      # R2
+                    ['Purple', 'Green'],          # R1
+                    ['Green', 'Purple', 'Purple'],# R2
                     ['Purple', 'Green', 'Green'], # R3
-                    ['Green', 'Purple', 'Purple'] # R4
+                    ['Green', 'Purple']           # R4
                 ]
                 flower_colors = round_flower_types[player.round_number - 1]
             elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS:
@@ -326,7 +326,7 @@ class FlowerField(Page):
                 display_round = player.round_number - C.TRAINING_ROUNDS - C.TEST1_ROUNDS - C.EXPLORATION_ROUNDS
                 flower_colors = ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
             # Variation inter-round en pennies (par round, même pour toutes les fleurs)
-            round_score_variation = [0, 1, -1, 0, 1, -1, 0, -1, 0, -1, 1, 1]  # R1 à R12
+            round_score_variation = [0, -1, 1, 0, 1, 1, 0, -1, 0, -1, 1, -1]  # R1 à R12
             round_index = player.round_number - 1
             variation_pennies = round_score_variation[round_index] if 0 <= round_index < len(round_score_variation) else 0
             # Run backend engine to calculate growth and points
