@@ -1,14 +1,23 @@
+# MAIN PURPOSE
+    # This script processes and cleans data exported from oTree. 
+    # It reads a CSV file (otree_exported_data.csv), 
+    # restructures and filters the data, and outputs a clean_file.csv file 
+    # with selected columns, renamed headers, and some data transformations.
+
+# RELATIONS TO OTHER FILES
+    # The script is designed to be run directly: python clean_otree_export.py
+    #It is not imported or called by other files in the project.
+
+
 import csv
+import openpyxl  # For creating Excel files
+from openpyxl.utils import get_column_letter  # For column width adjustment
 
-# For Excel export with auto-fit columns
-import openpyxl
-from openpyxl.utils import get_column_letter
-
-# Fichier d'entrée et de sortie
+# Input and output file names
 INPUT_FILE = 'otree_exported_data.csv'
 OUTPUT_FILE = 'clean_file.csv'
 
-# Columns to extract and their new order/name (in English)
+# Columns to extract and their new order/name
 COLUMNS = [
     ('participant.code', 'Participant_code'),
     ('player.treatment', 'Treatment'),
@@ -28,22 +37,22 @@ COLUMNS = [
 ]
 
 def clean_otree_export(input_path=INPUT_FILE, output_path=OUTPUT_FILE):
+    # Open the input CSV file
     with open(input_path, newline='', encoding='utf-8') as infile:
         reader = csv.DictReader(infile, delimiter=';')
         rows = list(reader)
 
-    # Regrouper par participant
+    # Group rows by participant code
     from collections import defaultdict
     by_participant = defaultdict(list)
     for row in rows:
         code = row.get('participant.code', '')
         by_participant[code].append(row)
 
-
     output_rows = []
     import json
     for code, rounds in by_participant.items():
-        # Trouver la dernière ligne (round max) pour Test 2
+        # Find the last round for each participant
         last_round = None
         max_round = -1
         for row in rounds:
@@ -55,20 +64,20 @@ def clean_otree_export(input_path=INPUT_FILE, output_path=OUTPUT_FILE):
                 max_round = r
                 last_round = row
 
-        # Pour chaque ligne, corriger phase et ne jamais mettre Results sauf pour la ligne de synthèse
+        # For each row, process and clean data
         for row in rounds:
             output_row = {}
             phase = row.get('player.phase', '')
             round_num = row.get('subsession.round_number', '')
-            # Si c'est la dernière ligne (max round), forcer phase à 'Test 2'
+            # If this is the last round, set phase to 'Test 2'
             if round_num and int(round_num) == max_round:
                 phase = 'Test 2'
-            # Ne jamais mettre feedback/birthyear sauf pour la synthèse
+            # Only keep feedback/birthyear for summary row
             for old, new in COLUMNS:
                 if new in ('Feedback', 'Birth_year'):
                     output_row[new] = ''
                 elif new == 'QCM_sequence_bool':
-                    # Extraire la séquence booléenne à partir du JSON
+                    # Parse QCM sequence JSON and extract
                     seq_raw = row.get('player.qcm_click_sequence', '')
                     try:
                         seq = json.loads(seq_raw) if seq_raw else []
@@ -81,7 +90,7 @@ def clean_otree_export(input_path=INPUT_FILE, output_path=OUTPUT_FILE):
             output_row['Round'] = round_num
             output_rows.append(output_row)
 
-        # Add a summary Results row with only selected fields
+        # Add a summary row for each participant
         summary = {new: '' for _, new in COLUMNS}
         if last_round:
             summary['Participant_code'] = last_round.get('participant.code', '')
@@ -94,9 +103,8 @@ def clean_otree_export(input_path=INPUT_FILE, output_path=OUTPUT_FILE):
             # All other fields remain blank
         output_rows.append(summary)
 
-    # Write the clean file with ',' as separator (no manual padding)
 
-    # Write only Excel file with auto-fit columns
+    # Write the clean data to an Excel file with auto-fit columns
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Data"
@@ -117,26 +125,7 @@ def clean_otree_export(input_path=INPUT_FILE, output_path=OUTPUT_FILE):
         ws.column_dimensions[get_column_letter(col_idx)].width = max_length + 2
     wb.save(output_path.replace('.csv', '.xlsx'))
 
-    # Write Excel file with auto-fit columns
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "Data"
-    # Write header
-    ws.append([col[1] for col in COLUMNS])
-    # Write data rows
-    for row in output_rows:
-        ws.append([row[col[1]] for col in COLUMNS])
-    # Auto-fit columns
-    for col_idx, col in enumerate(COLUMNS, 1):
-        max_length = len(col[1])
-        for row in ws.iter_rows(min_col=col_idx, max_col=col_idx, min_row=1, max_row=ws.max_row):
-            for cell in row:
-                try:
-                    max_length = max(max_length, len(str(cell.value)) if cell.value is not None else 0)
-                except:
-                    pass
-        ws.column_dimensions[get_column_letter(col_idx)].width = max_length + 2
-    wb.save(output_path.replace('.csv', '.xlsx'))
-
+# This ensures the script only processes the data when run directly,
+# not when imported elsewhere.
 if __name__ == '__main__':
-    clean_otree_export()
+    clean_otree_export() 

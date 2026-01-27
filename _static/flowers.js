@@ -82,38 +82,78 @@ document.addEventListener('DOMContentLoaded', function() {
             var treatment = (window.js_vars && window.js_vars.treatment) ? window.js_vars.treatment : '';
             var isSecondChain = (treatment === 'Transmission correct' || treatment === 'Transmission M&M');
             var imgSrc = isSecondChain
-                ? (window.static ? window.static('img/SecondChain.png') : '/static/img/SecondChain.png')
-                : (window.static ? window.static('img/FirstChain.png') : '/static/img/FirstChain.png');
+                ? (window.static ? window.static('img/Transm.png') : '/static/img/Transm.png')
+                : (window.static ? window.static('img/NoTransm.png') : '/static/img/NoTransm.png');
             var treatmentLower = treatment.toLowerCase();
             var extraImg = '';
             if (treatment === 'Transmission correct') {
-                extraImg = `<img src='${window.static ? window.static('img/TransCorr.png') : '/static/img/TransCorr.png'}' style='height:220px; margin-top:1.5em;'>`;
+                extraImg = `<img src='${window.static ? window.static('img/TransCorr.png') : '/static/img/TransCorr.png'}' style='height:240px; margin-top:1.0em;'>`;
             } else if (treatment === 'Transmission M&M') {
-                extraImg = `<img src='${window.static ? window.static('img/TransMM.png') : '/static/img/TransMM.png'}' style='height:220px; margin-top:1.5em;'>`;
+                extraImg = `<img src='${window.static ? window.static('img/TransMM.png') : '/static/img/TransMM.png'}' style='height:240px; margin-top:1.0em;'>`;
             }
             var popupText = isSecondChain
-                ? "<span style='font-size:0.95em;'>You are assigned to be second in the chain. Here is the combination produced by a previous participant. You will be able to see it throughout the whole experiment.</span>"
-                : "<span style='font-size:0.95em;'>You are assigned to be the first in the chain.</span>";
+                ? `
+                <br>
+                <img src='${imgSrc}' style='height:60px; margin-bottom:1em;'>
+                <br>
+                <span style='font-size:0.85em;'>Below is how a previous participant fed the flowers. You will be able to see this information throughout the whole experiment.</span><br>
+                ${extraImg ? extraImg + '<br>' : ''}
+                <br>
+                <label for='strategy-desc' style='font-size:0.85em; display:block; margin-bottom:0.3em;'>Please describe in a few words the strategy you think this previous participant used to feed the flowers:</label>
+                <textarea id='strategy-desc' style='width:98%; min-width:180px; min-height:48px; max-width:340px; font-size:1em; border-radius:6px; border:1px solid #bbb; padding:6px; resize:vertical;'></textarea>
+                <div id='strategy-warning' style='color:#a80000; font-size:0.92em; margin-top:0.2em; display:none;'>Please write something before continuing.</div>`
+                : "<span style='font-size:0.95em;'>You will not receive information about how a previous participant fed the flowers.</span>";
             if (typeof bootbox !== 'undefined') {
-                bootbox.dialog({
+                var dialog = bootbox.dialog({
                     message: `<div style='font-size:1.15em; text-align:center;'>
-                        <img src='${imgSrc}' style='height:60px; margin-bottom:1em;'>
-                        <div style='margin-bottom:1em;'>${popupText}</div>
-                        ${extraImg}
+                        ${isSecondChain ? popupText : `<img src='${imgSrc}' style='height:60px; margin-bottom:1em;'>`}
+                        <div style='margin-bottom:1em;'></div>
                     </div>`,
                     buttons: [
                         {
                             label: 'I understand',
                             className: 'btn-primary',
                             callback: function() {
+                                // Vérifie et stocke la réponse si besoin
+                                if (isSecondChain) {
+                                    var val = document.getElementById('strategy-desc')?.value.trim();
+                                    if (!val) {
+                                        var warn = document.getElementById('strategy-warning');
+                                        if (warn) warn.style.display = '';
+                                        return false;
+                                    }
+                                    // Ici, tu peux stocker la réponse si besoin, ex: window.strategyDescription = val;
+                                }
                                 // After first popup, show noise popup if needed
                                 showNoisePopup();
                                 return true;
-                            }
+                            },
+                            // Ajout d'un id pour le bouton
+                            id: 'btn-understand',
+                            disabled: isSecondChain // Désactivé par défaut si zone requise
                         }
                     ],
                     closeButton: false
                 });
+                // Si zone requise, activer le bouton seulement si texte présent
+                if (isSecondChain) {
+                    setTimeout(function() {
+                        var btn = document.querySelector('.bootbox .btn-primary#btn-understand');
+                        var textarea = document.getElementById('strategy-desc');
+                        var warn = document.getElementById('strategy-warning');
+                        if (btn && textarea) {
+                            btn.disabled = true;
+                            textarea.addEventListener('input', function() {
+                                if (textarea.value.trim().length > 0) {
+                                    btn.disabled = false;
+                                    if (warn) warn.style.display = 'none';
+                                } else {
+                                    btn.disabled = true;
+                                }
+                            });
+                        }
+                    }, 200);
+                }
             } else {
                 // Fallback: native alert and remove overlay on OK
                 alert(popupText.replace(/<[^>]+>/g, ''));

@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <p><b>Each round represents a growing season</b> and <b>environmental conditions vary from one growing season (round) to another and might affect flower growth.</b> </p>
                         <br>
                         <p>These conditions are summarized by <b>average daily temperature (°C) and rainfall (mm)</b> over the season.</p>
-                        <p> For instance : "During this season, the average daily temperature and rainfall were : X°C and X,X mm."</p>
+                        <p> For instance : "During this season, the average daily temperature and rainfall were : 19°C and 8,3 mm."</p>
                         <br>
                         <p> Importantly, when you choose the nutrient configurations for a given season, the environmental conditions of the given growing season are yet to be observed and are <b>summarized only once the growing season is completed</b>, together with the growth outcome of the flowers.</p>
                         <br><br>
@@ -218,18 +218,18 @@ document.addEventListener('DOMContentLoaded', function () {
             `,
             nextEnabled: true,
         },
-        // 7. Collective task (7/10)
+        // 7. Learning from previous participant(7/10)
         {
             render: () => `
                 <div class="slide slide-7">
                     <div class="slide-content-block" style="margin-top: 0; max-width: 90vw;">
                         <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">7/10</span>
-                        <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 1em;">Learning from previous participants</div>
-                        <p><b>You may be able to learn from another player who participated in the task before you by seeing a configuration they produced.</b></p>
-                        <p><b>The player you may receive the configuration from is also part of a group of players, called a chain.</b> Each player had the same number of trials. If you are the first player in a chain, you will not receive a configuration produced by another participant.</p>
+                        <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 1em;">Learning from a previous participant</div>
+                        <p><b>You may be able to learn from another player who participated in the task before you by seeing how they fed the flowers.</b></p>
+                        <p> It is also possible that you do not receive this information.</p>
+                        <p> Each player has the same number of trials.</p>
                         <div class="slide-visual center" style="margin-top: 1em; text-align: center; width: 100%; display: flex; justify-content: center; align-items: center; gap: 32px;">
-                            <img src="/static/img/indicationChain.png" class="slide-img-centered" style="width: 220px; max-width: 40vw; display: inline-block;">
-                            <img src="/static/img/indicationPreviousParticipant.png" class="slide-img-centered" style="width: 220px; max-width: 40vw; display: inline-block;">
+                            <img src="/static/img/indicationPreviousParticipant.png" class="slide-img-centered" style="width: 350px; max-width: 60vw; display: inline-block;">
                         </div>
                     </div>
                 </div>

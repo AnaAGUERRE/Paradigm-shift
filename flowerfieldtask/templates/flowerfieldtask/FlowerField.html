@@ -94,7 +94,7 @@
                         <div id="status-message"></div>
                         {# Affiche les paramètres environnementaux uniquement après le feedback (quand le score apparaît) #}
                         {% if phase == 'Training phase' or phase == 'Exploration phase' %}
-                        <div id="env-params" style="font-size:0.98em; margin-bottom:0.7em; color:black; display:none; text-align:center;">
+                        <div id="env-params" style="font-size:0.90em; margin-bottom:0.7em; color:black; display:none; text-align:center;">
                             During this season, the average daily temperature and rainfall were :
                             <span style="font-weight:bold">{{ temperature }} °C</span> and <span style="font-weight:bold">{{ rainfall }} mm</span>.
                         </div>
@@ -141,14 +141,14 @@
                 <div class="side-panel-stack">
                     <div id="nutrient-panel" style="height:48px; min-height:32px; max-height:60px;"></div>
                     {% if treatment == 'Transmission correct' %}
-                    <div id="submitted-panel" class="submitted-visible" style="padding: 8px 12px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); min-width: 160px; min-height: 40px; max-width: 220px; margin: 16px auto 0 auto; text-align: center;">
-                        <h6 style="margin-bottom: 6px; color: #333; font-size: 0.9em;">Previously produced configuration</h6>
-                        <img src="{% static 'img/TransCorr.png' %}" alt="submitted configuration" style="max-width: 150px; max-height: 150px; border-radius: 7px; box-shadow: 0 1px 3px rgba(0,0,0,0.10); margin-bottom: 6px;">
+                    <div id="submitted-panel" class="submitted-visible" style="padding: 16px 20px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.13); min-width: 150px; min-height: 80px; max-width: 270px; margin: 10px auto 0 auto; text-align: center;">
+                        <h6 style="margin-bottom: 6px; color: #333; font-size: 1em;">Produced by a previous participant :</h6>
+                        <img src="{% static 'img/TransCorr.png' %}" alt="submitted configuration" style="max-width: 225px; max-height: 250px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.13); margin-bottom: 5px;">
                     </div>
                     {% elif treatment == 'Transmission M&M' %}
-                    <div id="submitted-panel" class="submitted-visible" style="padding: 8px 12px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); min-width: 160px; min-height: 40px; max-width: 220px; margin: 16px auto 0 auto; text-align: center;">
-                        <h6 style="margin-bottom: 6px; color: #333; font-size: 0.9em;">Previously produced configuration</h6>
-                        <img src="{% static 'img/TransMM.png' %}" alt="submitted configuration" style="max-width: 150px; max-height: 150px; border-radius: 7px; box-shadow: 0 1px 3px rgba(0,0,0,0.10); margin-bottom: 6px;">
+                    <div id="submitted-panel" class="submitted-visible" style="padding: 16px 20px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.13); min-width: 150px; min-height: 80px; max-width: 270px; margin: 10px auto 0 auto; text-align: center;">
+                        <h6 style="margin-bottom: 6px; color: #333; font-size: 1em;">Produced by a previous participant :</h6>
+                        <img src="{% static 'img/TransMM.png' %}" alt="submitted configuration" style="max-width: 225px; max-height: 250px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.13); margin-bottom: 5px;">
                     </div>
                     {% endif %}
                     <!-- Results section removed -->
@@ -353,8 +353,7 @@
             if (typeof bootbox !== 'undefined') {
                 bootbox.dialog({
                     message: `<div style='font-size:1.15em; text-align:center;'>
-                        <img src='${window.static ? window.static('img/Chain.png') : '/static/img/Chain.png'}' style='height:60px; margin-bottom:1em;'>
-                        <div style='margin-bottom:1em;'>Please note that the next round is a test. <b>The monetary reward for each flower is doubled. Your score and feedback will be revealed and added to your total earnings at the end of the experiment.</b> The configuration you produce may be seen by following participant(s).</div>
+                        <div style='margin-bottom:1em;'>Please note that the next round is a test. <b>The monetary reward for each flower is doubled.</b> Your score and feedback will be revealed and added to your total earnings at the end of the experiment.</div>
                     </div>`,
                     buttons: [
                         {
