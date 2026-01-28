@@ -1,7 +1,6 @@
+#This file lists all the Python packages the project needs to run.
+# Even if this file only contains one element, this method is required. 
+
 # oTree-may-not-overwrite-this-file
+# The main oTree package (framework for behavioral experiments)
 otree>=5.0.0a21
-psycopg2>=2.8.4
-numpy>=1.24.4
-pandas>=2.0.3
-scipy>=1.10.1
-inflect>=7.0.0

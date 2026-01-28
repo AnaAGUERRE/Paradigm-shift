@@ -1,20 +1,28 @@
+# This file configures your oTree experiment and Django project settings. 
+# It defines session types, currency, admin credentials, static file locations, and other global options for your experiment.
 
-DEBUG = False
+# Used by oTree and Django to set up the experiment environment.
+# Controls which apps (like flowerfieldtask) are run, and how.
+# Static files referenced here are used in HTML templates (e.g., images, CSS, JS)
+
+DEBUG = False  # Disables debug mode (should be True for development, False for production)
 from os import environ
-import os
+import os  # For file path and environment variable handling
 
 # oTree experiment settings for Flower Field Task
 
 SESSION_CONFIGS = [
-    # Anomaly no noise config
+    # Each dict defines a session type available in oTree admin
+
+    # Anomaly CT (was Anomaly no noise)
     dict(
-        name='anomaly_no_noise',                # Internal name for the session
-        display_name='Anomaly no noise',        # Shown in admin
+        name='anomaly_ct',                # Internal name for the session
+        display_name='Anomaly CT',        # Shown in admin
         app_sequence=['flowerfieldtask'],       # Apps to run in sequence
         num_demo_participants=1,                # Number of demo participants
         scoring_system='anomaly',               # Scoring system identifier
     ),
-    # Transmission correct (copy of Anomaly no noise)
+    # Transmission correct
     dict(
         name='transmission_correct',
         display_name='Transmission correct',
@@ -22,7 +30,7 @@ SESSION_CONFIGS = [
         num_demo_participants=1,
         scoring_system='anomaly',
     ),
-    # Transmission M&M (copy of Anomaly no noise)
+    # Transmission M&M
     dict(
         name='transmission_mm',
         display_name='Transmission M&M',
@@ -31,11 +39,19 @@ SESSION_CONFIGS = [
         scoring_system='anomaly',
     ),
     dict(
-        name='mm_no_noise',                     # Internal name for the session
-        display_name='No Anomaly no noise',     # Shown in admin
-        app_sequence=['flowerfieldtask'],       # Apps to run in sequence
-        num_demo_participants=1,                # Number of demo participants
-        scoring_system='anomaly',               # Scoring system identifier (now matches Anomaly no noise)
+        name='no_anomaly_ct',                    
+        display_name='No anomaly CT',    
+        app_sequence=['flowerfieldtask'],      
+        num_demo_participants=1,                
+        scoring_system='anomaly',               
+    ),
+    # Anomaly no CT (new treatment)
+    dict(
+        name='anomaly_no_ct',
+        display_name='Anomaly no CT',
+        app_sequence=['flowerfieldtask'],
+        num_demo_participants=1,
+        scoring_system='anomaly',
     ),
     # Anomaly noisy: duplicate of Anomaly no noise but with noise
     dict(
@@ -44,7 +60,7 @@ SESSION_CONFIGS = [
         app_sequence=['flowerfieldtask'],
         num_demo_participants=1,
         scoring_system='anomaly',
-        epsilon=0.2,  # 20% noise
+        epsilon=0.2,  # noise
         noisy=True,
     ),
 ]
@@ -64,7 +80,7 @@ REAL_WORLD_CURRENCY_CODE = 'GBP'         # Currency code
 USE_POINTS = True                        # Use points system
 
 ADMIN_USERNAME = 'admin'                  # Admin login username
-ADMIN_PASSWORD = '1234'                   # Admin password (change in production)
+ADMIN_PASSWORD = '1234'                   # Admin password
 
 SECRET_KEY = '7550954140615'              # Django secret key
 

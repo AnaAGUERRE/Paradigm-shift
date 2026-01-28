@@ -1,5 +1,8 @@
+{# This file displays the results and feedback to participants after the test phases of your oTree experiment. 
+It summarizes their performance, provides feedback, and gives a final message with a button to complete the study. #}
+
 {% block content %}
-    <!-- Test Results Title and Explanation (always visible, not sticky) -->
+    {#Test Results Title and Explanation (always visible, not sticky) #}
     {% if test1_zipped and test2_zipped %}
     <div id="recap-panel" style="margin: 32px auto 0 auto; max-width: 900px; display: flex; gap: 48px; justify-content: center;">
         <div class="recap-column" style="flex:1; background: #f8f8f8; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 18px;">

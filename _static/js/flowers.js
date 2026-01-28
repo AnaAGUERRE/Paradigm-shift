@@ -1,3 +1,8 @@
+// This is the main JavaScript file for the interactive Flower Field task. 
+// It manages the drag-and-drop nutrient assignment, flower field rendering, 
+// feedback animation, and all game logic for the participant’s main task page.
+
+
 // --- First-in-chain popup logic: show on first round for all treatments ---
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() {
@@ -84,7 +89,6 @@ document.addEventListener('DOMContentLoaded', function() {
             var imgSrc = isSecondChain
                 ? (window.static ? window.static('img/Transm.png') : '/static/img/Transm.png')
                 : (window.static ? window.static('img/NoTransm.png') : '/static/img/NoTransm.png');
-            var treatmentLower = treatment.toLowerCase();
             var extraImg = '';
             if (treatment === 'Transmission correct') {
                 extraImg = `<img src='${window.static ? window.static('img/TransCorr.png') : '/static/img/TransCorr.png'}' style='height:240px; margin-top:1.0em;'>`;
@@ -102,11 +106,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 <label for='strategy-desc' style='font-size:0.85em; display:block; margin-bottom:0.3em;'>Please describe in a few words the strategy you think this previous participant used to feed the flowers:</label>
                 <textarea id='strategy-desc' style='width:98%; min-width:180px; min-height:48px; max-width:340px; font-size:1em; border-radius:6px; border:1px solid #bbb; padding:6px; resize:vertical;'></textarea>
                 <div id='strategy-warning' style='color:#a80000; font-size:0.92em; margin-top:0.2em; display:none;'>Please write something before continuing.</div>`
-                : "<span style='font-size:0.95em;'>You will not receive information about how a previous participant fed the flowers.</span>";
+                : "";
             if (typeof bootbox !== 'undefined') {
                 var dialog = bootbox.dialog({
                     message: `<div style='font-size:1.15em; text-align:center;'>
-                        ${isSecondChain ? popupText : `<img src='${imgSrc}' style='height:60px; margin-bottom:1em;'>`}
+                        ${isSecondChain ? popupText : `<img src='${imgSrc}' style='height:60px; margin-bottom:1em;'><br><span style='font-size:0.95em;'>You will not receive information about how a previous participant fed the flowers.</span>`}
                         <div style='margin-bottom:1em;'></div>
                     </div>`,
                     buttons: [
@@ -114,7 +118,6 @@ document.addEventListener('DOMContentLoaded', function() {
                             label: 'I understand',
                             className: 'btn-primary',
                             callback: function() {
-                                // Vérifie et stocke la réponse si besoin
                                 if (isSecondChain) {
                                     var val = document.getElementById('strategy-desc')?.value.trim();
                                     if (!val) {
@@ -122,20 +125,16 @@ document.addEventListener('DOMContentLoaded', function() {
                                         if (warn) warn.style.display = '';
                                         return false;
                                     }
-                                    // Ici, tu peux stocker la réponse si besoin, ex: window.strategyDescription = val;
                                 }
-                                // After first popup, show noise popup if needed
                                 showNoisePopup();
                                 return true;
                             },
-                            // Ajout d'un id pour le bouton
                             id: 'btn-understand',
-                            disabled: isSecondChain // Désactivé par défaut si zone requise
+                            disabled: isSecondChain 
                         }
                     ],
                     closeButton: false
                 });
-                // Si zone requise, activer le bouton seulement si texte présent
                 if (isSecondChain) {
                     setTimeout(function() {
                         var btn = document.querySelector('.bootbox .btn-primary#btn-understand');
@@ -155,7 +154,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     }, 200);
                 }
             } else {
-                // Fallback: native alert and remove overlay on OK
                 alert(popupText.replace(/<[^>]+>/g, ''));
                 showNoisePopup();
             }
@@ -182,12 +180,8 @@ function disableNutrientPanelAndSlots() {
         slot.ondragleave = null;
     });
 }
-/**
- * Flower Field Task - Drag and Drop Implementation with PNG Images
- */
+//Flower Field Task - Drag and Drop Implementation with PNG Images
 
-// Define static function first (before FlowerGame class)
-// Use window.static if it exists (from oTree), otherwise define our own
 if (!window.static) {
     window.static = function(path) {
         return `/static/${path}`;
@@ -218,22 +212,7 @@ class FlowerGame {
         // Initializes the array to hold flower objects 
         // and a variable for the currently dragged nutrient.
         this.flowers = [];
-        this.draggedElement = null;
-        
-                // Flower sets for each round
-                this.roundFlowerTypes = [
-                    // Training phase rounds
-                    ['Purple', 'Orange', 'Orange', 'Orange', 'Green', 'Purple'],
-                    ['Green', 'Green', 'Purple', 'Orange', 'Purple', 'Purple'],
-                    ['Orange', 'Green', 'Purple', 'Orange', 'Orange', 'Green'],
-                    ['Orange', 'Purple', 'Orange', 'Purple', 'Green', 'Green'],
-                    ['Purple', 'Orange', 'Green', 'Green', 'Orange', 'Purple'],
-                    // Test 1 round
-                    ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
-                ];
-        
-        // Comment: Initialization is deferred until the DOM is ready.
-    }
+        this.draggedElement = null;    }
 
 // Initializes the game UI by creating the flower field and nutrient panel.
     init() {
@@ -312,8 +291,12 @@ class FlowerGame {
             flowerImg.src = window.static(`img/${flowerType.image}`);
             flowerImg.alt = `${flowerType.name} Flower`;
             flowerImg.className = 'flower-image';
+            // Set initial size, will be updated after score is calculated
             flowerImg.style.width = '28px';
             flowerImg.style.height = '28px';
+            // Store reference for later size update
+            flower.flowerImg = flowerImg;
+            // Also store on the flower object in this.flowers array after push (see below)
 
             // Create a single nutrient slot (rectangle) under each flower
             const nutrientSlot = document.createElement('div');
@@ -322,8 +305,6 @@ class FlowerGame {
             nutrientSlot.ondrop = (e) => this.onDrop(e);
             nutrientSlot.ondragover = (e) => this.onDragOver(e);
             nutrientSlot.ondragleave = (e) => this.onDragLeave(e);
-
-            // No label or + sign added to slot
 
             flower.appendChild(flowerImg);
             flower.appendChild(nutrientSlot);
@@ -344,7 +325,8 @@ class FlowerGame {
                 type: flowerType.name,
                 element: flower,
                 nutrients: [null, null], // still keep two slots in data
-                scoreDiv: scoreDiv
+                scoreDiv: scoreDiv,
+                flowerImg: flowerImg
             });
         }
         // Clear container and add flowers in correct layout
@@ -393,7 +375,6 @@ class FlowerGame {
         }
 
         panel.innerHTML = '<h5>Nutrients</h5>';
-        // Make the nutrients panel vertically smaller for all treatments
         panel.style.minHeight = '90px';
 
         const nutrientContainer = document.createElement('div');
@@ -429,7 +410,6 @@ class FlowerGame {
 
         panel.appendChild(nutrientContainer);
 
-        // ...existing code...
     }
 
 
@@ -456,7 +436,7 @@ class FlowerGame {
 
 // Resets drag state when dragging ends.
     onDragEnd(e) {
-        // Do NOT change opacity
+        // Do not change opacity
         this.draggedElement = null;
         this.currentDraggedNutrient = null;
         console.log('onDragEnd: currentDraggedNutrient reset');
@@ -550,25 +530,59 @@ class FlowerGame {
 
     // Updates the score display for a specific flower based on its nutrients.
     updateFlowerScore(flowerIdx, earningsPenny) {
-        // If earningsPenny is a string, always show as pennies with 'p' (e.g., 8p, 10p)
+        // Determine phase from global js_vars if available
+        let phase = (window.js_vars && window.js_vars.phase) ? window.js_vars.phase : '';
+        // Set the displayed score as before
         if (typeof earningsPenny === 'string') {
             this.flowers[flowerIdx].scoreDiv.textContent = `${earningsPenny}p`;
-            return;
-        }
-        // Otherwise, calculate as before
-        const nutrients = this.flowers[flowerIdx].nutrients;
-        let score = 0;
-        if (nutrients[0] && nutrients[1]) {
-            score = this.calculateGrowth(nutrients[0], nutrients[1]);
-        } else if (nutrients[0] || nutrients[1]) {
-            const n = nutrients[0] || nutrients[1];
-            score = this.calculateGrowth(n, '');
+        } else if (typeof earningsPenny === 'number') {
+            this.flowers[flowerIdx].scoreDiv.textContent = `${earningsPenny}p`;
         } else {
-            score = 0;
+            // fallback: calculate as before
+            const nutrients = this.flowers[flowerIdx].nutrients;
+            let score = 0;
+            if (nutrients[0] && nutrients[1]) {
+                score = this.calculateGrowth(nutrients[0], nutrients[1]);
+            } else if (nutrients[0] || nutrients[1]) {
+                const n = nutrients[0] || nutrients[1];
+                score = this.calculateGrowth(n, '');
+            } else {
+                score = 0;
+            }
+            let earnings = Math.round(score * 100);
+            this.flowers[flowerIdx].scoreDiv.textContent = `${earnings}p`;
         }
-        let earnings = (typeof earningsPenny === 'number') ? earningsPenny : Math.round(score * 100);
-        let earningsPounds = (earnings / 100).toFixed(2);
-        this.flowers[flowerIdx].scoreDiv.textContent = `£${earningsPounds}`;
+        // Use the displayed value for size, but in test phases, use undoubled score for size
+        let scoreText = this.flowers[flowerIdx].scoreDiv.textContent;
+        let scoreVal = 0;
+        if (typeof scoreText === 'string' && scoreText.endsWith('p')) {
+            scoreVal = parseFloat(scoreText.slice(0, -1)) || 0;
+        }
+        // In test phases, if score is doubled for display, use half for size
+        let sizeScore = scoreVal;
+        if (phase === 'Test 1' || phase === 'Test 2') {
+            sizeScore = scoreVal / 2;
+        }
+        const scaleFactor = 28; // 1p = 28px, 2p = 56px, etc. (increased for more visible difference)
+        const minSize = 12; // minimum visible size for scores <= 1
+        let size;
+        if (sizeScore <= 1) {
+            size = minSize;
+        } else {
+            size = sizeScore * scaleFactor;
+            if (size < minSize) size = minSize;
+        }
+        // Try to get the flower image reference
+        let imgRef = null;
+        if (this.flowers[flowerIdx].flowerImg) {
+            imgRef = this.flowers[flowerIdx].flowerImg;
+        } else if (this.flowers[flowerIdx].element) {
+            imgRef = this.flowers[flowerIdx].element.querySelector('.flower-image');
+        }
+        if (imgRef) {
+            imgRef.style.width = size + 'px';
+            imgRef.style.height = size + 'px';
+        }
     }
 
     // Shows the score for all flowers by updating and displaying each scoreDiv.
@@ -577,12 +591,35 @@ class FlowerGame {
         // After showing scores, mask nutrients and disable slots
         disableNutrientPanelAndSlots();
         for (let i = 0; i < this.flowers.length; i++) {
-            if (earnings && earnings[i] !== undefined) {
-                this.updateFlowerScore(i, earnings[i]);
-            } else {
-                this.updateFlowerScore(i);
-            }
+            // Always use earnings if available, else fallback to previous logic
+            let earning = (earnings && earnings[i] !== undefined) ? earnings[i] : undefined;
+            this.updateFlowerScore(i, earning);
             this.flowers[i].scoreDiv.style.display = '';
+            // Ensure size is updated after scoreDiv is set
+            let scoreText = this.flowers[i].scoreDiv.textContent;
+            let scoreVal = 0;
+            if (typeof scoreText === 'string' && scoreText.endsWith('p')) {
+                scoreVal = parseFloat(scoreText.slice(0, -1)) || 0;
+            }
+            let phase = (window.js_vars && window.js_vars.phase) ? window.js_vars.phase : '';
+            let sizeScore = scoreVal;
+            if (phase === 'Test 1' || phase === 'Test 2') {
+                sizeScore = scoreVal / 2;
+            }
+            const scaleFactor = 28; // 1p = 28px, 2p = 56px, etc. (increased for more visible difference)
+            const minSize = 12;
+            let size = sizeScore <= 1 ? minSize : sizeScore * scaleFactor;
+            if (size < minSize) size = minSize;
+            let imgRef = null;
+            if (this.flowers[i].flowerImg) {
+                imgRef = this.flowers[i].flowerImg;
+            } else if (this.flowers[i].element) {
+                imgRef = this.flowers[i].element.querySelector('.flower-image');
+            }
+            if (imgRef) {
+                imgRef.style.width = size + 'px';
+                imgRef.style.height = size + 'px';
+            }
         }
     }
 
@@ -626,7 +663,6 @@ class FlowerGame {
     }
 
     // Calculates the growth score for a flower based on its nutrients.
-    // The rules match the backend logic for consistency.
     calculateGrowth(n1, n2) {
         // Two nutrients provided
         if (n1 && n2 && n1 !== '' && n2 !== '') {
@@ -682,7 +718,6 @@ class FlowerGame {
     }
 }
 
-// Example: currentRound is 1-based (1,2,3,4,5)
 function getCurrentRoundFlowerTypes(currentRound) {
   return roundFlowerTypes[currentRound - 1];
 }

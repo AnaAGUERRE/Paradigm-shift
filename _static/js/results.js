@@ -1,4 +1,6 @@
-// Animate flower growth based on score
+// This file provides a simple animation utility for visually representing flower growth 
+// based on a numeric score, typically used on results pages.
+
 function animateFlowerGrowth(flowerElement, growthScore) {
     // Minimum size is 50px, maximum is 160px
     const minSize = 50;
@@ -11,7 +13,7 @@ function animateFlowerGrowth(flowerElement, growthScore) {
     flowerElement.style.height = newSize + 'px';
 }
 
-// Example usage: animate all flowers after results are shown
+// Animate all flowers after results are shown
 window.animateAllFlowers = function(scores) {
     // scores: array of growth scores for each flower
     const flowerImages = document.querySelectorAll('.flower-image.grow-phase');
@@ -20,4 +22,3 @@ window.animateAllFlowers = function(scores) {
         animateFlowerGrowth(img, score);
     });
 }
-// To use: call window.animateAllFlowers([score1, score2, ...]) after results are loaded

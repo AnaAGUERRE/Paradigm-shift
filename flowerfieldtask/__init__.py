@@ -1,23 +1,20 @@
-"""
-Flower Field Task — version indépendante (pas de transmission)
-Main oTree app logic for the Flower Field experiment.
-Handles session setup, round logic, earnings, and data export.
-"""
-doc = """Flower Field Task — version indépendante (pas de transmission)"""
+# This file contains the main logic for the oTree app "Flower Field Task." 
+# It defines the experiment's structure, player/session models, 
+# and core logic for handling rounds, earnings, and data export.
 
 
 # oTree imports and engine functions
-from otree.api import *
-from .engine import run_engine, calculate_p_from_growth
-import json
+from otree.api import *   # Import oTree base classes and functions
+from .engine import run_engine, calculate_p_from_growth   # Import custom game logic
+import json   # For handling JSON data
 
 class C(BaseConstants):
     NAME_IN_URL = 'flowerfieldtask'  # URL name for this app
-    PLAYERS_PER_GROUP = None         # No grouping
-    TRAINING_ROUNDS = 4              # Number of training rounds
-    TEST1_ROUNDS = 1                 # Number of test1 rounds
-    EXPLORATION_ROUNDS = 6           # Number of exploration rounds
-    TEST2_ROUNDS = 1                 # Number of test2 rounds
+    PLAYERS_PER_GROUP = None         # No grouping (individual play)
+    TRAINING_ROUNDS = 4              # Number of First Phase rounds
+    TEST1_ROUNDS = 1                 # Number of Test 1 rounds
+    EXPLORATION_ROUNDS = 10          # Number of Second Phase rounds (now 10)
+    TEST2_ROUNDS = 1                 # Number of Test 2 rounds
     NUM_ROUNDS = TRAINING_ROUNDS + TEST1_ROUNDS + EXPLORATION_ROUNDS + TEST2_ROUNDS  # Total rounds
 
 class Subsession(BaseSubsession):
@@ -38,7 +35,7 @@ class Player(BasePlayer):
     # Tracks total earnings for this player
     cumulative_earnings = models.FloatField(initial=0)
     test1_pending_earnings = models.FloatField(initial=0)  # Holds Test 1 earnings until Test 2
-    qcm_click_sequence = models.LongStringField(blank=True, null=True, label="QCM click sequence")
+    qcm_click_sequence = models.LongStringField(blank=True, null=True, label="QCM click sequence")  # Stores the QCM click sequence as a long string (can be left blank)
     dummy_field = models.StringField(initial="ok", blank=True)
 
     # Fields for raw export
@@ -50,10 +47,9 @@ class Player(BasePlayer):
     Vround = models.IntegerField(blank=True, null=True, label="Vround (variation saisonnière)")
     score_reel = models.LongStringField(blank=True, null=True, label="Score réel (JSON, bruit total)")
     noise_applied = models.LongStringField(blank=True, null=True, label="Noise (JSON)")
-    # cumulative_earnings already present
-    # year_of_birth and feedback added below
+    exploration_flower_pairs_order = models.LongStringField(blank=True, null=True, label="Shuffled flower pairs order (JSON)")
 
-
+# Instructions
 class Instructions(Page):
     def is_displayed(player):
         return player.round_number == 1
@@ -64,27 +60,77 @@ class Instructions(Page):
     form_fields = ['dummy_field', 'qcm_click_sequence']
 
     def before_next_page(player, timeout_happened):
-        import json as _json
         qcm_seq = player.qcm_click_sequence
         # ...
         if qcm_seq:
             try:
-                _json.loads(qcm_seq)
+                json.loads(qcm_seq)
                 player.qcm_click_sequence = qcm_seq
             except Exception:
                 player.qcm_click_sequence = ''
 
+# Ensure the participant cannot resubmit a round
+
 class FlowerField(Page):
     def is_round_submitted(player):
-        # Utilise participant.vars pour stocker l'état de soumission par round
+        # Uses participant.vars to store submission state per round
         submitted_rounds = player.participant.vars.get('submitted_rounds', set())
         return player.round_number in submitted_rounds
-    import json
+
     def vars_for_template(player):
-        # Indique si le round a déjà été soumis
+        # Ensure the shuffled order is set at the start of the Exploration phase for each participant
+        if (
+            'exploration_flower_pairs' not in player.participant.vars and
+            player.round_number == C.TRAINING_ROUNDS + C.TEST1_ROUNDS + 1
+        ):
+            import random
+            treatment = player.session.config.get('display_name', '').lower()
+            if treatment == 'anomaly ct':
+                exploration_flower_types = [
+                    ['Blue', 'Yellow'], ['Orange', 'Purple'], ['Red', 'Blue'], ['Green', 'Orange'],
+                    ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Green', 'Green'],
+                    ['Purple', 'Purple'], ['Blue', 'Blue']
+                ]
+            elif treatment == 'no anomaly ct':
+                exploration_flower_types = [
+                    ['Red', 'Yellow'], ['Green', 'Purple'], ['Purple', 'Green'], ['Green', 'Purple'],
+                    ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Orange', 'Orange'],
+                    ['Blue', 'Blue'], ['Blue', 'Blue']
+                ]
+            elif treatment == 'anomaly no ct':
+                exploration_flower_types = [
+                    ['Purple', 'Green'], ['Green', 'Purple'], ['Blue', 'Orange'], ['Orange', 'Blue'],
+                    ['Blue', 'Orange'], ['Orange', 'Blue'], ['Green', 'Purple'], ['Purple', 'Green'],
+                    ['Green', 'Purple'], ['Red', 'Yellow']
+                ]
+            else:
+                exploration_flower_types = [
+                    ['Purple', 'Green'], ['Green', 'Purple'], ['Blue', 'Orange'], ['Orange', 'Blue'],
+                    ['Blue', 'Orange'], ['Orange', 'Blue'], ['Green', 'Purple'], ['Purple', 'Green'],
+                    ['Green', 'Purple'], ['Red', 'Yellow']
+                ]
+            pairs = exploration_flower_types.copy()
+            random.shuffle(pairs)
+            player.participant.vars['exploration_flower_pairs'] = pairs
+            print(f"[DEBUG] Exploration flower pairs for participant {player.participant.code} (created): {pairs}")
+
+        # ...existing code...
+    def is_round_submitted(player):
+        # Uses participant.vars to store submission state per round
+        submitted_rounds = player.participant.vars.get('submitted_rounds', set())
+        return player.round_number in submitted_rounds
+
+    def vars_for_template(player):
+        # This method prepares all the variables needed for rendering the HTML template.
+    # It reconstructs the round context (phase, flower colors, etc.) for display purposes.
+    # The same logic is needed in live_method to ensure consistency between what is displayed
+    # and what is processed when the user submits their choices.
+
+        # Indicates if the round has already been submitted
         submitted_rounds = player.participant.vars.get('submitted_rounds', set())
         round_submitted = player.round_number in submitted_rounds
-        # Paramètres environnementaux fixes par round (1-indexé)
+        
+        # Fixed environmental parameters per round (1-indexed)
         env_params = [
             {'temp': 18, 'rain': 5.6},
             {'temp': 21, 'rain': 6.8},
@@ -97,40 +143,53 @@ class FlowerField(Page):
             {'temp': 20, 'rain': 12.4},
             {'temp': 16, 'rain': 13.9},
             {'temp': 18, 'rain': 9.5},
+            {'temp': 19, 'rain': 7.7},
+            {'temp': 21, 'rain': 9.1},
+            {'temp': 16, 'rain': 6.4},
+            {'temp': 22, 'rain': 11.0},
             {'temp': 24, 'rain': 9.3},
         ]
         round_index = player.round_number - 1
         temperature = env_params[round_index]['temp']
         rainfall = env_params[round_index]['rain']
+       
         # Pass variables to the template for display and JS logic
         # For Test 1, show total_earnings without Test 1 reward
         # For Test 2, show total_earnings including both Test 1 and Test 2 rewards
+        
+        # Determine current phase
         phase = None
         if player.round_number <= C.TRAINING_ROUNDS:
-            phase = 'Training phase'
+            phase = 'Training phase' # First phase
         elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS:
             phase = 'Test 1'
         elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS + C.EXPLORATION_ROUNDS:
-            phase = 'Exploration phase'
+            phase = 'Exploration phase' # Second phase
         else:
             phase = 'Test 2'
-        if phase == 'Test 1':
-            player.cumulative_earnings = player.participant.vars.get('total_earnings', 0)
-        else:
-            player.cumulative_earnings = player.participant.vars.get('total_earnings', 0)
+
+        # Set cumulative earnings for the player
+        player.cumulative_earnings = player.participant.vars.get('total_earnings', 0)
+
         # Determine phase and flower colors for this round
         treatment = player.session.config.get('display_name', '').lower()
-        # Map noisy and transmission treatments to their no-noise logic for flower sequences
-        if treatment == 'anomaly noisy':
-            treatment_logic = 'anomaly no noise'
+
+        # Map new treatment names
+        if treatment == 'anomaly ct':
+            treatment_logic = 'anomaly ct'
+        elif treatment == 'no anomaly ct':
+            treatment_logic = 'no anomaly ct'
+        elif treatment == 'anomaly no ct':
+            treatment_logic = 'anomaly no ct'
+        elif treatment == 'anomaly noisy':
+            treatment_logic = 'anomaly ct'
         elif treatment in ['transmission correct', 'transmission m&m']:
-            treatment_logic = 'anomaly no noise'
-        elif treatment == 'no anomaly no noise':
-            treatment_logic = 'no anomaly no noise'
+            treatment_logic = 'anomaly ct'
         else:
             treatment_logic = treatment
+
         if player.round_number <= C.TRAINING_ROUNDS:
-            phase = 'Training phase'
+            phase = 'Training phase' # First phase
             phase_round = player.round_number
             phase_total = C.TRAINING_ROUNDS
             round_flower_types = [
@@ -140,39 +199,62 @@ class FlowerField(Page):
                 ['Green', 'Purple']           # R4
             ]
             flower_colors = round_flower_types[player.round_number - 1]
+            player.exploration_flower_pairs_order = None
         elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS:
             phase = 'Test 1'
             phase_round = player.round_number - C.TRAINING_ROUNDS
             phase_total = C.TEST1_ROUNDS
             flower_colors = ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
+            player.exploration_flower_pairs_order = None
         elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS + C.EXPLORATION_ROUNDS:
-            phase = 'Exploration phase'
+            phase = 'Exploration phase' # Second phase
             phase_round = player.round_number - C.TRAINING_ROUNDS - C.TEST1_ROUNDS
             phase_total = C.EXPLORATION_ROUNDS
-            if treatment_logic == 'anomaly no noise':
-                exploration_flower_types = [
-                    ['Green', 'Orange'],          # R1
-                    ['Orange', 'Purple'],         # R2
-                    ['Red', 'Green'],             # R3
-                    ['Blue', 'Purple'],           # R4
-                    ['Purple', 'Yellow'],         # R5
-                    ['Green', 'Blue']             # R6
-                ]
-            elif treatment_logic == 'no anomaly no noise':
-                exploration_flower_types = [
-                    ['Orange', 'Orange'],         # R1
-                    ['Green', 'Purple'],          # R2
-                    ['Red', 'Yellow'],            # R3
-                    ['Purple', 'Green'],          # R4
-                    ['Blue', 'Blue'],             # R5
-                    ['Green', 'Purple']           # R6
-                ]
-            flower_colors = exploration_flower_types[phase_round - 1]
+            # Always use the shuffled pairs for this participant, initialize if missing (e.g. on refresh)
+            pairs = player.participant.vars.get('exploration_flower_pairs', None)
+            if not pairs:
+                import random
+                treatment = player.session.config.get('display_name', '').lower()
+                if treatment == 'anomaly ct':
+                    exploration_flower_types = [
+                        ['Blue', 'Yellow'], ['Orange', 'Purple'], ['Red', 'Blue'], ['Green', 'Orange'],
+                        ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Green', 'Green'],
+                        ['Purple', 'Purple'], ['Blue', 'Blue']
+                    ]
+                elif treatment == 'no anomaly ct':
+                    exploration_flower_types = [
+                        ['Red', 'Yellow'], ['Green', 'Purple'], ['Purple', 'Green'], ['Green', 'Purple'],
+                        ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Orange', 'Orange'],
+                        ['Blue', 'Blue'], ['Blue', 'Blue']
+                    ]
+                elif treatment == 'anomaly no ct':
+                    exploration_flower_types = [
+                        ['Purple', 'Green'], ['Green', 'Purple'], ['Blue', 'Orange'], ['Orange', 'Blue'],
+                        ['Blue', 'Orange'], ['Orange', 'Blue'], ['Green', 'Purple'], ['Purple', 'Green'],
+                        ['Green', 'Purple'], ['Red', 'Yellow']
+                    ]
+                else:
+                    exploration_flower_types = [
+                        ['Purple', 'Green'], ['Green', 'Purple'], ['Blue', 'Orange'], ['Orange', 'Blue'],
+                        ['Blue', 'Orange'], ['Orange', 'Blue'], ['Green', 'Purple'], ['Purple', 'Green'],
+                        ['Green', 'Purple'], ['Red', 'Yellow']
+                    ]
+                pairs = exploration_flower_types.copy()
+                random.shuffle(pairs)
+                player.participant.vars['exploration_flower_pairs'] = pairs
+                # Store the original shuffled order in participant.vars for export
+                player.participant.vars['exploration_flower_pairs_order'] = json.dumps(pairs)
+                print(f"[DEBUG] Exploration flower pairs for participant {player.participant.code} (late init): {pairs}")
+            # Always use the original shuffled order for export, even if pairs was re-initialized
+            player.exploration_flower_pairs_order = player.participant.vars.get('exploration_flower_pairs_order', json.dumps(pairs))
+            flower_colors = pairs[phase_round - 1]
         else:
             phase = 'Test 2'
             phase_round = player.round_number - C.TRAINING_ROUNDS - C.TEST1_ROUNDS - C.EXPLORATION_ROUNDS
             phase_total = C.TEST2_ROUNDS
             flower_colors = ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
+            player.exploration_flower_pairs_order = None
+        
         # Set phase_class for template
         if phase == 'Training phase':
             phase_class = 'training-phase-flowers'
@@ -184,23 +266,60 @@ class FlowerField(Page):
             phase_class = 'test-1-flowers'
         else:
             phase_class = ''
-        # Prepare previous rounds' history for Training and Exploration phases
+        
+        # Prepare previous rounds' history for first and second phases
         previous_combinations = []
         valid_flowers = ['Blue', 'Green', 'Orange', 'Purple', 'Red', 'Yellow']
         if phase in ["Training phase", "Exploration phase"]:
             history = player.participant.vars.get('nutrient_flower_history', [])
             # Only show previous rounds (not current), and only those matching the current round_flower_types
-            round_flower_types = [
-                ['Purple', 'Green'],          # R1
-                ['Green', 'Purple', 'Purple'],# R2
-                ['Purple', 'Green', 'Green'], # R3
-                ['Green', 'Purple']           # R4
-            ]
+            if phase == 'Training phase':
+                round_flower_types = [
+                    ['Purple', 'Green'],          # R1
+                    ['Green', 'Purple', 'Purple'],# R2
+                    ['Purple', 'Green', 'Green'], # R3
+                    ['Green', 'Purple']           # R4
+                ]
+            else:
+                # Always use the same shuffled pairs as for the main display, initialize if missing
+                pairs = player.participant.vars.get('exploration_flower_pairs', None)
+                if not pairs:
+                    import random
+                    treatment = player.session.config.get('display_name', '').lower()
+                    if treatment == 'anomaly ct':
+                        exploration_flower_types = [
+                            ['Blue', 'Yellow'], ['Orange', 'Purple'], ['Red', 'Blue'], ['Green', 'Orange'],
+                            ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Green', 'Green'],
+                            ['Purple', 'Purple'], ['Blue', 'Blue']
+                        ]
+                    elif treatment == 'no anomaly ct':
+                        exploration_flower_types = [
+                            ['Red', 'Yellow'], ['Green', 'Purple'], ['Purple', 'Green'], ['Green', 'Purple'],
+                            ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Orange', 'Orange'],
+                            ['Blue', 'Blue'], ['Blue', 'Blue']
+                        ]
+                    elif treatment == 'anomaly no ct':
+                        exploration_flower_types = [
+                            ['Purple', 'Green'], ['Green', 'Purple'], ['Blue', 'Orange'], ['Orange', 'Blue'],
+                            ['Blue', 'Orange'], ['Orange', 'Blue'], ['Green', 'Purple'], ['Purple', 'Green'],
+                            ['Green', 'Purple'], ['Red', 'Yellow']
+                        ]
+                    else:
+                        exploration_flower_types = [
+                            ['Purple', 'Green'], ['Green', 'Purple'], ['Blue', 'Orange'], ['Orange', 'Blue'],
+                            ['Blue', 'Orange'], ['Orange', 'Blue'], ['Green', 'Purple'], ['Purple', 'Green'],
+                            ['Green', 'Purple'], ['Red', 'Yellow']
+                        ]
+                    pairs = exploration_flower_types.copy()
+                    random.shuffle(pairs)
+                    player.participant.vars['exploration_flower_pairs'] = pairs
+                    print(f"[DEBUG] Exploration flower pairs for participant {player.participant.code} (late init): {pairs}")
+                round_flower_types = pairs
             for entry in history:
                 if entry['phase'] == phase and entry['round'] < phase_round:
                     # Always use the expected flower set for this round
-                    expected_flowers = round_flower_types[entry['round'] - 1] if phase == 'Training phase' and 1 <= entry['round'] <= 4 else entry['flower_colors']
-                    # Use growth values for flower size, not pennies
+                    expected_flowers = round_flower_types[entry['round'] - 1] if phase == 'Training phase' and 1 <= entry['round'] <= 4 else round_flower_types[entry['round'] - 1]
+                    # Use growth values for flower size
                     growths = entry.get('growths', None)
                     if not growths:
                         growths = []
@@ -232,6 +351,7 @@ class FlowerField(Page):
         treatment = player.session.config.get('display_name', '')
         # Example: transmitted_photo could be set in participant.vars or elsewhere
         transmitted_photo = player.participant.vars.get('transmitted_photo', None)
+        
         # If round_submitted, get feedback data for this round from history
         flower_scores = None
         flower_earnings = None
@@ -265,7 +385,11 @@ class FlowerField(Page):
 
 
     def live_method(player, data):
-        # Empêche la resoumission si le round est déjà soumis
+        # This method handles real-time communication from the browser (e.g., when the user submits their choices).
+    # It must reconstruct the same round context (phase, flower colors, etc.) as vars_for_template,
+    # so that the backend can correctly process and validate the user's submission.
+
+        # Prevent resubmission if the round is already submitted
         submitted_rounds = player.participant.vars.get('submitted_rounds', set())
         if player.round_number in submitted_rounds:
             return {player.id_in_group: {"error": "Round already submitted"}}
@@ -302,31 +426,49 @@ class FlowerField(Page):
             elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS + C.EXPLORATION_ROUNDS:
                 phase = 'Exploration phase'
                 display_round = player.round_number - C.TRAINING_ROUNDS - C.TEST1_ROUNDS
-                if treatment_logic == 'anomaly no noise':
-                    exploration_flower_types = [
-                        ['Green', 'Orange'],          # R1
-                        ['Orange', 'Purple'],         # R2
-                        ['Red', 'Green'],             # R3
-                        ['Blue', 'Purple'],           # R4
-                        ['Purple', 'Yellow'],         # R5
-                        ['Green', 'Blue']             # R6
-                    ]
-                elif treatment_logic == 'no anomaly no noise':
-                    exploration_flower_types = [
-                        ['Orange', 'Orange'],         # R1
-                        ['Green', 'Purple'],          # R2
-                        ['Red', 'Yellow'],            # R3
-                        ['Purple', 'Green'],          # R4
-                        ['Blue', 'Blue'],             # R5
-                        ['Green', 'Purple']           # R6
-                    ]
-                flower_colors = exploration_flower_types[display_round - 1]
+                # Always use the original shuffled pairs for this participant
+                pairs = player.participant.vars.get('exploration_flower_pairs', None)
+                if not pairs:
+                    # If missing (should not happen), initialize as in vars_for_template
+                    import random
+                    treatment = player.session.config.get('display_name', '').lower()
+                    if treatment == 'anomaly ct':
+                        exploration_flower_types = [
+                            ['Blue', 'Yellow'], ['Orange', 'Purple'], ['Red', 'Blue'], ['Green', 'Orange'],
+                            ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Green', 'Green'],
+                            ['Purple', 'Purple'], ['Blue', 'Blue']
+                        ]
+                    elif treatment == 'no anomaly ct':
+                        exploration_flower_types = [
+                            ['Red', 'Yellow'], ['Green', 'Purple'], ['Purple', 'Green'], ['Green', 'Purple'],
+                            ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Orange', 'Orange'],
+                            ['Blue', 'Blue'], ['Blue', 'Blue']
+                        ]
+                    elif treatment == 'anomaly no ct':
+                        exploration_flower_types = [
+                            ['Purple', 'Green'], ['Green', 'Purple'], ['Blue', 'Orange'], ['Orange', 'Blue'],
+                            ['Blue', 'Orange'], ['Orange', 'Blue'], ['Green', 'Purple'], ['Purple', 'Green'],
+                            ['Green', 'Purple'], ['Red', 'Yellow']
+                        ]
+                    else:
+                        exploration_flower_types = [
+                            ['Purple', 'Green'], ['Green', 'Purple'], ['Blue', 'Orange'], ['Orange', 'Blue'],
+                            ['Blue', 'Orange'], ['Orange', 'Blue'], ['Green', 'Purple'], ['Purple', 'Green'],
+                            ['Green', 'Purple'], ['Red', 'Yellow']
+                        ]
+                    pairs = exploration_flower_types.copy()
+                    random.shuffle(pairs)
+                    player.participant.vars['exploration_flower_pairs'] = pairs
+                    player.participant.vars['exploration_flower_pairs_order'] = json.dumps(pairs)
+                    print(f"[DEBUG] Exploration flower pairs for participant {player.participant.code} (live_method init): {pairs}")
+                flower_colors = pairs[display_round - 1]
             else:
                 phase = 'Test 2'
                 display_round = player.round_number - C.TRAINING_ROUNDS - C.TEST1_ROUNDS - C.EXPLORATION_ROUNDS
                 flower_colors = ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
-            # Variation inter-round en pennies (par round, même pour toutes les fleurs)
-            round_score_variation = [0, -1, 1, 0, 1, 1, 0, -1, 0, -1, 1, -1]  # R1 à R12
+           
+            # Variation inter-round (linked to environmental values) pennies (per round, same for all flowers)
+            round_score_variation = [0, -1, 1, 0, 1, 1, 0, -1, 1, 0, 0, -1, 0, -1, 1, -1]  # R1 to R16
             round_index = player.round_number - 1
             variation_pennies = round_score_variation[round_index] if 0 <= round_index < len(round_score_variation) else 0
             # Run backend engine to calculate growth and points
@@ -337,10 +479,10 @@ class FlowerField(Page):
             total_growth = sum(f['growth'] for f in output) / len(output)
             total_points = calculate_p_from_growth(total_growth)
             flower_scores = [f['growth'] for f in output]
-            # Multiply by 2 only for Test 1 and Test 2
+            # Multiply score by 2 only for Test 1 and Test 2
             if phase in ['Test 1', 'Test 2']:
                 flower_scores = [g * 2 for g in flower_scores]
-            # Apply noise as fixed penny adjustment (+2p, -2p, 0p)
+            # Apply intra round noise as fixed penny adjustment (+2p, -2p, 0p)
             noise_effects = [f.get('noise') for f in output]
             flower_earnings = []
             for g, noise in zip(flower_scores, noise_effects):
@@ -350,7 +492,7 @@ class FlowerField(Page):
                         base_pennies += 2
                     elif noise['type'] == 'decrease':
                         base_pennies -= 2
-                # Add per-round variation
+                # Add per-round variation (inter round noise)
                 earning = max(0, base_pennies + variation_pennies)
                 flower_earnings.append(str(earning))
             # For total, sum as £
@@ -361,7 +503,7 @@ class FlowerField(Page):
             if 'total_earnings' not in player.participant.vars:
                 player.participant.vars['total_earnings'] = 0.0
             if phase == 'Test 1':
-                # Store Test 1 earnings but do not add to total yet
+                # Store Test 1 earnings but do not add to total yet (added together with Test 2)
                 player.test1_pending_earnings = round_earnings
                 player.participant.vars['test1_pending_earnings'] = round_earnings
                 # Do not update total_earnings yet
@@ -377,7 +519,7 @@ class FlowerField(Page):
                 player.cumulative_earnings = player.participant.vars['total_earnings']
 
             # --- Save all relevant fields to Player for oTree export ---
-            # Marque le round comme soumis
+            # Mark the round as submitted
             submitted_rounds.add(player.round_number)
             player.participant.vars['submitted_rounds'] = submitted_rounds
             player.treatment = player.session.config.get('display_name', '')
@@ -392,13 +534,12 @@ class FlowerField(Page):
                 player.phase = 'Test 2'
             else:
                 player.phase = phase
-            import json as _json
-            player.flower_colors = _json.dumps(flower_colors)
-            player.nutrient_choice = _json.dumps(nutrients)
-            player.score_per_flower = _json.dumps(flower_scores)
+            player.flower_colors = json.dumps(flower_colors)
+            player.nutrient_choice = json.dumps(nutrients)
+            player.score_per_flower = json.dumps(flower_scores)
             player.Vround = variation_pennies
-            player.score_reel = _json.dumps(flower_earnings)
-            player.noise_applied = _json.dumps(noise_effects)
+            player.score_reel = json.dumps(flower_earnings)
+            player.noise_applied = json.dumps(noise_effects)
             player.cumulative_earnings = player.participant.vars['total_earnings']
             
 
@@ -420,8 +561,6 @@ class FlowerField(Page):
                 'growths': list(safe_growths),
                 'noise_effects': list(safe_noise)
             })
-
-            # (Excel writing removed)
 
             # Return results to JS for display
             # Only after Test 2 submission, send both Test 1 and Test 2 raw data for animation
@@ -471,7 +610,7 @@ class Survey(Page):
         form_fields = ['year_of_birth', 'feedback']
 
         def before_next_page(player, timeout_happened):
-            pass  # (Excel writing removed)
+            pass  
 
         def vars_for_template(player):
             # Years from 1940 to current year
@@ -489,9 +628,6 @@ class Survey(Page):
 # Add fields to Player model
 Player.year_of_birth = models.IntegerField(blank=True, null=True, label="What is your year of birth?")
 Player.feedback = models.LongStringField(blank=True, null=True, label="Do you have any feedback for us? Were there any problems? (optional)")
-
-
-# Results page at the very end
 
 # Results page at the very end
 class Results(Page):
@@ -543,8 +679,7 @@ class TestResults(Page):
             scores = test2_entry['scores'] if test2_entry else [],
             growths = test2_entry['growths'] if test2_entry else []
         )
-        import json
-        # Paramètres environnementaux fixes par round (1-indexé)
+        # Environmental parameters fixed per round (1-indexed)
         env_params = [
             {'temp': 18, 'rain': 5.6},
             {'temp': 21, 'rain': 6.8},
@@ -557,11 +692,15 @@ class TestResults(Page):
             {'temp': 20, 'rain': 12.4},
             {'temp': 16, 'rain': 13.9},
             {'temp': 18, 'rain': 9.5},
+            {'temp': 19, 'rain': 7.7},
+            {'temp': 21, 'rain': 9.1},
+            {'temp': 16, 'rain': 6.4},
+            {'temp': 22, 'rain': 11.0},
             {'temp': 24, 'rain': 9.3},
         ]
-        # Test 1 = round 5, Test 2 = round 12 (index 4 et 11)
+        # Test 1 = round 5, Test 2 = round 16 (index 4 and 15)
         test1_env = env_params[4]
-        test2_env = env_params[11]
+        test2_env = env_params[15]
         total = player.participant.vars.get('total_earnings', 0)
         return dict(
             test1_data=json.dumps(test1_data),

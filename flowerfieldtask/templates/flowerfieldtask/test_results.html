@@ -1,4 +1,7 @@
-{% extends "global/Page.html" %}
+{# This file displays the interactive results for the test phases, showing participants their flower configurations, 
+nutrients, and scores for Test 1 and Test 2, with dynamic rendering via JavaScript. #}
+
+{# {% extends "global/Page.html" %} #}
 {% load static %}
 {% block content %}
 <style>
@@ -76,7 +79,9 @@
     </div>
 </div>
 <script>
-    // These variables should be set by the backend when rendering the page
+(function() {
+    if (window.__test_results_rendered) return;
+    window.__test_results_rendered = true;
     const test1_data = JSON.parse('{{ test1_data|safe }}');
     const test2_data = JSON.parse('{{ test2_data|safe }}');
     function renderFlowerField(fieldElem, colors, nutrients, scores, growths) {
@@ -87,7 +92,7 @@
             let row2 = document.createElement('div');
             row2.className = 'flower-row';
             row2.style.gap = '64px';
-            row2.style.marginTop = '48px'; // Add vertical space between rows
+            row2.style.marginTop = '48px'; 
             for (let i = 0; i < 3; i++) {
                 row1.appendChild(createFlowerElem(i, colors, nutrients, scores, growths));
             }
@@ -153,5 +158,6 @@
         document.body.appendChild(form);
         form.submit();
     };
+})();
 </script>
 {% endblock %}

@@ -1,58 +1,61 @@
+# This file defines the oTree page sequence, page logic, and custom export for the experiment.
+# It controls what each page does, when it is shown, and how participant data is processed and exported.
 
+# Import oTree API and json module for data handling
 from otree.api import *
 import json
 
+# Constants for the experiment
 class C(BaseConstants):
-    NAME_IN_URL = 'flowerfieldtask'
-    PLAYERS_PER_GROUP = None
-    NUM_ROUNDS = 12
+    NAME_IN_URL = 'flowerfieldtask'  # Name of the app for URLs
+    PLAYERS_PER_GROUP = None         # No grouping; single-player task
+    NUM_ROUNDS = 12                  # Total number of rounds in the experiment
 
+# Subsession logic: runs at the start of the session
 class Subsession(BaseSubsession):
     def creating_session(self):
+        # Initialize total_earnings for each participant if not already set
         for p in self.session.get_participants():
             if not hasattr(p, 'total_earnings') or p.total_earnings is None:
                 p.total_earnings = 0
+        # Set the treatment variable for each player from session config
         for player in self.get_players():
             player.treatment = self.session.config.get('name', '')
 
+# No group logic needed for this experiment
 class Group(BaseGroup):
     pass
 
-
-
-
-
-
-
-
-
-
+# Instructions page: only shown in round 1
 class Instructions(Page):
-    form_model = 'player'
-    form_fields = ['qcm_click_sequence']
+    form_model = 'player'  # Model to save form data to
+    form_fields = ['qcm_click_sequence']  # Field to collect from the form
 
     def is_displayed(self):
+        # Show this page only in the first round
         return self.round_number == 1
 
     def before_next_page(self):
-        import json as _json
+        # Before leaving the page, save the QCM click sequence if valid JSON
         qcm_seq = self.request.POST.get('qcm_click_sequence')
         if qcm_seq:
             try:
-                _json.loads(qcm_seq)
+                json.loads(qcm_seq)  # Validate JSON
                 self.player.qcm_click_sequence = qcm_seq
             except Exception:
-                self.player.qcm_click_sequence = ''
+                self.player.qcm_click_sequence = ''  # Save empty if invalid
 
+# Main task page: shown in rounds 1 to 11 (round 12 reserved for the results and survey pages)
 class FlowerField(Page):
-    form_model = 'player'
-    form_fields = ['qcm_click_sequence']
+    form_model = 'player'  # Model to save form data to
+    form_fields = ['qcm_click_sequence']  # Field to collect from the form
 
     def is_displayed(self):
+        # Show this page in rounds 1 to 11
         return 1 <= self.round_number <= 11
 
     def before_next_page(self):
-        # Recopie la séquence QCM si absente (pour export)
+        # If qcm_click_sequence is missing, copy it from another round for export
         if not self.player.qcm_click_sequence:
             seq = None
             for p in self.player.participant.get_players():
@@ -62,28 +65,39 @@ class FlowerField(Page):
             if seq:
                 self.player.qcm_click_sequence = seq
 
+
+# Results page: only shown in round 12
 class Results(Page):
-    form_model = 'player'
-    form_fields = []
+    form_model = 'player'  # Model to save form data to
+    form_fields = []       # No form fields on this page
 
     def is_displayed(self):
+        # Show this page only in the last round
         return self.round_number == 12
 
     def before_next_page(self):
+        # No special logic needed here
         pass
 
+
+# Survey page: only shown in round 12, collects birth year
 class Survey(Page):
-    form_model = 'player'
-    form_fields = ['birth_year']
+    form_model = 'player'  # Model to save form data to
+    form_fields = ['birth_year']  # Field to collect from the form
 
     def before_next_page(self):
+        # No special logic needed here
         pass
 
     def is_displayed(self):
+        # Show this page only in the last round
         return self.round_number == 12
 
 
+
+# Custom export function for CSV download
 def custom_export(players):
+    # Header row for the CSV
     yield [
         "participant_code",
         "treatment",
@@ -120,6 +134,7 @@ def custom_export(players):
         # Ensure phase is 'Test 2' for round 11, never 'Results'
         if str(round_number) == '11':
             phase = 'Test 2'
+        # Yield a row for each round
         yield [
             p.participant.code,
             getattr(p, 'treatment', ''),
@@ -139,6 +154,7 @@ def custom_export(players):
     # Add a summary row for each participant with phase 'Results' and feedback/birthyear
     if players:
         from collections import defaultdict
+        # Dictionary to collect summary info for each participant
         summary_by_participant = defaultdict(lambda: {
             'participant_code': '',
             'treatment': '',
@@ -171,13 +187,14 @@ def custom_export(players):
                 summary['birth_year'] = getattr(p, 'birth_year', '')
                 summary['qcm_click_sequence'] = getattr(p, 'qcm_click_sequence', '')
         for code, summary in summary_by_participant.items():
-            # Cherche la séquence dans tous les rounds du participant
+            # Search for the QCM sequence in all rounds if missing
             qcm_seq = summary['qcm_click_sequence']
             if not qcm_seq:
                 for p in players:
                     if p.participant.code == code and getattr(p, 'qcm_click_sequence', ''):
                         qcm_seq = getattr(p, 'qcm_click_sequence', '')
                         break
+            # Yield the summary row for this participant
             yield [
                 summary['participant_code'],
                 summary['treatment'],
@@ -194,4 +211,6 @@ def custom_export(players):
                 qcm_seq,
             ]
 
-page_sequence = [Instructions, FlowerField, Results, Survey]  # Sequence of pages in the experiment
+
+# Sequence of pages in the experiment
+

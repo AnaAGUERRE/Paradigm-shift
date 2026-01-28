@@ -1,13 +1,15 @@
+# This file contains the core scoring logic for the Flower Field Task. 
+# It calculates the "growth" of each flower based on the nutrients chosen, 
+# and optionally adds noise for certain experimental conditions.
 
-import random
-import inspect
+import random # Used to add random noise 
+import inspect  # Used to access the calling frame's session config
 
 def run_engine(nutrient_choices, flower_colors=None, scoring_system='anomaly'):
-    """
-    Nutrient choices is a list of flowers, each flower has 2 nutrients, e.g.:
-    [["red", "blue"], ["yellow", "yellow"], ["blue", "blue"]]
-    # flower_colors and scoring_system are unused; only anomaly scoring is implemented
-    """
+
+    # Nutrient choices is a list of flowers, each flower has 2 nutrients, e.g.:
+    # [["red", "blue"], ["yellow", "yellow"], ["blue", "blue"]]
+
     noise_type_counts = {'increase': 0, 'decrease': 0, 'none': 0}
     results = []
     noisy = False
@@ -25,7 +27,7 @@ def run_engine(nutrient_choices, flower_colors=None, scoring_system='anomaly'):
         if noisy:
             noise_choice = random.choice(['none', 'decrease', 'increase'])
             noise_type_counts[noise_choice] += 1
-            # Only record the noise type, do NOT modify growth
+            # Only record the noise type
             noise = {'index': i, 'type': noise_choice}
         results.append({
             'nutrients': nutrients,
@@ -37,18 +39,18 @@ def run_engine(nutrient_choices, flower_colors=None, scoring_system='anomaly'):
 
 
 def calculate_growth(nutrients):
-    """
-    Scoring Rules:
-    - 2x Blue → 100% (1.0)
-    - Blue + Yellow (either order) → 80% (0.8)
-    - Blue + Red (either order) → 80% (0.8)
-    - 2x Yellow → 60% (0.6)
-    - Yellow + Red (either order) → 60% (0.6)
-    - 2x Red → 60% (0.6)
-    - Only Blue (if same one counted twice) → 50% (0.5)
-    - Only Yellow (if same one counted twice) → 30% (0.3)
-    - Only Red (if same one counted twice) → 30% (0.3)
-    """
+
+    # NORMAL Scoring Rules:
+    # - 2x Blue → 100% (1.0)
+    # - Blue + Yellow (either order) → 80% (0.8)
+    # - Blue + Red (either order) → 80% (0.8)
+    # - 2x Yellow → 60% (0.6)
+    # - Yellow + Red (either order) → 60% (0.6)
+    # - 2x Red → 60% (0.6)
+    # - Only Blue  → 50% (0.5)
+    # - Only Yellow  → 30% (0.3)
+    # - Only Red  → 30% (0.3)
+
     # Extract nutrients, handle missing values
     n1 = nutrients[0] if len(nutrients) > 0 else ''
     n2 = nutrients[1] if len(nutrients) > 1 else ''
@@ -82,13 +84,10 @@ def calculate_growth(nutrients):
             return 0.3
         if n2 == 'Red':
             return 0.3
-    # Case: No valid nutrients
+    # Case: No valid nutrients (However, the round cannot be submitted if there is not at least one nutrient per flower)
     return 0.0
 
-
+# Converts growth percentage to pennies for payment, format 'Xp'.
 def calculate_p_from_growth(growth):
-    """
-    Converts growth percentage to pennies for payment, format 'Xp'.
-    """
     pennies = int(round(growth * 10))
     return f"{pennies}p"

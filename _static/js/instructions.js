@@ -1,10 +1,11 @@
-window.qcmClickSequence = [];
+// This script manages the interactive instructions and quiz (QCM) for the experiment.
+// It tracks user answers, manages slide navigation, and ensures participants understand the rules before starting.
 
 window.qcmClickSequence = [];
 
 document.addEventListener('click', function (e) {
     const btn = e.target;
-    // Capture clics sur les boutons de QCM
+    // Capture clicks on multiple answer buttons
     if (btn && btn.classList.contains('answer-btn')) {
         const slide = btn.closest('.slide');
         let slideNum = null;
@@ -20,16 +21,16 @@ document.addEventListener('click', function (e) {
             correct: btn.dataset.correct === 'true',
             timestamp: Date.now()
         });
-        // Met à jour le champ caché
+        // Update the hidden input field
         const input = document.getElementById('id_qcm_click_sequence');
         if (input) {
             input.value = JSON.stringify(window.qcmClickSequence);
         }
     }
-    // Soumission finale
+    // Final submission
     if (btn && btn.id === 'start-experiment-btn') {
         e.preventDefault();
-        // Met à jour le champ caché du vrai formulaire oTree avant soumission
+        // Update the hidden input field of the real oTree form before submission
         const input = document.getElementById('id_qcm_click_sequence');
         if (input) {
             input.value = JSON.stringify(window.qcmClickSequence);
@@ -44,13 +45,13 @@ document.addEventListener('click', function (e) {
         };
         var msg = 'Do you confirm that you have read and understood the instructions and that you want to start the game?';
         if (window.bootbox) {
-            // Patch Bootbox pour rendre le focus à la page principale après fermeture du modal
+            // Patch Bootbox to return focus to the main page after closing the modal
             var origHide = bootbox.dialog.prototype.hide;
             bootbox.dialog.prototype.hide = function() {
                 var modal = this.$modal && this.$modal[0];
                 var active = document.activeElement;
                 var result = origHide.apply(this, arguments);
-                // Rendre le focus à l'élément principal après fermeture
+                // Return focus to the main element after closing
                 setTimeout(function() {
                     if (modal && modal.parentNode) {
                         var main = document.getElementById('instructions-root') || document.body;
@@ -83,9 +84,6 @@ document.addEventListener('click', function (e) {
         }
     }
 });
-// instructions.js
-// This script renders the full instruction sequence as described, with all navigation, interactivity, and popups.
-// It assumes Bootbox is available for modals.
 
 document.addEventListener('DOMContentLoaded', function () {
             // Persist dropped nutrients state for slide 3
@@ -218,7 +216,7 @@ document.addEventListener('DOMContentLoaded', function () {
             `,
             nextEnabled: true,
         },
-        // 7. Learning from previous participant(7/10)
+        // 7. Learning from a previous participant(7/10)
         {
             render: () => `
                 <div class="slide slide-7">
@@ -308,7 +306,6 @@ window.getCSRFToken = function() {
     return '';
 };
 
-    // If noise warning slide is present, start at 0 (it will be first), else as before
     let currentSlide = 0;
 
     function renderSlide(idx) {
@@ -411,7 +408,6 @@ window.getCSRFToken = function() {
     }
 
     function setupInteractiveDemo() {
-        // Render a single flower, a slot directly underneath, and three draggable nutrients below (like in the game)
         const demo = document.getElementById('interactive-demo');
         if (!demo) return;
         demo.innerHTML = `
@@ -467,7 +463,6 @@ window.getCSRFToken = function() {
                 if (nextBtn) {
                     nextBtn.disabled = false;
                     nextBtn.style.display = '';
-                    // ...
                 }
                 let msg = document.querySelector('.nav-msg');
                 if (msg) msg.style.display = 'none';
@@ -534,9 +529,5 @@ window.getCSRFToken = function() {
             };
         });
     }
-
-
-
-    // Initial render
     renderSlide(currentSlide);
 });

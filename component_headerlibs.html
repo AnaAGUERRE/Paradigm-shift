@@ -1,2 +1,10 @@
+<!--This file is a small HTML template fragment that loads two important JavaScript libraries for the project.
+
+    PixiJS (pixi.min.js): A fast 2D rendering engine, often used for interactive graphics and games.
+    Bootbox (bootbox.js): A library for creating programmatic dialog boxes or pupups in the browser.
+
+This file is included in other HTML templates using {% include "component_headerlibs.html" %} or similar.
+It ensures that the required JavaScript libraries are available for any page that needs them, such as FlowerField.html .-->
+
 <script src="{{ static 'libraries/pixijs/pixi.min.js' }}"></script>
 <script src="{{ static 'libraries/bootbox/bootbox.js' }}"></script>

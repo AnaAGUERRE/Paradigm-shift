@@ -1,17 +1,21 @@
-{% load static %}
+{# This file defines the oTree page sequence, page logic, and custom export for the flower field experiment.
+It controls what each page does, when it is shown, and how participant data is processed and exported. #}
+
+
 {# Django static files loader #}
 {% load static %}
 
+{# Main content block for oTree/Django template #}
 {% block content %}
+    {# Inline CSS for game controls and layout #}
     <style>
-                /* Make game control buttons smaller */
-                .game-controls .submit-button,
-                .game-controls .reset-button {
-                    font-size: 0.95em;
-                    padding: 4px 16px;
-                    min-width: 80px;
-                    height: 32px;
-                }
+        .game-controls .submit-button,
+        .game-controls .reset-button {
+            font-size: 0.95em;
+            padding: 4px 16px;
+            min-width: 80px;
+            height: 32px;
+        }
         #flower-field-wrapper.exploration-flowers {
             text-align: center;
         }
@@ -27,15 +31,18 @@
         }
     </style>
 
-{# Include shared scripts for oTree #}
+
+{# Include shared scripts for oTree (Django include) #}
 {% include "_templates/scripts.html" %}
+
 
 {# Main stylesheet for flower task #}
 <link rel="stylesheet" href="{% static 'css/flowers.css' %}?v=11">
 <title>Flower Field Task</title>
 
+{# Main container for the flower field task #}
 <div id="main-container">
-    {# Top row: phase and round info #}
+    {# Top row: shows phase and round info #}
     <div class="row m-0 p-0" id="toprow" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
         <div class="col-12 p-1 mt-1" style="width: 100%; max-width: 700px; text-align: center; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); background: white;">
             <h4 style="margin-bottom:0.5em;">
@@ -50,6 +57,7 @@
             </div>
         </div>
     </div>
+    {# Show submitted configuration panel if treatment matches #}
     {% if treatment == 'submitted Correct' or treatment == 'submitted M&M' %}
     <div id="submitted-panel" style="padding: 8px 12px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); min-width: 160px; min-height: 60px; max-width: 220px; margin: 16px auto 0 auto; text-align: center;">
         <h5 style="margin-bottom: 10px; color: #333;">Previously produced configuration</h5>
@@ -65,10 +73,12 @@
     <div class="row m-0 p-0" id="instructions-row">
         <div class="col-12 p-2 text-center" style="font-size: 0.9rem; color: #333;">
             {% if phase == 'Test 1' or phase == 'Test 2' %}
+                {# Test phases: special instructions and warning #}
                 <span style="color: #a80000; font-weight: bold;">Select the configuration that fits best with your understanding of what causes flowers to grow.<br>
                 The score for each flower will be doubled. This set may be shown to following participants.</span> <br><br>
                 Click the <b>“submit"</b> button when you are ready.
             {% else %}
+                {# Training/Exploration: normal instructions #}
                 Drag <b> one or two nutrients </b> under each flower to select your configuration.<br>
                 Click the <b> “Submit" </b> button when you are ready to grow the flowers.
             {% endif %}
@@ -78,11 +88,13 @@
     {# Main game and results area #}
     <div class="row m-0 p-0" style="width: 100%;">
         <div class="col-12" id="currentRound" style="width: 100%; display: flex; justify-content: center; align-items: flex-start;">
-            <!-- Flower Field Game -->
+            {# Flower Field Game #}
             <div class="flower-game-container" style="width: 100%;">
+                {# Main panel for the flower field game #}
                 <div id="flower-field-panel" class="white-panel">
                     {# Panel border changes color in Test 1 phase #}
                     {% if phase == 'Test 1' or phase == 'Test 2' %}
+                    {# Highlight panel border in test phases #}
                     <style>
                         #flower-field-panel {
                             border: 3px solid #a80000;
@@ -91,8 +103,9 @@
                     </style>
                     {% endif %}
                     <div class="game-main">
+                        {# Status message area for warnings/errors #}
                         <div id="status-message"></div>
-                        {# Affiche les paramètres environnementaux uniquement après le feedback (quand le score apparaît) #}
+                        {# Show environmental parameters only after feedback in Training/Exploration #}
                         {% if phase == 'Training phase' or phase == 'Exploration phase' %}
                         <div id="env-params" style="font-size:0.90em; margin-bottom:0.7em; color:black; display:none; text-align:center;">
                             During this season, the average daily temperature and rainfall were :
@@ -100,17 +113,18 @@
                         </div>
                         {% endif %}
                         <div id="flower-field-wrapper" class="{{ phase_class }}">
-                            <!-- JS will fill flower-field with correct layout -->
+                            {# JS will fill flower-field with correct layout #}
                             <div id="flower-field" class="flower-slots-row" style="display: flex; justify-content: center; align-items: flex-end; width: 100%;"></div>
                         </div>
+                        {# Game control buttons: Reset, Submit, Next Round #}
                         <div class="game-controls">
                             <button class="reset-button" id="resetButton" {% if round_submitted %}disabled style="display:none;"{% endif %}>Reset</button>
                             <button class="submit-button" id="submitButton" {% if round_submitted %}disabled style="display:none;"{% endif %}>Submit</button>
                             <button class="submit-button" id="nextRoundButton" {% if round_submitted %}style=""{% else %}style="display:none;"{% endif %}>Go to the next round</button>
                         </div>
-                        <!-- Feedback panels are injected dynamically after submitting Test 2. Test 1 feedback is NOT shown immediately after Test 1. -->
+                        {# Feedback panels are injected dynamically after submitting Test 2. Test 1 feedback is NOT shown immediately after Test 1. #}
                         <script>
-                        // Affiche les paramètres environnementaux uniquement après le feedback (après soumission)
+                        // Show environmental parameters after feedback (after submit)
                         document.addEventListener('DOMContentLoaded', function() {
                             var submitBtn = document.getElementById('submitButton');
                             var envParams = document.getElementById('env-params');
@@ -118,7 +132,7 @@
                             var phase = '{{ phase }}';
                             var roundSubmitted = {{ round_submitted|json }};
                             if (roundSubmitted) {
-                                // Affiche le feedback directement
+                                // Show the feedback directly
                                 if (envParams) envParams.style.display = 'block';
                                 if (submitBtn) submitBtn.disabled = true;
                                 if (submitBtn) submitBtn.style.display = 'none';
@@ -140,32 +154,35 @@
                 </div>
                 <div class="side-panel-stack">
                     <div id="nutrient-panel" style="height:48px; min-height:32px; max-height:60px;"></div>
+                    {# Show transmission panel for 'Transmission correct' treatment #}
                     {% if treatment == 'Transmission correct' %}
                     <div id="submitted-panel" class="submitted-visible" style="padding: 16px 20px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.13); min-width: 150px; min-height: 80px; max-width: 270px; margin: 10px auto 0 auto; text-align: center;">
                         <h6 style="margin-bottom: 6px; color: #333; font-size: 1em;">Produced by a previous participant :</h6>
                         <img src="{% static 'img/TransCorr.png' %}" alt="submitted configuration" style="max-width: 225px; max-height: 250px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.13); margin-bottom: 5px;">
                     </div>
+                    {# Show transmission panel for 'Transmission M&M' treatment #}
                     {% elif treatment == 'Transmission M&M' %}
                     <div id="submitted-panel" class="submitted-visible" style="padding: 16px 20px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.13); min-width: 150px; min-height: 80px; max-width: 270px; margin: 10px auto 0 auto; text-align: center;">
                         <h6 style="margin-bottom: 6px; color: #333; font-size: 1em;">Produced by a previous participant :</h6>
                         <img src="{% static 'img/TransMM.png' %}" alt="submitted configuration" style="max-width: 225px; max-height: 250px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.13); margin-bottom: 5px;">
                     </div>
                     {% endif %}
-                    <!-- Results section removed -->
                 </div>
             </div>
-            <!-- Removed duplicate results section -->
         </div>
     </div>
 </div>
+{# Show previous combinations only in first and second phases #}
 {% if phase == 'Training phase' or phase == 'Exploration phase' %}
 <div id="previous-combinations" style="width:100%; padding:8px 0 8px 0; text-align:center; margin:24px auto 0 auto; max-height:120px; overflow-y:auto;">
     {% if previous_combinations|length > 0 %}
     <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
+        {# Loop through previous combinations and display them #}
         {% for combo in previous_combinations %}
                 <div class="prev-combo{% if combo.zipped|length == 2 %} two-flowers{% endif %}" style="border:1px solid #ccc; border-radius:8px; padding:6px 10px 10px 10px; background:#fafafa; min-width:160px; max-width:220px; font-size:0.85em; display:flex; flex-direction:column; align-items:center;">
             <div style="font-weight:bold; margin-bottom:2px; font-size:0.95em;">Round {{ combo.round }}</div>
             <div style="display:flex; justify-content:center; align-items:flex-end; width:100%; gap:40px;">
+                {# For each flower in the combination, show image, nutrients, and score #}
                 {% for flower, nutrient, score, flower_img, growth, flower_size in combo.zipped %}
                 <div style="display:flex; flex-direction:column; align-items:center; margin:0 1px;">
                     {% if flower_img %}
@@ -208,7 +225,6 @@
 {% endif %}
 
     <style>
-        /* Center the card and its contents for Exploration phase */
         #flower-field-wrapper.exploration-flowers {
             display: flex;
             flex-direction: column;
@@ -280,7 +296,8 @@
             margin: 0;
         }
     </style>
-    </style>
+
+    {# JS variables and game initialization #}
     <script>
         window.js_vars = window.js_vars || {};
         window.js_vars.treatment = "{{ session.config.display_name }}";
@@ -405,7 +422,7 @@
             }
         }
         initGame();
-        // Fix: Reset button should only reset the field, not advance round
+        // Reset button should only reset the field
         const resetButton = document.getElementById('resetButton');
         if (resetButton) {
             resetButton.addEventListener('click', function(event) {
@@ -414,7 +431,7 @@
                 document.getElementById('status-message').innerHTML = '';
             });
         }
-        // Fix: Submit button should not advance round if not all flowers have at least one nutrient
+        // Submit button should not advance round if not all flowers have at least one nutrient
         const submitButton = document.getElementById('submitButton');
         if (submitButton) {
             submitButton.addEventListener('click', function(event) {
@@ -577,10 +594,9 @@
                 totalEarningsElem.textContent = val.toFixed(2);
             }
         }
-        // (Removed duplicate Test 1 popup logic; now unified above)
-
     });
 
 </script>
-<script src="{% static 'flowers.js' %}?v=7"></script>
+{# Main JS for flower game #}
+<script src="{% static 'js/flowers.js' %}?v=7"></script>
 {% endblock %}
