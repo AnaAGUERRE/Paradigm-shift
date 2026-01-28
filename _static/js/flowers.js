@@ -606,7 +606,7 @@ class FlowerGame {
             if (phase === 'Test 1' || phase === 'Test 2') {
                 sizeScore = scoreVal / 2;
             }
-            const scaleFactor = 28; // 1p = 28px, 2p = 56px, etc. (increased for more visible difference)
+            const scaleFactor = 35; // 1p = 28px
             const minSize = 12;
             let size = sizeScore <= 1 ? minSize : sizeScore * scaleFactor;
             if (size < minSize) size = minSize;
