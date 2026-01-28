@@ -485,6 +485,7 @@ class FlowerField(Page):
             # Apply intra round noise as fixed penny adjustment (+2p, -2p, 0p)
             noise_effects = [f.get('noise') for f in output]
             flower_earnings = []
+            new_growths = []
             for g, noise in zip(flower_scores, noise_effects):
                 base_pennies = int(g * 10)
                 if noise:
@@ -495,10 +496,13 @@ class FlowerField(Page):
                 # Add per-round variation (inter round noise)
                 earning = max(0, base_pennies + variation_pennies)
                 flower_earnings.append(str(earning))
+                # Calculate new growth after all effects for display
+                new_growths.append(earning / 10.0)
+            # Use new_growths for display (flower size)
+            flower_scores_for_display = new_growths
             # For total, sum as £, but only add half of the flower earnings to total_earnings
             round_earnings = sum([int(e) for e in flower_earnings]) / 2 / 100.0
-            # Track noise effects for noisy configs
-            noise_effects = [f.get('noise') for f in output]
+            # Track noise effects for noisy configs (already set above)
             # Update participant's total earnings
             if 'total_earnings' not in player.participant.vars:
                 player.participant.vars['total_earnings'] = 0.0
@@ -550,7 +554,8 @@ class FlowerField(Page):
             n_flowers = len(flower_colors)
             safe_nutrients = (nutrients if len(nutrients) == n_flowers else [None]*n_flowers)
             safe_scores = (flower_earnings if len(flower_earnings) == n_flowers else [None]*n_flowers)
-            safe_growths = (flower_scores if len(flower_scores) == n_flowers else [None]*n_flowers)
+            # Store the new growths (after noise and env variation) for display/size
+            safe_growths = (flower_scores_for_display if len(flower_scores_for_display) == n_flowers else [None]*n_flowers)
             safe_noise = (noise_effects if len(noise_effects) == n_flowers else [None]*n_flowers)
             player.participant.vars['nutrient_flower_history'].append({
                 'phase': phase,
@@ -591,10 +596,12 @@ class FlowerField(Page):
                     growths = test2_entry['growths'] if test2_entry else []
                 )
                 print("[FEEDBACK] Test 1 and Test 2 results found and sent for animation.")
+            # Send the new growths (after noise and env variation) for display
             result_dict = dict(
-                flower_scores=flower_scores,
+                flower_scores=flower_scores,  # original growths (if needed)
                 flower_earnings=flower_earnings,
-                cumulative_earnings="{:.2f}".format(player.cumulative_earnings)
+                cumulative_earnings="{:.2f}".format(player.cumulative_earnings),
+                growths_for_display=flower_scores_for_display  # new field for frontend to use for flower size
             )
             if phase == 'Test 2':
                 result_dict['test1_data'] = test1_data

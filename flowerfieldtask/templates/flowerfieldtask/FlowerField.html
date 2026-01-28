@@ -564,8 +564,13 @@ It controls what each page does, when it is shown, and how participant data is p
                 if (typeof disableNutrientPanelAndSlots === 'function') {
                     disableNutrientPanelAndSlots();
                 }
+                // Use backend-provided growths_for_display if present, else fallback to flower_scores
                 if (window.flowerGame && typeof window.flowerGame.animateFlowerSizes === 'function') {
-                    window.flowerGame.animateFlowerSizes(responseData.flower_scores);
+                    if (responseData.growths_for_display) {
+                        window.flowerGame.animateFlowerSizes(responseData.growths_for_display);
+                    } else {
+                        window.flowerGame.animateFlowerSizes(responseData.flower_scores);
+                    }
                 }
                 if (window.flowerGame && typeof window.flowerGame.showAllScores === 'function') {
                     let scaledScores = responseData.flower_scores.map(x => Math.round(x * 400));
