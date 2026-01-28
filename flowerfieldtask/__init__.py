@@ -381,7 +381,7 @@ class FlowerField(Page):
             flower_earnings=flower_earnings
         )
     live_method = "live_method"  # Name of live method for JS communication
-    template_name = 'flowerfieldtask/FlowerField.html'  # HTML template to use
+    template_name = 'FlowerField.html'  # HTML template to use
 
 
     def live_method(player, data):
@@ -630,7 +630,7 @@ class Survey(Page):
             # Only show after the last round (after Test2)
             return player.round_number == C.NUM_ROUNDS
 
-        template_name = 'flowerfieldtask/survey.html'
+        template_name = 'survey.html'
 
 # Add fields to Player model
 Player.year_of_birth = models.IntegerField(blank=True, null=True, label="What is your year of birth?")
@@ -655,7 +655,7 @@ class Results(Page):
         )
     def is_displayed(player):
         return player.round_number == C.NUM_ROUNDS
-    template_name = 'flowerfieldtask/results.html'
+    template_name = 'results.html'
 
 # TestResults page to show both Test 1 and Test 2 results after Test 2
 class TestResults(Page):
@@ -721,7 +721,7 @@ class TestResults(Page):
             test2_temperature=test2_env['temp'],
             test2_rainfall=test2_env['rain']
         )
-    template_name = 'flowerfieldtask/test_results.html'
+    template_name = 'test_results.html'
 
 # Sequence of pages in the experiment
 page_sequence = [Instructions, FlowerField, TestResults, Survey, Results]
