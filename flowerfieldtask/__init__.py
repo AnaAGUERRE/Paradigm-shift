@@ -495,8 +495,8 @@ class FlowerField(Page):
                 # Add per-round variation (inter round noise)
                 earning = max(0, base_pennies + variation_pennies)
                 flower_earnings.append(str(earning))
-            # For total, sum as £
-            round_earnings = sum([int(e) for e in flower_earnings]) / 100.0
+            # For total, sum as £, but only add half of the flower earnings to total_earnings
+            round_earnings = sum([int(e) for e in flower_earnings]) / 2 / 100.0
             # Track noise effects for noisy configs
             noise_effects = [f.get('noise') for f in output]
             # Update participant's total earnings

@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div style="max-width: 80vw;">
                             <p>In this task, you will take part in a virtual flower-growing experiment (see below).<br>
                                 Your goal is to make each flower grow as much as possible by selecting the right combination of nutrients.</p>
-                            <p>After you choose the combinations for the entire flower field, the software will show you the growth results of the flowers represented by their size and the corresponding earnings (in pennies, ex: 5p).</p>
+                            <p>After you choose the combinations for the entire flower field, the software will show you the growth results of the flowers represented by their size and the corresponding earnings in points. 1 point = 0.5 pennies added to you total monetary earnings (ex: 5p translates to £ 0.025 ).</p>
                             <b>The nutrient combinations you choose have an impact on the growth outcomes of the flowers, and your earnings.</b>
                         </div>
                         <div class="slide-visual center" style="margin-top: 1em; text-align: center; width: 100%;">
