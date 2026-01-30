@@ -58,8 +58,14 @@ It summarizes their performance, provides feedback, and gives a final message wi
         <p><b>Current total is <span style="font-size: 1.2em;">£{{ total_earnings }}</span></b></p>
         {% endif %}
         <p>Click on the following button to complete the study and go back to Prolific.</p>
-        <form method="post">
-            <button type="submit" class="otree-btn-next btn btn-primary">Return to the website</button>
-        </form>
+        {% if treatment == 'Anomaly CT' %}
+            <a href="https://app.prolific.com/submissions/complete?cc=C104QC2U" class="otree-btn-next btn btn-primary">Return to the website</a>
+        {% elif treatment == 'No Anomaly CT' %}
+            <a href="https://app.prolific.com/submissions/complete?cc=CNVXUTM1" class="otree-btn-next btn btn-primary">Return to the website</a>
+        {% elif treatment == 'Anomaly No CT' %}
+            <a href="https://app.prolific.com/submissions/complete?cc=CKXRTMB9" class="otree-btn-next btn btn-primary">Return to the website</a>
+        {% else %}
+            <a href="#" class="otree-btn-next btn btn-primary">Return to the website</a>
+        {% endif %}
     </div>
 {% endblock %}

@@ -534,9 +534,9 @@ class FlowerGame {
         let phase = (window.js_vars && window.js_vars.phase) ? window.js_vars.phase : '';
         // Set the displayed score as before
         if (typeof earningsPenny === 'string') {
-            this.flowers[flowerIdx].scoreDiv.textContent = `${earningsPenny}p`;
+            this.flowers[flowerIdx].scoreDiv.textContent = `${earningsPenny} points`;
         } else if (typeof earningsPenny === 'number') {
-            this.flowers[flowerIdx].scoreDiv.textContent = `${earningsPenny}p`;
+            this.flowers[flowerIdx].scoreDiv.textContent = `${earningsPenny} points`;
         } else {
             // fallback: calculate as before
             const nutrients = this.flowers[flowerIdx].nutrients;
@@ -550,13 +550,13 @@ class FlowerGame {
                 score = 0;
             }
             let earnings = Math.round(score * 100);
-            this.flowers[flowerIdx].scoreDiv.textContent = `${earnings}p`;
+            this.flowers[flowerIdx].scoreDiv.textContent = `${earnings} points`;
         }
         // Use the displayed value for size, but in test phases, use undoubled score for size
         let scoreText = this.flowers[flowerIdx].scoreDiv.textContent;
         let scoreVal = 0;
-        if (typeof scoreText === 'string' && scoreText.endsWith('p')) {
-            scoreVal = parseFloat(scoreText.slice(0, -1)) || 0;
+        if (typeof scoreText === 'string' && scoreText.endsWith('points')) {
+            scoreVal = parseFloat(scoreText.replace(' points', '')) || 0;
         }
         // In test phases, if score is doubled for display, use half for size
         let sizeScore = scoreVal;
@@ -598,8 +598,8 @@ class FlowerGame {
             // Ensure size is updated after scoreDiv is set
             let scoreText = this.flowers[i].scoreDiv.textContent;
             let scoreVal = 0;
-            if (typeof scoreText === 'string' && scoreText.endsWith('p')) {
-                scoreVal = parseFloat(scoreText.slice(0, -1)) || 0;
+            if (typeof scoreText === 'string' && scoreText.endsWith('points')) {
+                scoreVal = parseFloat(scoreText.replace(' points', '')) || 0;
             }
             let phase = (window.js_vars && window.js_vars.phase) ? window.js_vars.phase : '';
             let sizeScore = scoreVal;

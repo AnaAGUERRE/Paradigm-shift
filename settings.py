@@ -79,8 +79,8 @@ LANGUAGE_CODE = 'en'                     # Language for experiment
 REAL_WORLD_CURRENCY_CODE = 'GBP'         # Currency code
 USE_POINTS = True                        # Use points system
 
-ADMIN_USERNAME = 'admin'                  # Admin login username
-ADMIN_PASSWORD = '1234'                   # Admin password
+ADMIN_USERNAME = 'Paradigm_Shift'           # Admin login username
+ADMIN_PASSWORD = '271219'                   # Admin password
 
 SECRET_KEY = '7550954140615'              # Django secret key
 

@@ -109,7 +109,7 @@ It controls what each page does, when it is shown, and how participant data is p
                         {% if phase == 'Training phase' or phase == 'Exploration phase' %}
                         <div id="env-params" style="font-size:0.90em; margin-bottom:0.7em; color:black; display:none; text-align:center;">
                             During this season, the average daily temperature and rainfall were :
-                            <span style="font-weight:bold">{{ temperature }} °C</span> and <span style="font-weight:bold">{{ rainfall }} mm</span>.
+                            <span>{{ temperature }} °C</span> and <span>{{ rainfall }} mm</span>.
                         </div>
                         {% endif %}
                         <div id="flower-field-wrapper" class="{{ phase_class }}">
@@ -174,7 +174,7 @@ It controls what each page does, when it is shown, and how participant data is p
 </div>
 {# Show previous combinations only in first and second phases #}
 {% if phase == 'Training phase' or phase == 'Exploration phase' %}
-<div id="previous-combinations" style="width:100%; padding:8px 0 8px 0; text-align:center; margin:24px auto 0 auto; max-height:120px; overflow-y:auto;">
+<div id="previous-combinations" style="width:100%; padding:8px 0 8px 0; text-align:center; margin:24px auto 0 auto; max-height:500px; overflow-y:auto;">
     {% if previous_combinations|length > 0 %}
     <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
         {# Loop through previous combinations and display them #}
@@ -197,7 +197,7 @@ It controls what each page does, when it is shown, and how participant data is p
                         {% if nutrient_img %}<img src="{% static nutrient_img %}" style="width:16px; height:16px;" alt="nutrient">{% endif %}
                         {% endfor %}
                     </div>
-                    <span style="font-size:0.85em; color:#444; font-weight:bold; margin-top:0px;">{{ score }}p</span>
+                    <span style="font-size:0.85em; color:#444; font-weight:bold; margin-top:0px;">{{ score }} points</span>
                 </div>
                 {% endfor %}
             </div>

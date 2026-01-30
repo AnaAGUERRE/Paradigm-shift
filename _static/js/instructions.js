@@ -43,7 +43,7 @@ document.addEventListener('click', function (e) {
                 alert('Error: Could not find the form to submit.');
             }
         };
-        var msg = 'Do you confirm that you have read and understood the instructions and that you want to start the game?';
+        var msg = 'Do you confirm that you have read and understood the instructions and that you want to start the experiment?';
         if (window.bootbox) {
             // Patch Bootbox to return focus to the main page after closing the modal
             var origHide = bootbox.dialog.prototype.hide;
@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div style="max-width: 80vw;">
                             <p>In this task, you will take part in a virtual flower-growing experiment (see below).<br>
                                 <b>Your goal is to make each flower grow as much as possible by selecting the right combination of nutrients.</b></p>
-                            <p>After you choose the combinations for the entire flower field, the software will show you the <b>growth</b> results of the flowers represented by their <b>size</b> and the corresponding <b>earnings in points</b>. 1 point = 0.5 pennies added to you total monetary earnings (ex: 5p translates to £ 0.025 ).</p>
+                            <p>After you choose the combinations for the entire flower field, the software will show you the <b>growth</b> results of the flowers represented by their <b>size</b> and the corresponding <b>earnings in points</b>. 1 point = 0.5 pennies added to you total monetary earnings.</p>
                             <b>The nutrient combinations you choose have an impact on the growth outcomes of the flowers, and your earnings.</b>
                         </div>
                         <div class="slide-visual center" style="margin-top: 1em; text-align: center; width: 100%;">
@@ -165,12 +165,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div class="slide-content-block" style="margin-top: 0; max-width: 90vw;">
                         <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">4/10</span>
                         <div style="max-width: 80vw;">
-                            <p>During each of the two phases of the experiment, you will complete several rounds of the task. In every round, you may adjust the nutrient configuration you choose for that growing season.</p>
-                            <p>After each phase, you will complete a test.</p>
+                            <p>You will complete several rounds of the task. In every round, you may adjust the nutrient configuration you choose.</p>
                             <br>
                             <b>The growth of each flower will determine your monetary earnings for that round.</b>
                             <br><br>
-                            <p>Your earnings from all rounds will be added to your total payoff for the entire experiment. The earnings from the test rounds will be revealed and added only at the end.</p>
+                            <p>Your earnings from all rounds will be added to your total earnings for the entire experiment.</p>
                         </div>
                     </div>
                 </div>
@@ -204,13 +203,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div class="slide-content-block" style="margin-top: 0; max-width: 90vw;">
                         <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">6/10</span>
                         <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 1em;">Seasonal environmental conditions</div>
-                        <p><b>Each round represents a growing season</b> and <b>environmental conditions vary from one growing season (round) to another and might affect flower growth.</b> </p>
+                        <p><b>Each round represents a growing season</b> and environmental conditions vary from one round to another. </p>
                         <br>
-                        <p>These conditions are summarized by <b>average daily temperature (°C) and rainfall (mm)</b> over the season.</p>
+                        <p><b>Those conditions might affect flower growth.</b> </p>
+                        <br>
+                        <p>The conditions are summarized by <b>average daily temperature (°C) and rainfall (mm)</b> over the season.</p>
                         <p> For instance : "During this season, the average daily temperature and rainfall were : 19°C and 8,3 mm."</p>
-                        <br>
-                        <p> Importantly, when you choose the nutrient configurations for a given season, the environmental conditions of the given growing season are yet to be observed and are <b>summarized only once the growing season is completed</b>, together with the growth outcome of the flowers.</p>
-                        <br><br>
                     </div>
                 </div>
             `,
@@ -223,9 +221,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div class="slide-content-block" style="margin-top: 0; max-width: 90vw;">
                         <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">7/10</span>
                         <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 1em;">Learning from a previous participant</div>
-                        <p><b>You may be able to learn from another player who participated in the task before you by seeing how they fed the flowers.</b></p>
+                        <p><b>You may be able to learn from another participant who participated in the task before you by seeing how they fed the flowers.</b></p>
                         <p> It is also possible that you do not receive this information.</p>
-                        <p> Each player has the same number of trials.</p>
                         <div class="slide-visual center" style="margin-top: 1em; text-align: center; width: 100%; display: flex; justify-content: center; align-items: center; gap: 32px;">
                             <img src="/static/img/indicationPreviousParticipant.png" class="slide-img-centered" style="width: 350px; max-width: 60vw; display: inline-block;">
                         </div>
@@ -235,17 +232,18 @@ document.addEventListener('DOMContentLoaded', function () {
             nextEnabled: true,
         },
 
-        // 8. Monetary rewards summary (8/10)
+        // 8. Summary (8/10)
         {
             render: () => `
                 <div class="slide slide-8">
                     <div class="slide-content-block" style="margin-top: 0; max-width: 700px; text-align: left; margin-left: 0;">
                         <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em; text-align: left;">8/10</span>
-                        <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 1em; text-align: left;">Monetary reward summary</div>
-                        <p style="margin-bottom: 1.2em;">Your final payoff will be calculated as a sum of the following scores:</p>
+                        <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 1em; text-align: left;">Summary</div>
+                        <p style="margin-bottom: 1.2em;">Your total earnings will be calculated as a sum of the earnings from each round.</p>
+                        <p style="margin-bottom: 1.2em;">Your earnings in a round depend on each flower's growth, that can be affected by :</p> 
                         <ul style="font-size: 1.1em; margin-bottom: 1em; padding-left: 1.5em;">
-                            <li style="margin-bottom: 0.7em;">The earnings from each round.</li>
-                            <li>The earnings from the two tests, added at the end.</li>
+                            <li style="margin-bottom: 0.7em;">The nutrients you choose.</li>
+                            <li>The environmental conditions of the round.</li>
                         </ul>
                     </div>
                 </div>
@@ -259,11 +257,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div class="slide-content-block" style="margin-top: 0; max-width: 90vw;">
                         <span class="slide-counter" style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 0.7em;">9/10</span>
                         <div class="slide-question" style="text-align: left; margin-bottom: 0.5em;">Please answer the question below to continue.</div>
-                        <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 0.7em; text-align: center; width: 100%;">How is your final payoff calculated?</div>
+                        <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 0.7em; text-align: center; width: 100%;">How are the total earnings calculated?</div>
                         <div class="answer-buttons" style="display: flex; flex-direction: column; align-items: center; gap: 1em; width: 100%; max-width: 900px; margin: 0 auto;">
-                            <button type="button" class="answer-btn wide-square" style="width: 700px; max-width: 99vw; min-width: 400px;" data-correct="false">Your final payoff is calculated by adding the earnings from each round.</button>
-                            <button type="button" class="answer-btn wide-square" style="width: 700px; max-width: 99vw; min-width: 400px;" data-correct="true">Your final payoff is calculated by adding the earnings from each round, plus the earnings of the  two tests added to the total at the end.</button>
-                            <button type="button" class="answer-btn wide-square" style="width: 700px; max-width: 99vw; min-width: 400px;" data-correct="false">Your final payoff is calculated by adding the earnings from each round, plus some random amount of pounds between 1 and 2.</button>
+                            <button type="button" class="answer-btn wide-square" style="width: 700px; max-width: 99vw; min-width: 400px;" data-correct="false">The total earnings are equal to the earnings from the last round.</button>
+                            <button type="button" class="answer-btn wide-square" style="width: 700px; max-width: 99vw; min-width: 400px;" data-correct="true">The total earnings are calculated by adding the earnings from each round.</button>
+                            <button type="button" class="answer-btn wide-square" style="width: 700px; max-width: 99vw; min-width: 400px;" data-correct="false">The total earnings are calculated by adding the earnings from each round, plus some random amount.</button>
                         </div>
                         <div class="answer-feedback"></div>
                     </div>

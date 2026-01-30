@@ -1,0 +1,84 @@
+{% block content %}
+<style>
+    .consent-container {
+        max-width: 700px;
+        margin: 40px auto;
+        padding: 30px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        font-family: Arial, sans-serif;
+    }
+    .consent-title {
+        font-size: 1.5em;
+        margin-bottom: 20px;
+        color: #2c3e50;
+    }
+    .consent-body {
+        font-size: 1.1em;
+        margin-bottom: 25px;
+        color: #333;
+    }
+    .consent-options {
+        margin-top: 20px;
+    }
+    .consent-options label {
+        margin-right: 30px;
+        font-size: 1.1em;
+    }
+    .otree-btn-next {
+        margin-top: 30px;
+    }
+</style>
+<div class="consent-container">
+    <div class="consent-title"><b>Consent Form</b></div>
+    <div class="consent-body">
+        Dear Participant,<br><br>
+        Welcome to the research study. You are invited to complete an online experiment as part of a study conducted by researchers at the Institute for Advanced Study in Toulouse (IAST, France) and funded by the French National Research Agency (ANR). In this study, we aim to gain insight into decision-making for scientific purposes. This project is led by Maxime Derex (IAST).<br><br>
+        This study investigates how people learn from experience and from information provided by others. You will complete a short interactive task where you combine nutrients to grow virtual flowers as efficiently as possible. In some conditions, you may see examples of choices made by previous participants. Your objective is to maximize flower growth and earn the highest possible bonus. In addition to the base participation fee, you can earn bonus payments based on your performance.<br><br>
+        <b>Participation is only possible on a desktop or laptop computer.</b><br><br>
+        In the study, you will make decisions individually. The study is expected to be completed within 20 minutes.<br><br>
+        Participation in this research is entirely voluntary. You are free to withdraw from the study at any time before submitting your responses, without providing a reason and without any consequences.<br><br>
+        There are no foreseen physical, psychological, social, or economic risks for this study.<br><br>
+        We use the Prolific platform to collect responses. While the researchers only receive anonymized data, Prolific may retain non-anonymized data for a limited time after collection, in accordance with their own privacy and data retention policies. You can find more information about Prolific’s data handling practices here: <a href="https://www.prolific.com/privacy-and-legal" target="_blank">https://www.prolific.com/privacy-and-legal</a><br><br>
+        If you have any questions or would like to know more about the study, please feel free to contact the lead researcher: Maxime Derex maxime.derex@iast.fr<br><br>
+        If you have further concerns about your data or your rights as a participant, you may also contact: CNRS Data Protection Officer – dpd.demandes@cnrs.fr (CNRS Service protection des données, 2 rue Jean Zay, 54519 Vandoeuvre-lès-Nancy, France). If you still feel that your rights with regard to Data Processing, Data Files and Individual Liberties have not been respected, you can lodge a complaint online with the CNIL or by post.<br><br>
+        <b>By clicking below, you confirm that:</b><br>
+        - You are 18 years old or older,<br>
+        - You have read and understood the information above,<br>
+        - You voluntarily agree to participate in the study, and<br>
+        - You understand that you can withdraw at any time during the survey, but not after submitting it.<br><br>
+        Thank you for your participation.
+    </div>
+    <form method="post" id="consent-form">
+        <div class="consent-options">
+            {{ formfield 'consent_given' }}
+        </div>
+        <button class="otree-btn-next btn btn-primary">Next</button>
+    </form>
+    <div id="screenout-message" style="display:none; text-align:center; margin-top:40px;">
+        <h2 style="color:#a80000;">You have chosen not to participate</h2>
+        <p style="font-size:1.15em;">Thank you for your time. You will not take part in this study.<br>
+        You may now close this window.<br><br>
+        <b>You will be redirected to Prolific in a few seconds.</b></p>
+        <a href="https://app.prolific.com/submissions/complete?cc=SCREENOUT" class="btn btn-primary" style="margin-top:18px;">Go to Prolific now</a>
+    </div>
+    <script>
+    document.getElementById('consent-form').addEventListener('submit', function(e) {
+        var radios = document.querySelectorAll('input[name="consent_given"]');
+        var selected = '';
+        for (var i = 0; i < radios.length; i++) {
+            if (radios[i].checked) selected = radios[i].value;
+        }
+        if (selected === 'no') {
+            e.preventDefault();
+            document.getElementById('consent-form').style.display = 'none';
+            document.getElementById('screenout-message').style.display = '';
+            setTimeout(function() {
+                window.location.href = 'https://app.prolific.com/submissions/complete?cc=SCREENOUT';
+            }, 3500);
+        }
+    });
+    </script>
+</div>
+{% endblock %}

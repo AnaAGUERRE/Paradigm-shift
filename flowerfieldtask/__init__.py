@@ -1,12 +1,42 @@
-# This file contains the main logic for the oTree app "Flower Field Task." 
-# It defines the experiment's structure, player/session models, 
-# and core logic for handling rounds, earnings, and data export.
+from otree.api import *   # Import oTree base classes and functions
 
+class Screenout(Page):
+    @staticmethod
+    def is_displayed(player):
+        return player.round_number == 1 and player.consent_given == 'no'
+    @staticmethod
+    def vars_for_template(player):
+        return {'screenout_url': 'https://app.prolific.com/submissions/complete?cc=SCREENOUT'}
+    template_name = 'screenout.html'
 
 # oTree imports and engine functions
 from otree.api import *   # Import oTree base classes and functions
 from .engine import run_engine, calculate_p_from_growth   # Import custom game logic
 import json   # For handling JSON data
+
+# Consent page: always shown first, requires explicit consent
+class Consent(Page):
+    form_model = 'player'
+    form_fields = ['consent_given']
+
+    @staticmethod
+    def is_displayed(player):
+        return player.round_number == 1
+
+    @staticmethod
+    def error_message(player, values):
+        if values.get('consent_given') == 'no':
+            # No error, allow to continue to screenout page
+            return
+        if values.get('consent_given') != 'yes':
+            return 'You must consent to participate in order to continue.'
+
+    @staticmethod
+    def vars_for_template(player):
+        return {}
+
+    template_name = 'consent.html'
+
 
 class C(BaseConstants):
     NAME_IN_URL = 'flowerfieldtask'  # URL name for this app
@@ -31,7 +61,13 @@ class Group(BaseGroup):
     pass  # No group logic needed
 
 class Player(BasePlayer):
-
+    # Consent field for the consent page
+    consent_given = models.StringField(
+        choices=[('yes', 'I consent'), ('no', 'I do not wish to participate')],
+        label="",
+        blank=True,
+        widget=widgets.RadioSelect,
+    )
     # Tracks total earnings for this player
     cumulative_earnings = models.FloatField(initial=0)
     test1_pending_earnings = models.FloatField(initial=0)  # Holds Test 1 earnings until Test 2
@@ -49,25 +85,54 @@ class Player(BasePlayer):
     noise_applied = models.LongStringField(blank=True, null=True, label="Noise (JSON)")
     exploration_flower_pairs_order = models.LongStringField(blank=True, null=True, label="Shuffled flower pairs order (JSON)")
 
+
 # Instructions
 class Instructions(Page):
+    @staticmethod
     def is_displayed(player):
-        return player.round_number == 1
+        return player.round_number == 1 and player.consent_given != 'no'
+    @staticmethod
     def vars_for_template(player):
         return {}
     template_name = '_templates/instructions.html'
     form_model = 'player'
     form_fields = ['dummy_field', 'qcm_click_sequence']
-
+    @staticmethod
     def before_next_page(player, timeout_happened):
         qcm_seq = player.qcm_click_sequence
-        # ...
         if qcm_seq:
             try:
                 json.loads(qcm_seq)
                 player.qcm_click_sequence = qcm_seq
             except Exception:
                 player.qcm_click_sequence = ''
+
+class FlowerField(Page):
+    @staticmethod
+    def is_displayed(player):
+        return player.consent_given != 'no'
+
+class TestResults(Page):
+    @staticmethod
+    def is_displayed(player):
+        return player.consent_given != 'no'
+
+class Survey(Page):
+    @staticmethod
+    def is_displayed(player):
+        return player.consent_given != 'no'
+
+class Results(Page):
+    @staticmethod
+    def is_displayed(player):
+        return player.consent_given != 'no'
+# Page sequence for oTree
+page_sequence = [
+    Consent,
+    Screenout,
+    Instructions,
+    # ...existing code...
+]
 
 # Ensure the participant cannot resubmit a round
 
@@ -724,5 +789,5 @@ class TestResults(Page):
     template_name = 'test_results.html'
 
 # Sequence of pages in the experiment
-page_sequence = [Instructions, FlowerField, TestResults, Survey, Results]
+page_sequence = [Consent, Screenout, Instructions, FlowerField, TestResults, Survey, Results]
 

@@ -1,0 +1,14 @@
+{% block content %}
+<div class="consent-container" style="max-width: 600px; margin: 60px auto; padding: 32px; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.09); text-align: center; font-family: Arial, sans-serif;">
+    <h2 style="color: #222; margin-bottom: 18px;">You have chosen not to participate</h2>
+    <p style="font-size: 1.15em; margin-bottom: 30px;">Thank you for your time. You will not take part in this study.<br>
+    You may now close this window.<br><br>
+    <b>You will be redirected to Prolific in a few seconds.</b></p>
+    <script>
+        setTimeout(function() {
+            window.location.href = "{{ screenout_url }}";
+        }, 3500);
+    </script>
+    <a href="{{ screenout_url }}" class="btn btn-primary" style="margin-top: 18px;">Go to Prolific now</a>
+</div>
+{% endblock %}
