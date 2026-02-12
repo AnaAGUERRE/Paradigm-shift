@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div style="max-width: 80vw;">
                             <p>In this task, you will take part in a virtual flower-growing experiment (see below).<br>
                                 <b>Your goal is to make each flower grow as much as possible by selecting the right combination of nutrients.</b></p>
-                            <p>After you choose the combinations for the entire flower field, the software will show you the <b>growth</b> results of the flowers represented by their <b>size</b> and the corresponding <b>earnings in points</b>. 1 point = 0.5 pennies added to you total monetary earnings.</p>
+                            <p>After you choose the combinations for the entire flower field, the software will show you the <b>growth</b> results of the flowers represented by their <b>size</b> and the corresponding <b>earnings in points</b> on which your monetary bonus depends.</p>
                             <b>The nutrient combinations you choose have an impact on the growth outcomes of the flowers, and your earnings.</b>
                         </div>
                         <div class="slide-visual center" style="margin-top: 1em; text-align: center; width: 100%;">
@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <p>Each flower can receive <b>one or two nutrients</b>. There are three types of nutrients: blue, red, and yellow. You will drag and drop the nutrients below each flower before confirming your choice. If you use two nutrients, <b>order does not matter</b>, for example, <i>BLUE–YELLOW</i> is the same as <i>YELLOW–BLUE</i>.</p>
                                 <p><b>Each flower is independent:</b> there is no interaction between the flowers, and the placement of a flower in the field does not affect its growth. The outcome for each flower depends on the nutrients you give to that specific flower.</p>
                                 <p>An interactive example is displayed on the right.</p>
-                                <p>To continue, please drag and drop one blue nutrient and one red nutrient under the flower and click on [Next].</p>
+                                <p>To continue, please drag and drop one yellow nutrient and one red nutrient under the flower and click on [Next].</p>
                             </div>
                             <div style="flex: none; min-width: 0; max-width: 40vw;">
                                 <div class="flower-demo-box" id="interactive-demo"></div>
@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div class="slide-question" style="text-align: left; margin-bottom: 0.5em;">Please answer the question below to continue.</div>
                         <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 0.7em; text-align: center; width: 100%;">How are the total earnings calculated?</div>
                         <div class="answer-buttons" style="display: flex; flex-direction: column; align-items: center; gap: 1em; width: 100%; max-width: 900px; margin: 0 auto;">
-                            <button type="button" class="answer-btn wide-square" style="width: 700px; max-width: 99vw; min-width: 400px;" data-correct="false">The total earnings are equal to the earnings from the last round.</button>
+                            <button type="button" class="answer-btn wide-square" style="width: 700px; max-width: 99vw; min-width: 400px;" data-correct="false">The total earnings correspond only to the earnings from the last round.</button>
                             <button type="button" class="answer-btn wide-square" style="width: 700px; max-width: 99vw; min-width: 400px;" data-correct="true">The total earnings are calculated by adding the earnings from each round.</button>
                             <button type="button" class="answer-btn wide-square" style="width: 700px; max-width: 99vw; min-width: 400px;" data-correct="false">The total earnings are calculated by adding the earnings from each round, plus some random amount.</button>
                         </div>
@@ -416,9 +416,9 @@ window.getCSRFToken = function() {
                 </div>
             </div>
             <div class="demo-nutrients-row" style="display: flex; flex-direction: row; justify-content: center; align-items: flex-end; margin-top: 8px;">
+                <img src="/static/img/NutrRed.png" class="demo-nutrient" draggable="true" data-nutrient="Red" style="width: 28px; margin: 0 8px;">
                 <img src="/static/img/NutrBlue.png" class="demo-nutrient" draggable="true" data-nutrient="Blue" style="width: 28px; margin: 0 8px;">
                 <img src="/static/img/NutrYellow.png" class="demo-nutrient" draggable="true" data-nutrient="Yellow" style="width: 28px; margin: 0 8px;">
-                <img src="/static/img/NutrRed.png" class="demo-nutrient" draggable="true" data-nutrient="Red" style="width: 28px; margin: 0 8px;">
             </div>
         `;
         let slot = document.getElementById('demo-slot');
@@ -454,8 +454,8 @@ window.getCSRFToken = function() {
             img.style.width = '24px';
             img.style.height = '24px';
             slot.appendChild(img);
-            // Check if both Blue and Red are present
-            if (nutrients.includes('Blue') && nutrients.includes('Red')) {
+            // Check if both Yellow and Red are present
+            if (nutrients.includes('Yellow') && nutrients.includes('Red')) {
                 slides[2].nextEnabled = true;
                 const nextBtn = document.querySelector('.next-btn');
                 if (nextBtn) {
@@ -474,7 +474,7 @@ window.getCSRFToken = function() {
         // Enable Next if state is already correct
         const nextBtn = document.querySelector('.next-btn');
         if (nextBtn) {
-            if (nutrients.includes('Blue') && nutrients.includes('Red')) {
+            if (nutrients.includes('Yellow') && nutrients.includes('Red')) {
                 nextBtn.disabled = false;
                 nextBtn.style.display = '';
             } else {

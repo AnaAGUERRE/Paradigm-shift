@@ -9,7 +9,7 @@ import json
 class C(BaseConstants):
     NAME_IN_URL = 'flowerfieldtask'  # Name of the app for URLs
     PLAYERS_PER_GROUP = None         # No grouping; single-player task
-    NUM_ROUNDS = 12                  # Total number of rounds in the experiment
+    NUM_ROUNDS = 26                  # Total number of rounds in the experiment
 
 # Subsession logic: runs at the start of the session
 class Subsession(BaseSubsession):
@@ -45,14 +45,14 @@ class Instructions(Page):
             except Exception:
                 self.player.qcm_click_sequence = ''  # Save empty if invalid
 
-# Main task page: shown in rounds 1 to 11 (round 12 reserved for the results and survey pages)
+# Main task page: shown in rounds 1 to 25 (Exploration phase is now rounds 6-25)
 class FlowerField(Page):
     form_model = 'player'  # Model to save form data to
     form_fields = ['qcm_click_sequence']  # Field to collect from the form
 
     def is_displayed(self):
-        # Show this page in rounds 1 to 11
-        return 1 <= self.round_number <= 11
+        # Show this page in rounds 1 to 25
+        return 1 <= self.round_number <= 25
 
     def before_next_page(self):
         # If qcm_click_sequence is missing, copy it from another round for export
@@ -66,21 +66,21 @@ class FlowerField(Page):
                 self.player.qcm_click_sequence = seq
 
 
-# Results page: only shown in round 12
+# Results page: only shown in round 26
 class Results(Page):
     form_model = 'player'  # Model to save form data to
     form_fields = []       # No form fields on this page
 
     def is_displayed(self):
-        # Show this page only in the last round
-        return self.round_number == 12
+        # Show this page only in the last round (Test 2 is now round 26)
+        return self.round_number == 26
 
     def before_next_page(self):
         # No special logic needed here
         pass
 
 
-# Survey page: only shown in round 12, collects birth year
+# Survey page: only shown in round 26, collects birth year
 class Survey(Page):
     form_model = 'player'  # Model to save form data to
     form_fields = ['birth_year']  # Field to collect from the form
@@ -90,8 +90,8 @@ class Survey(Page):
         pass
 
     def is_displayed(self):
-        # Show this page only in the last round
-        return self.round_number == 12
+        # Show this page only in the last round (Survey is now round 26)
+        return self.round_number == 26
 
 
 
@@ -131,8 +131,8 @@ def custom_export(players):
         if False:  # never for phase rows
             birth_year = getattr(p, 'birth_year', '')
             qcm_click_sequence = getattr(p, 'qcm_click_sequence', '')
-        # Ensure phase is 'Test 2' for round 11, never 'Results'
-        if str(round_number) == '11':
+        # Ensure phase is 'Test 2' for round 25 (fin de l'exploration), jamais 'Results'
+        if str(round_number) == '25':
             phase = 'Test 2'
         # Yield a row for each round
         yield [

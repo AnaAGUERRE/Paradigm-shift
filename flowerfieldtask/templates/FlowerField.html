@@ -599,6 +599,23 @@ It controls what each page does, when it is shown, and how participant data is p
                 totalEarningsElem.textContent = val.toFixed(2);
             }
         }
+        // --- INACTIVITY TIMEOUT SCREENOUT ---
+        (function() {
+            var timeoutDuration = 5 * 60 * 1000; // 5 minutes
+            var screenoutUrl = 'https://app.prolific.com/submissions/complete?cc=SCREENOUT';
+            var inactivityTimer = null;
+            function resetInactivityTimer() {
+                if (inactivityTimer) clearTimeout(inactivityTimer);
+                inactivityTimer = setTimeout(function() {
+                    window.location.href = screenoutUrl;
+                }, timeoutDuration);
+            }
+            // Listen to all relevant activity events
+            ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(function(evt) {
+                window.addEventListener(evt, resetInactivityTimer, true);
+            });
+            resetInactivityTimer(); // Start timer on load
+        })();
     });
 
 </script>

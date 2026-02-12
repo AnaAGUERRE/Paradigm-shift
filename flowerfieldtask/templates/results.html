@@ -51,21 +51,23 @@ It summarizes their performance, provides feedback, and gives a final message wi
         <div style="font-size:1.05em; color:#333;">{{ test2_result.feedback }}</div>
     </div>
     {% endif %}
-    <div class="survey-container" style="max-width: 700px; margin: 40px auto; padding: 30px; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.07);">
+     <div class="survey-container" style="max-width: 700px; margin: 40px auto; padding: 30px; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.07);">
         <h2>Results</h2>
         <p>Thank you for participating in this experiment</p>
         {% if total_earnings %}
         <p><b>Current total is <span style="font-size: 1.2em;">£{{ total_earnings }}</span></b></p>
-        {% endif %}
-        <p>Click on the following button to complete the study and go back to Prolific.</p>
-        {% if treatment == 'anomaly ct' %}
-            <a href="https://app.prolific.com/submissions/complete?cc=C104QC2U" class="otree-btn-next btn btn-primary">Return to the website</a>
-        {% elif treatment == 'no anomaly ct' %}
-            <a href="https://app.prolific.com/submissions/complete?cc=CNVXUTM1" class="otree-btn-next btn btn-primary">Return to the website</a>
-        {% elif treatment == 'anomaly no ct' %}
-            <a href="https://app.prolific.com/submissions/complete?cc=CKXRTMB9" class="otree-btn-next btn btn-primary">Return to the website</a>
+    {% endif %}
+         <p>Click on the following button to complete the study and go back to Prolific.</p>
+        {% if treatment == "Anomaly CT" %}
+            <a href="https://app.prolific.com/submissions/complete?cc=ANOMALY_CT_CODE" class="otree-btn-next btn btn-primary">Return to Prolific (Anomaly CT)</a>
+        {% elif treatment == "Anomaly no CT" %}
+            <a href="https://app.prolific.com/submissions/complete?cc=ANOMALY_NO_CT_CODE" class="otree-btn-next btn btn-primary">Return to Prolific (Anomaly no CT)</a>
+        {% elif treatment == "No anomaly CT" %}
+            <a href="https://app.prolific.com/submissions/complete?cc=NO_ANOMALY_CT_CODE" class="otree-btn-next btn btn-primary">Return to Prolific (No anomaly CT)</a>
+        {% elif treatment == "No anomaly no CT" %}
+            <a href="https://app.prolific.com/submissions/complete?cc=NO_ANOMALY_NO_CT_CODE" class="otree-btn-next btn btn-primary">Return to Prolific (No anomaly no CT)</a>
         {% else %}
-            <a href="#" class="otree-btn-next btn btn-primary">Return to the website</a>
+            <a href="https://app.prolific.com/submissions/complete?cc=C104QC2U" class="otree-btn-next btn btn-primary">Return to the website</a>
         {% endif %}
-    </div>
+     </div>
 {% endblock %}

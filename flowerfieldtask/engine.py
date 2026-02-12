@@ -40,51 +40,51 @@ def run_engine(nutrient_choices, flower_colors=None, scoring_system='anomaly'):
 
 def calculate_growth(nutrients):
 
-    # NORMAL Scoring Rules:
-    # - 2x Blue → 100% (1.0)
-    # - Blue + Yellow (either order) → 80% (0.8)
-    # - Blue + Red (either order) → 80% (0.8)
-    # - 2x Yellow → 60% (0.6)
-    # - Yellow + Red (either order) → 60% (0.6)
-    # - 2x Red → 60% (0.6)
-    # - Only Blue  → 50% (0.5)
-    # - Only Yellow  → 30% (0.3)
-    # - Only Red  → 30% (0.3)
+    # NOUVELLES RÈGLES :
+    # - 2x Yellow → 100% (1.0)
+    # - Yellow + Blue (either order) → 0.8
+    # - Yellow + Red (either order) → 0.8
+    # - 2x Blue → 60% (0.6)
+    # - Blue + Red (either order) → 0.6
+    # - 2x Red → 0.6
+    # - Only Yellow → 0.5
+    # - Only Blue → 0.3
+    # - Only Red → 0.3
 
     # Extract nutrients, handle missing values
     n1 = nutrients[0] if len(nutrients) > 0 else ''
     n2 = nutrients[1] if len(nutrients) > 1 else ''
 
-    # Case: Two nutrients
+    # Cas : Deux nutriments
     if n1 and n2:
-        if n1 == 'Blue' and n2 == 'Blue':
-            return 1.0
-        if (n1 == 'Blue' and n2 == 'Yellow') or (n1 == 'Yellow' and n2 == 'Blue'):
-            return 0.8
-        if (n1 == 'Blue' and n2 == 'Red') or (n1 == 'Red' and n2 == 'Blue'):
-            return 0.8
         if n1 == 'Yellow' and n2 == 'Yellow':
-            return 0.6
+            return 1.0
+        if (n1 == 'Yellow' and n2 == 'Blue') or (n1 == 'Blue' and n2 == 'Yellow'):
+            return 0.8
         if (n1 == 'Yellow' and n2 == 'Red') or (n1 == 'Red' and n2 == 'Yellow'):
+            return 0.8
+        if n1 == 'Blue' and n2 == 'Blue':
+            return 0.6
+        if (n1 == 'Blue' and n2 == 'Red') or (n1 == 'Red' and n2 == 'Blue'):
             return 0.6
         if n1 == 'Red' and n2 == 'Red':
             return 0.6
-    # Case: Only one nutrient
+    # Cas : Un seul nutriment
     if n1 and not n2:
-        if n1 == 'Blue':
-            return 0.5
         if n1 == 'Yellow':
+            return 0.5
+        if n1 == 'Blue':
             return 0.3
         if n1 == 'Red':
             return 0.3
     if n2 and not n1:
-        if n2 == 'Blue':
-            return 0.5
         if n2 == 'Yellow':
+            return 0.5
+        if n2 == 'Blue':
             return 0.3
         if n2 == 'Red':
             return 0.3
-    # Case: No valid nutrients (However, the round cannot be submitted if there is not at least one nutrient per flower)
+    # Cas : Aucun nutriment valide
     return 0.0
 
 # Converts growth percentage to pennies for payment, format 'Xp'.

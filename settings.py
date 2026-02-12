@@ -73,7 +73,14 @@ SESSION_CONFIG_DEFAULTS = dict(
 
 PARTICIPANT_FIELDS = ['total_earnings']  # Custom fields for each participant
 SESSION_FIELDS = []                      # Custom fields for each session
-ROOMS = []                               # List of rooms (if used)
+ROOMS = [
+    dict(name='room1', display_name='Room 1'),
+    dict(name='room2', display_name='Room 2'),
+    dict(name='room3', display_name='Room 3'),
+    dict(name='room4', display_name='Room 4'),
+    dict(name='room5', display_name='Room 5'),
+    dict(name='room6', display_name='Room 6'),
+]
 
 LANGUAGE_CODE = 'en'                     # Language for experiment
 REAL_WORLD_CURRENCY_CODE = 'GBP'         # Currency code

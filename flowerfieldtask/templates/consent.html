@@ -64,20 +64,39 @@
         <a href="https://app.prolific.com/submissions/complete?cc=SCREENOUT" class="btn btn-primary" style="margin-top:18px;">Go to Prolific now</a>
     </div>
     <script>
-    document.getElementById('consent-form').addEventListener('submit', function(e) {
-        var radios = document.querySelectorAll('input[name="consent_given"]');
-        var selected = '';
-        for (var i = 0; i < radios.length; i++) {
-            if (radios[i].checked) selected = radios[i].value;
+    document.addEventListener('DOMContentLoaded', function() {
+        var consentForm = document.getElementById('consent-form');
+        if (consentForm) {
+            consentForm.addEventListener('submit', function(e) {
+                var radios = document.querySelectorAll('input[name="consent_given"]');
+                var selected = '';
+                for (var i = 0; i < radios.length; i++) {
+                    if (radios[i].checked) selected = radios[i].value;
+                }
+                if (selected === 'no') {
+                    e.preventDefault();
+                    consentForm.style.display = 'none';
+                    document.getElementById('screenout-message').style.display = '';
+                    setTimeout(function() {
+                        window.location.href = 'https://app.prolific.com/submissions/complete?cc=SCREENOUT';
+                    }, 3500);
+                }
+            });
         }
-        if (selected === 'no') {
-            e.preventDefault();
-            document.getElementById('consent-form').style.display = 'none';
-            document.getElementById('screenout-message').style.display = '';
-            setTimeout(function() {
-                window.location.href = 'https://app.prolific.com/submissions/complete?cc=SCREENOUT';
-            }, 3500);
+        // --- INACTIVITY TIMEOUT SCREENOUT ---
+        var timeoutDuration = 5 *60 * 1000; // 5 minutes
+        var screenoutUrl = 'https://app.prolific.com/submissions/complete?cc=SCREENOUT';
+        var inactivityTimer = null;
+        function resetInactivityTimer() {
+            if (inactivityTimer) clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(function() {
+                window.location.href = screenoutUrl;
+            }, timeoutDuration);
         }
+        ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(function(evt) {
+            window.addEventListener(evt, resetInactivityTimer, true);
+        });
+        resetInactivityTimer();
     });
     </script>
 </div>

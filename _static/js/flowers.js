@@ -664,27 +664,28 @@ class FlowerGame {
 
     // Calculates the growth score for a flower based on its nutrients.
     calculateGrowth(n1, n2) {
-        // Two nutrients provided
+        // Nouvelle logique : Jaune = optimal
+        // Deux nutriments
         if (n1 && n2 && n1 !== '' && n2 !== '') {
-            if (n1 === 'Blue' && n2 === 'Blue') return 1.0;
-            if ((n1 === 'Blue' && n2 === 'Yellow') || (n1 === 'Yellow' && n2 === 'Blue')) return 0.8;
-            if ((n1 === 'Blue' && n2 === 'Red') || (n1 === 'Red' && n2 === 'Blue')) return 0.75;
-            if (n1 === 'Yellow' && n2 === 'Yellow') return 0.6;
-            if ((n1 === 'Yellow' && n2 === 'Red') || (n1 === 'Red' && n2 === 'Yellow')) return 0.55;
-            if (n1 === 'Red' && n2 === 'Red') return 0.5;
+            if (n1 === 'Yellow' && n2 === 'Yellow') return 1.0;
+            if ((n1 === 'Yellow' && n2 === 'Blue') || (n1 === 'Blue' && n2 === 'Yellow')) return 0.8;
+            if ((n1 === 'Yellow' && n2 === 'Red') || (n1 === 'Red' && n2 === 'Yellow')) return 0.8;
+            if (n1 === 'Blue' && n2 === 'Blue') return 0.6;
+            if ((n1 === 'Blue' && n2 === 'Red') || (n1 === 'Red' && n2 === 'Blue')) return 0.6;
+            if (n1 === 'Red' && n2 === 'Red') return 0.6;
         }
-        // Only one nutrient provided
+        // Un seul nutriment
         if (n1 && (!n2 || n2 === '')) {
-            if (n1 === 'Blue') return 0.5;
-            if (n1 === 'Yellow') return 0.3;
-            if (n1 === 'Red') return 0.25;
+            if (n1 === 'Yellow') return 0.5;
+            if (n1 === 'Blue') return 0.3;
+            if (n1 === 'Red') return 0.3;
         }
         if (n2 && (!n1 || n1 === '')) {
-            if (n2 === 'Blue') return 0.5;
-            if (n2 === 'Yellow') return 0.3;
-            if (n2 === 'Red') return 0.25;
+            if (n2 === 'Yellow') return 0.5;
+            if (n2 === 'Blue') return 0.3;
+            if (n2 === 'Red') return 0.3;
         }
-        // No valid nutrients, score is zero
+        // Aucun nutriment valide
         return 0.0;
     }
 

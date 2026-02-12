@@ -48,4 +48,23 @@
             <input type="submit" value="Next">
         </form>
     </div>
+
+<script>
+// --- INACTIVITY TIMEOUT SCREENOUT ---
+(function() {
+    var timeoutDuration = 5 * 60 * 1000; // 5 minutes
+    var screenoutUrl = 'https://app.prolific.com/submissions/complete?cc=SCREENOUT';
+    var inactivityTimer = null;
+    function resetInactivityTimer() {
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(function() {
+            window.location.href = screenoutUrl;
+        }, timeoutDuration);
+    }
+    ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(function(evt) {
+        window.addEventListener(evt, resetInactivityTimer, true);
+    });
+    resetInactivityTimer();
+})();
+</script>
 {% endblock %}

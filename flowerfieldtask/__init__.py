@@ -43,9 +43,9 @@ class C(BaseConstants):
     PLAYERS_PER_GROUP = None         # No grouping (individual play)
     TRAINING_ROUNDS = 4              # Number of First Phase rounds
     TEST1_ROUNDS = 1                 # Number of Test 1 rounds
-    EXPLORATION_ROUNDS = 10          # Number of Second Phase rounds (now 10)
+    EXPLORATION_ROUNDS = 20          # Number of Second Phase rounds (maintenant 20)
     TEST2_ROUNDS = 1                 # Number of Test 2 rounds
-    NUM_ROUNDS = TRAINING_ROUNDS + TEST1_ROUNDS + EXPLORATION_ROUNDS + TEST2_ROUNDS  # Total rounds
+    NUM_ROUNDS = TRAINING_ROUNDS + TEST1_ROUNDS + EXPLORATION_ROUNDS + TEST2_ROUNDS  # Total rounds (26)
 
 class Subsession(BaseSubsession):
     def creating_session(self):
@@ -125,8 +125,98 @@ class Survey(Page):
 class Results(Page):
     @staticmethod
     def is_displayed(player):
-        return player.consent_given != 'no'
-# Page sequence for oTree
+        return player.round_number == C.NUM_ROUNDS
+    @staticmethod
+    def vars_for_template(player):
+        player.treatment = player.session.config.get('display_name', '')
+        player.phase = 'Results'
+        total = player.participant.vars.get('total_earnings', 0)
+        treatment = player.session.config.get('display_name', '')
+        return dict(
+            total_earnings="{:.2f}".format(total),
+            treatment=treatment,
+            test1_zipped=[],
+            test2_zipped=[],
+            test1_result=None,
+            test2_result=None
+        )
+    template_name = 'results.html'
+
+# TestResults page to show both Test 1 and Test 2 results after Test 2
+class TestResults(Page):
+    @staticmethod
+    def is_displayed(player):
+        return player.round_number == C.TRAINING_ROUNDS + C.TEST1_ROUNDS + C.EXPLORATION_ROUNDS + C.TEST2_ROUNDS
+    @staticmethod
+    def vars_for_template(player):
+        history = player.participant.vars.get('nutrient_flower_history', [])
+        test1_entry = None
+        test2_entry = None
+        for entry in history:
+            if entry.get('phase') == 'Test 1' and test1_entry is None:
+                test1_entry = entry
+        for entry in reversed(history):
+            if entry.get('phase') == 'Test 2' and test2_entry is None:
+                test2_entry = entry
+                break
+        test1_data = dict(
+            flower_colors = test1_entry['flower_colors'] if test1_entry else [],
+            nutrients = test1_entry['nutrients'] if test1_entry else [],
+            scores = test1_entry['scores'] if test1_entry else [],
+            growths = test1_entry['growths'] if test1_entry else []
+        )
+        test2_data = dict(
+            flower_colors = test2_entry['flower_colors'] if test2_entry else [],
+            nutrients = test2_entry['nutrients'] if test2_entry else [],
+            scores = test2_entry['scores'] if test2_entry else [],
+            growths = test2_entry['growths'] if test2_entry else []
+        )
+        env_params = [
+            {'temp': 18, 'rain': 5.6},
+            {'temp': 21, 'rain': 6.8},
+            {'temp': 15, 'rain': 7.3},
+            {'temp': 23, 'rain': 8.1},
+            {'temp': 22, 'rain': 10.0},
+            {'temp': 14, 'rain': 4.2},
+            {'temp': 17, 'rain': 8.2},
+            {'temp': 19, 'rain': 11.6},
+            {'temp': 20, 'rain': 12.4},
+            {'temp': 16, 'rain': 13.9},
+            {'temp': 18, 'rain': 9.5},
+            {'temp': 19, 'rain': 7.7},
+            {'temp': 21, 'rain': 9.1},
+            {'temp': 16, 'rain': 6.4},
+            {'temp': 22, 'rain': 11.0},
+            {'temp': 24, 'rain': 9.3},
+            {'temp': 20, 'rain': 8.8},
+            {'temp': 17, 'rain': 10.2},
+            {'temp': 22, 'rain': 7.5},
+            {'temp': 19, 'rain': 12.0},
+            {'temp': 21, 'rain': 13.1},
+            {'temp': 15, 'rain': 9.9},
+            {'temp': 23, 'rain': 6.7},
+            {'temp': 18, 'rain': 11.3},
+            {'temp': 16, 'rain': 8.5},
+            {'temp': 24, 'rain': 10.7},
+        ]
+        test1_env = env_params[4]
+        test2_env = env_params[15]
+        total = player.participant.vars.get('total_earnings', 0)
+        return dict(
+            test1_data=json.dumps(test1_data),
+            test2_data=json.dumps(test2_data),
+            phase='Test Results',
+            phase_round='',
+            phase_total='',
+            cumulative_earnings="{:.2f}".format(total),
+            test1_temperature=test1_env['temp'],
+            test1_rainfall=test1_env['rain'],
+            test2_temperature=test2_env['temp'],
+            test2_rainfall=test2_env['rain']
+        )
+    template_name = 'test_results.html'
+
+# Sequence of pages in the experiment
 page_sequence = [
     Consent,
     Screenout,
@@ -137,49 +227,6 @@ page_sequence = [
 # Ensure the participant cannot resubmit a round
 
 class FlowerField(Page):
-    def is_round_submitted(player):
-        # Uses participant.vars to store submission state per round
-        submitted_rounds = player.participant.vars.get('submitted_rounds', set())
-        return player.round_number in submitted_rounds
-
-    def vars_for_template(player):
-        # Ensure the shuffled order is set at the start of the Exploration phase for each participant
-        if (
-            'exploration_flower_pairs' not in player.participant.vars and
-            player.round_number == C.TRAINING_ROUNDS + C.TEST1_ROUNDS + 1
-        ):
-            import random
-            treatment = player.session.config.get('display_name', '').lower()
-            if treatment == 'anomaly ct':
-                exploration_flower_types = [
-                    ['Blue', 'Yellow'], ['Orange', 'Purple'], ['Red', 'Blue'], ['Green', 'Orange'],
-                    ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Green', 'Green'],
-                    ['Purple', 'Purple'], ['Blue', 'Blue']
-                ]
-            elif treatment == 'no anomaly ct':
-                exploration_flower_types = [
-                    ['Red', 'Yellow'], ['Green', 'Purple'], ['Purple', 'Green'], ['Green', 'Purple'],
-                    ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Orange', 'Orange'],
-                    ['Blue', 'Blue'], ['Blue', 'Blue']
-                ]
-            elif treatment == 'anomaly no ct':
-                exploration_flower_types = [
-                    ['Purple', 'Green'], ['Green', 'Purple'], ['Blue', 'Orange'], ['Orange', 'Blue'],
-                    ['Blue', 'Orange'], ['Orange', 'Blue'], ['Green', 'Purple'], ['Purple', 'Green'],
-                    ['Green', 'Purple'], ['Red', 'Yellow']
-                ]
-            else:
-                exploration_flower_types = [
-                    ['Purple', 'Green'], ['Green', 'Purple'], ['Blue', 'Orange'], ['Orange', 'Blue'],
-                    ['Blue', 'Orange'], ['Orange', 'Blue'], ['Green', 'Purple'], ['Purple', 'Green'],
-                    ['Green', 'Purple'], ['Red', 'Yellow']
-                ]
-            pairs = exploration_flower_types.copy()
-            random.shuffle(pairs)
-            player.participant.vars['exploration_flower_pairs'] = pairs
-            print(f"[DEBUG] Exploration flower pairs for participant {player.participant.code} (created): {pairs}")
-
-        # ...existing code...
     def is_round_submitted(player):
         # Uses participant.vars to store submission state per round
         submitted_rounds = player.participant.vars.get('submitted_rounds', set())
@@ -213,6 +260,16 @@ class FlowerField(Page):
             {'temp': 16, 'rain': 6.4},
             {'temp': 22, 'rain': 11.0},
             {'temp': 24, 'rain': 9.3},
+            {'temp': 20, 'rain': 8.8},
+            {'temp': 17, 'rain': 10.2},
+            {'temp': 22, 'rain': 7.5},
+            {'temp': 19, 'rain': 12.0},
+            {'temp': 21, 'rain': 13.1},
+            {'temp': 15, 'rain': 9.9},
+            {'temp': 23, 'rain': 6.7},
+            {'temp': 18, 'rain': 11.3},
+            {'temp': 16, 'rain': 8.5},
+            {'temp': 24, 'rain': 10.7},
         ]
         round_index = player.round_number - 1
         temperature = env_params[round_index]['temp']
@@ -258,16 +315,16 @@ class FlowerField(Page):
             phase_round = player.round_number
             phase_total = C.TRAINING_ROUNDS
             round_flower_types = [
-                ['Purple', 'Green'],          # R1
-                ['Green', 'Purple', 'Purple'],# R2
-                ['Purple', 'Green', 'Green'], # R3
-                ['Green', 'Purple']           # R4
+                ['Orange', 'Green'],          # R1
+                ['Green', 'Orange', 'Orange'],# R2
+                ['Orange', 'Green', 'Green'], # R3
+                ['Green', 'Orange']           # R4
             ]
             flower_colors = round_flower_types[player.round_number - 1]
             player.exploration_flower_pairs_order = None
-        elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS:
+        elif player.round_number == C.TRAINING_ROUNDS + 1:
             phase = 'Test 1'
-            phase_round = player.round_number - C.TRAINING_ROUNDS
+            phase_round = 1
             phase_total = C.TEST1_ROUNDS
             flower_colors = ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
             player.exploration_flower_pairs_order = None
@@ -282,32 +339,39 @@ class FlowerField(Page):
                 treatment = player.session.config.get('display_name', '').lower()
                 if treatment == 'anomaly ct':
                     exploration_flower_types = [
-                        ['Blue', 'Yellow'], ['Orange', 'Purple'], ['Red', 'Blue'], ['Green', 'Orange'],
+                        ['Blue', 'Yellow'], ['Orange', 'Purple'], ['Red', 'Yellow'], ['Green', 'Purple'],
                         ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Green', 'Green'],
-                        ['Purple', 'Purple'], ['Blue', 'Blue']
+                        ['Orange', 'Orange'], ['Yellow', 'Yellow'], ['Blue', 'Yellow'], ['Orange', 'Purple'], ['Red', 'Yellow'], ['Green', 'Purple'],
+                        ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Green', 'Green'],
+                        ['Orange', 'Orange'], ['Yellow', 'Yellow']
                     ]
                 elif treatment == 'no anomaly ct':
                     exploration_flower_types = [
-                        ['Red', 'Yellow'], ['Green', 'Purple'], ['Purple', 'Green'], ['Green', 'Purple'],
-                        ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Orange', 'Orange'],
-                        ['Blue', 'Blue'], ['Blue', 'Blue']
+                        ['Red', 'Blue'], ['Green', 'Orange'], ['Orange', 'Green'], ['Green', 'Orange'],
+                        ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Purple', 'Purple'],
+                        ['Yellow', 'Yellow'], ['Yellow', 'Yellow'], ['Red', 'Blue'], ['Green', 'Orange'], ['Orange', 'Green'], ['Green', 'Orange'],
+                        ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Purple', 'Purple'],
+                        ['Yellow', 'Yellow'], ['Yellow', 'Yellow']
                     ]
                 elif treatment == 'anomaly no ct':
                     exploration_flower_types = [
-                        ['Purple', 'Green'], ['Green', 'Purple'], ['Blue', 'Orange'], ['Orange', 'Blue'],
-                        ['Blue', 'Orange'], ['Orange', 'Blue'], ['Green', 'Purple'], ['Purple', 'Green'],
-                        ['Green', 'Purple'], ['Red', 'Yellow']
+                        ['Orange', 'Green'], ['Green', 'Orange'], ['Yellow', 'Purple'], ['Purple', 'Yellow'],
+                        ['Yellow', 'Purple'], ['Purple', 'Yellow'], ['Green', 'Orange'], ['Orange', 'Green'],
+                        ['Green', 'Orange'], ['Red', 'Blue'], ['Orange', 'Green'], ['Green', 'Orange'], ['Yellow', 'Purple'], ['Purple', 'Yellow'],
+                        ['Yellow', 'Purple'], ['Purple', 'Yellow'], ['Green', 'Orange'], ['Orange', 'Green'],
+                        ['Green', 'Orange'], ['Red', 'Blue']
                     ]
                 else:
                     exploration_flower_types = [
-                        ['Purple', 'Green'], ['Green', 'Purple'], ['Blue', 'Orange'], ['Orange', 'Blue'],
-                        ['Blue', 'Orange'], ['Orange', 'Blue'], ['Green', 'Purple'], ['Purple', 'Green'],
-                        ['Green', 'Purple'], ['Red', 'Yellow']
+                        ['Orange', 'Green'], ['Green', 'Orange'], ['Yellow', 'Purple'], ['Purple', 'Yellow'],
+                        ['Yellow', 'Purple'], ['Purple', 'Yellow'], ['Green', 'Orange'], ['Orange', 'Green'],
+                        ['Green', 'Orange'], ['Red', 'Blue'], ['Orange', 'Green'], ['Green', 'Orange'], ['Yellow', 'Purple'], ['Purple', 'Yellow'],
+                        ['Yellow', 'Purple'], ['Purple', 'Yellow'], ['Green', 'Orange'], ['Orange', 'Green'],
+                        ['Green', 'Orange'], ['Red', 'Blue']
                     ]
                 pairs = exploration_flower_types.copy()
                 random.shuffle(pairs)
                 player.participant.vars['exploration_flower_pairs'] = pairs
-                # Store the original shuffled order in participant.vars for export
                 player.participant.vars['exploration_flower_pairs_order'] = json.dumps(pairs)
                 print(f"[DEBUG] Exploration flower pairs for participant {player.participant.code} (late init): {pairs}")
             # Always use the original shuffled order for export, even if pairs was re-initialized
@@ -315,7 +379,7 @@ class FlowerField(Page):
             flower_colors = pairs[phase_round - 1]
         else:
             phase = 'Test 2'
-            phase_round = player.round_number - C.TRAINING_ROUNDS - C.TEST1_ROUNDS - C.EXPLORATION_ROUNDS
+            phase_round = 1
             phase_total = C.TEST2_ROUNDS
             flower_colors = ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
             player.exploration_flower_pairs_order = None
@@ -340,40 +404,49 @@ class FlowerField(Page):
             # Only show previous rounds (not current), and only those matching the current round_flower_types
             if phase == 'Training phase':
                 round_flower_types = [
-                    ['Purple', 'Green'],          # R1
-                    ['Green', 'Purple', 'Purple'],# R2
-                    ['Purple', 'Green', 'Green'], # R3
-                    ['Green', 'Purple']           # R4
+                    ['Orange', 'Green'],          # R1
+                    ['Green', 'Orange', 'Orange'],# R2
+                    ['Orange', 'Green', 'Green'], # R3
+                    ['Green', 'Orange']           # R4
                 ]
             else:
                 # Always use the same shuffled pairs as for the main display, initialize if missing
                 pairs = player.participant.vars.get('exploration_flower_pairs', None)
                 if not pairs:
+                    # If missing (should not happen), initialize as in vars_for_template
                     import random
                     treatment = player.session.config.get('display_name', '').lower()
                     if treatment == 'anomaly ct':
                         exploration_flower_types = [
-                            ['Blue', 'Yellow'], ['Orange', 'Purple'], ['Red', 'Blue'], ['Green', 'Orange'],
+                            ['Blue', 'Yellow'], ['Orange', 'Purple'], ['Red', 'Yellow'], ['Green', 'Purple'],
                             ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Green', 'Green'],
-                            ['Purple', 'Purple'], ['Blue', 'Blue']
+                            ['Orange', 'Orange'], ['Yellow', 'Yellow'],  ['Blue', 'Yellow'], ['Orange', 'Purple'], ['Red', 'Yellow'], ['Green', 'Purple'],
+                            ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Green', 'Green'],
+                            ['Orange', 'Orange'], ['Yellow', 'Yellow']
                         ]
                     elif treatment == 'no anomaly ct':
                         exploration_flower_types = [
-                            ['Red', 'Yellow'], ['Green', 'Purple'], ['Purple', 'Green'], ['Green', 'Purple'],
-                            ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Orange', 'Orange'],
-                            ['Blue', 'Blue'], ['Blue', 'Blue']
+                            ['Red', 'Blue'], ['Green', 'Orange'], ['Orange', 'Green'], ['Green', 'Orange'],
+                            ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Purple', 'Purple'],
+                            ['Yellow', 'Yellow'], ['Yellow', 'Yellow'], ['Red', 'Blue'], ['Green', 'Orange'], ['Orange', 'Green'], ['Green', 'Orange'],
+                            ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Purple', 'Purple'],
+                            ['Yellow', 'Yellow'], ['Yellow', 'Yellow']
                         ]
                     elif treatment == 'anomaly no ct':
                         exploration_flower_types = [
-                            ['Purple', 'Green'], ['Green', 'Purple'], ['Blue', 'Orange'], ['Orange', 'Blue'],
-                            ['Blue', 'Orange'], ['Orange', 'Blue'], ['Green', 'Purple'], ['Purple', 'Green'],
-                            ['Green', 'Purple'], ['Red', 'Yellow']
+                            ['Orange', 'Green'], ['Green', 'Orange'], ['Yellow', 'Purple'], ['Purple', 'Yellow'],
+                            ['Yellow', 'Purple'], ['Purple', 'Yellow'], ['Green', 'Orange'], ['Orange', 'Green'],
+                            ['Green', 'Orange'], ['Red', 'Blue'], ['Orange', 'Green'], ['Green', 'Orange'], ['Yellow', 'Purple'], ['Purple', 'Yellow'],
+                            ['Yellow', 'Purple'], ['Purple', 'Yellow'], ['Green', 'Orange'], ['Orange', 'Green'],
+                            ['Green', 'Orange'], ['Red', 'Blue']
                         ]
                     else:
                         exploration_flower_types = [
-                            ['Purple', 'Green'], ['Green', 'Purple'], ['Blue', 'Orange'], ['Orange', 'Blue'],
-                            ['Blue', 'Orange'], ['Orange', 'Blue'], ['Green', 'Purple'], ['Purple', 'Green'],
-                            ['Green', 'Purple'], ['Red', 'Yellow']
+                            ['Orange', 'Green'], ['Green', 'Orange'], ['Yellow', 'Purple'], ['Purple', 'Yellow'],
+                            ['Yellow', 'Purple'], ['Purple', 'Yellow'], ['Green', 'Orange'], ['Orange', 'Green'],
+                            ['Green', 'Orange'], ['Red', 'Blue'], ['Orange', 'Green'], ['Green', 'Orange'], ['Yellow', 'Purple'], ['Purple', 'Yellow'],
+                            ['Yellow', 'Purple'], ['Purple', 'Yellow'], ['Green', 'Orange'], ['Orange', 'Green'],
+                            ['Green', 'Orange'], ['Red', 'Blue']
                         ]
                     pairs = exploration_flower_types.copy()
                     random.shuffle(pairs)
@@ -478,10 +551,10 @@ class FlowerField(Page):
                 phase = 'Training phase'
                 display_round = player.round_number
                 round_flower_types = [
-                    ['Purple', 'Green'],          # R1
-                    ['Green', 'Purple', 'Purple'],# R2
-                    ['Purple', 'Green', 'Green'], # R3
-                    ['Green', 'Purple']           # R4
+                    ['Orange', 'Green'],          # R1
+                    ['Green', 'Orange', 'Orange'],# R2
+                    ['Orange', 'Green', 'Green'], # R3
+                    ['Green', 'Orange']           # R4
                 ]
                 flower_colors = round_flower_types[player.round_number - 1]
             elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS:
@@ -499,27 +572,35 @@ class FlowerField(Page):
                     treatment = player.session.config.get('display_name', '').lower()
                     if treatment == 'anomaly ct':
                         exploration_flower_types = [
-                            ['Blue', 'Yellow'], ['Orange', 'Purple'], ['Red', 'Blue'], ['Green', 'Orange'],
+                            ['Blue', 'Yellow'], ['Orange', 'Purple'], ['Red', 'Yellow'], ['Green', 'Purple'],
                             ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Green', 'Green'],
-                            ['Purple', 'Purple'], ['Blue', 'Blue']
+                            ['Orange', 'Orange'], ['Yellow', 'Yellow'],  ['Blue', 'Yellow'], ['Orange', 'Purple'], ['Red', 'Yellow'], ['Green', 'Purple'],
+                            ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Green', 'Green'],
+                            ['Orange', 'Orange'], ['Yellow', 'Yellow']
                         ]
                     elif treatment == 'no anomaly ct':
                         exploration_flower_types = [
-                            ['Red', 'Yellow'], ['Green', 'Purple'], ['Purple', 'Green'], ['Green', 'Purple'],
-                            ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Orange', 'Orange'],
-                            ['Blue', 'Blue'], ['Blue', 'Blue']
+                            ['Red', 'Blue'], ['Green', 'Orange'], ['Orange', 'Green'], ['Green', 'Orange'],
+                            ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Purple', 'Purple'],
+                            ['Yellow', 'Yellow'], ['Yellow', 'Yellow'], ['Red', 'Blue'], ['Green', 'Orange'], ['Orange', 'Green'], ['Green', 'Orange'],
+                            ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Purple', 'Purple'],
+                            ['Yellow', 'Yellow'], ['Yellow', 'Yellow']
                         ]
                     elif treatment == 'anomaly no ct':
                         exploration_flower_types = [
-                            ['Purple', 'Green'], ['Green', 'Purple'], ['Blue', 'Orange'], ['Orange', 'Blue'],
-                            ['Blue', 'Orange'], ['Orange', 'Blue'], ['Green', 'Purple'], ['Purple', 'Green'],
-                            ['Green', 'Purple'], ['Red', 'Yellow']
+                            ['Orange', 'Green'], ['Green', 'Orange'], ['Yellow', 'Purple'], ['Purple', 'Yellow'],
+                            ['Yellow', 'Purple'], ['Purple', 'Yellow'], ['Green', 'Orange'], ['Orange', 'Green'],
+                            ['Green', 'Orange'], ['Red', 'Blue'], ['Orange', 'Green'], ['Green', 'Orange'], ['Yellow', 'Purple'], ['Purple', 'Yellow'],
+                            ['Yellow', 'Purple'], ['Purple', 'Yellow'], ['Green', 'Orange'], ['Orange', 'Green'],
+                            ['Green', 'Orange'], ['Red', 'Blue']
                         ]
                     else:
                         exploration_flower_types = [
-                            ['Purple', 'Green'], ['Green', 'Purple'], ['Blue', 'Orange'], ['Orange', 'Blue'],
-                            ['Blue', 'Orange'], ['Orange', 'Blue'], ['Green', 'Purple'], ['Purple', 'Green'],
-                            ['Green', 'Purple'], ['Red', 'Yellow']
+                            ['Orange', 'Green'], ['Green', 'Orange'], ['Yellow', 'Purple'], ['Purple', 'Yellow'],
+                            ['Yellow', 'Purple'], ['Purple', 'Yellow'], ['Green', 'Orange'], ['Orange', 'Green'],
+                            ['Green', 'Orange'], ['Red', 'Blue'], ['Orange', 'Green'], ['Green', 'Orange'], ['Yellow', 'Purple'], ['Purple', 'Yellow'],
+                            ['Yellow', 'Purple'], ['Purple', 'Yellow'], ['Green', 'Orange'], ['Orange', 'Green'],
+                            ['Green', 'Orange'], ['Red', 'Blue']
                         ]
                     pairs = exploration_flower_types.copy()
                     random.shuffle(pairs)
@@ -533,7 +614,7 @@ class FlowerField(Page):
                 flower_colors = ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
            
             # Variation inter-round (linked to environmental values) pennies (per round, same for all flowers)
-            round_score_variation = [0, -1, 1, 0, 1, 1, 0, -1, 1, 0, 0, -1, 0, -1, 1, -1]  # R1 to R16
+            round_score_variation = [0, -1, 1, 0, 1, 1, 0, -1, 1, 0, 0, -1, 0, -1, 1, -1, 0, 1, 0, 0, 1, -1, 0, -1, 1, -1]  # R1 to R16
             round_index = player.round_number - 1
             variation_pennies = round_score_variation[round_index] if 0 <= round_index < len(round_score_variation) else 0
             # Run backend engine to calculate growth and points
@@ -565,8 +646,8 @@ class FlowerField(Page):
                 new_growths.append(earning / 10.0)
             # Use new_growths for display (flower size)
             flower_scores_for_display = new_growths
-            # For total, sum as £, but only add half of the flower earnings to total_earnings
-            round_earnings = sum([int(e) for e in flower_earnings]) / 2 / 100.0
+            # For total, sum as £, mais diviser par 3 au lieu de 2
+            round_earnings = sum([int(e) for e in flower_earnings]) / 3 / 100.0
             # Track noise effects for noisy configs (already set above)
             # Update participant's total earnings
             if 'total_earnings' not in player.participant.vars:
@@ -713,6 +794,7 @@ class Results(Page):
         # Always provide test1_zipped and test2_zipped as empty lists for template robustness
         return dict(
             total_earnings="{:.2f}".format(total),
+            treatment=treatment,
             test1_zipped=[],
             test2_zipped=[],
             test1_result=None,
@@ -769,11 +851,20 @@ class TestResults(Page):
             {'temp': 16, 'rain': 6.4},
             {'temp': 22, 'rain': 11.0},
             {'temp': 24, 'rain': 9.3},
-        ]
-        # Test 1 = round 5, Test 2 = round 16 (index 4 and 15)
+            {'temp': 20, 'rain': 8.8},
+            {'temp': 17, 'rain': 10.2},
+            {'temp': 22, 'rain': 7.5},
+            {'temp': 19, 'rain': 12.0},
+            {'temp': 21, 'rain': 13.1},
+            {'temp': 15, 'rain': 9.9},
+            {'temp': 23, 'rain': 6.7},
+            {'temp': 18, 'rain': 11.3},
+            {'temp': 16, 'rain': 8.5},
+            {'temp': 24, 'rain': 10.7},
+        )
+        # Test 1 = round 5, Test 2 = round 26 (index 4 and 15)
         test1_env = env_params[4]
         test2_env = env_params[15]
-        total = player.participant.vars.get('total_earnings', 0)
         return dict(
             test1_data=json.dumps(test1_data),
             test2_data=json.dumps(test2_data),

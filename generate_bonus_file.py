@@ -3,26 +3,41 @@
 
 import csv
 
-# Input and output file names
+
+# Input file name
 INPUT_FILE = 'otree_exported_data.csv'  # oTree export
-OUTPUT_FILE = 'bonus_payments.csv'      # File for Prolific bonus upload
 
 # These are the relevant columns in your oTree export
 PID_COL = 'participant.label'           # Prolific PID (from participant_label)
 BONUS_COL = 'player.cumulative_earnings'  # Bonus amount (total earnings)
 
-# Read the oTree export and write the bonus file
-with open(INPUT_FILE, newline='', encoding='utf-8') as infile, open(OUTPUT_FILE, 'w', newline='', encoding='utf-8') as outfile:
+# Read the oTree export and write a bonus file per treatment
+from collections import defaultdict
+
+treatment_col = 'player.treatment'  # Change if your treatment column has a different name
+bonus_data = defaultdict(list)
+
+with open(INPUT_FILE, newline='', encoding='utf-8') as infile:
     reader = csv.DictReader(infile, delimiter=';')
-    writer = csv.writer(outfile)
-    writer.writerow(['Prolific PID', 'Bonus Amount'])
     seen = set()
     for row in reader:
         pid = row.get(PID_COL, '').strip()
         bonus = row.get(BONUS_COL, '').strip()
-        # Only one bonus per participant (take the last non-empty value)
-        if pid and pid not in seen and bonus:
-            writer.writerow([pid, bonus])
+        phase = row.get('player.phase', '').strip()
+        treatment = row.get(treatment_col, '').strip()
+        # Condition: 'Anomaly CT' uses 'Test 2', others use 'Results'
+        if not (pid and bonus and treatment):
+            continue
+        valid_phase = phase == 'Results'
+        if pid not in seen and valid_phase:
+            bonus_data[treatment].append((pid, bonus))
             seen.add(pid)
 
-print(f"Bonus file created: {OUTPUT_FILE}")
+# Write a separate file for each treatment
+for treatment, rows in bonus_data.items():
+    output_file = f'bonus_payments_{treatment}.csv'
+    with open(output_file, 'w', newline='', encoding='utf-8') as outfile:
+        writer = csv.writer(outfile)
+        writer.writerow(['Prolific PID', 'Bonus Amount'])
+        writer.writerows(rows)
+    print(f"Bonus file created: {output_file}")
