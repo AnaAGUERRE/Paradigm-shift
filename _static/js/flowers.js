@@ -85,14 +85,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             };
             var treatment = (window.js_vars && window.js_vars.treatment) ? window.js_vars.treatment : '';
-            var isSecondChain = (treatment === 'Transmission correct' || treatment === 'Transmission M&M');
+            var transmTreatments = [
+                'Transmission correct',
+                'Transmission M&M',
+                'Anomaly CT',
+                'Anomaly no CT',
+                'No anomaly CT'
+            ];
+            var isSecondChain = transmTreatments.includes(treatment);
             var imgSrc = isSecondChain
                 ? (window.static ? window.static('img/Transm.png') : '/static/img/Transm.png')
                 : (window.static ? window.static('img/NoTransm.png') : '/static/img/NoTransm.png');
             var extraImg = '';
             if (treatment === 'Transmission correct') {
                 extraImg = `<img src='${window.static ? window.static('img/TransCorr.png') : '/static/img/TransCorr.png'}' style='height:240px; margin-top:1.0em;'>`;
-            } else if (treatment === 'Transmission M&M') {
+            } else if (treatment === 'Transmission M&M' || treatment === 'Anomaly CT' || treatment === 'Anomaly no CT' || treatment === 'No anomaly CT') {
                 extraImg = `<img src='${window.static ? window.static('img/TransMM.png') : '/static/img/TransMM.png'}' style='height:240px; margin-top:1.0em;'>`;
             }
             var popupText = isSecondChain

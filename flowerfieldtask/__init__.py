@@ -41,7 +41,7 @@ class Consent(Page):
 class C(BaseConstants):
     NAME_IN_URL = 'flowerfieldtask'  # URL name for this app
     PLAYERS_PER_GROUP = None         # No grouping (individual play)
-    TRAINING_ROUNDS = 4              # Number of First Phase rounds
+    TRAINING_ROUNDS = 2              # Number of First Phase rounds
     TEST1_ROUNDS = 1                 # Number of Test 1 rounds
     EXPLORATION_ROUNDS = 20          # Number of Second Phase rounds (maintenant 20)
     TEST2_ROUNDS = 1                 # Number of Test 2 rounds
@@ -134,7 +134,7 @@ class Results(Page):
         treatment = player.session.config.get('display_name', '')
         return dict(
             total_earnings="{:.2f}".format(total),
-            treatment=treatment,
+            treatment=player.treatment,
             test1_zipped=[],
             test2_zipped=[],
             test1_result=None,
@@ -201,6 +201,7 @@ class TestResults(Page):
         ]
         test1_env = env_params[4]
         test2_env = env_params[15]
+        total = player.participant.vars.get('total_earnings', 0)
         total = player.participant.vars.get('total_earnings', 0)
         return dict(
             test1_data=json.dumps(test1_data),
@@ -294,19 +295,19 @@ class FlowerField(Page):
         player.cumulative_earnings = player.participant.vars.get('total_earnings', 0)
 
         # Determine phase and flower colors for this round
-        treatment = player.session.config.get('display_name', '').lower()
+        treatment = player.session.config.get('display_name', '')
 
         # Map new treatment names
-        if treatment == 'anomaly ct':
-            treatment_logic = 'anomaly ct'
-        elif treatment == 'no anomaly ct':
-            treatment_logic = 'no anomaly ct'
-        elif treatment == 'anomaly no ct':
-            treatment_logic = 'anomaly no ct'
-        elif treatment == 'anomaly noisy':
-            treatment_logic = 'anomaly ct'
-        elif treatment in ['transmission correct', 'transmission m&m']:
-            treatment_logic = 'anomaly ct'
+        if treatment == 'Anomaly CT':
+            treatment_logic = 'Anomaly CT'
+        elif treatment == 'No Anomaly CT':
+            treatment_logic = 'No Anomaly CT'
+        elif treatment == 'Anomaly No CT':
+            treatment_logic = 'Anomaly No CT'
+        elif treatment == 'Anomaly noisy':
+            treatment_logic = 'Anomaly CT'
+        elif treatment in ['Transmission correct', 'Transmission M&M']:
+            treatment_logic = 'Anomaly CT'
         else:
             treatment_logic = treatment
 
@@ -316,9 +317,7 @@ class FlowerField(Page):
             phase_total = C.TRAINING_ROUNDS
             round_flower_types = [
                 ['Orange', 'Green'],          # R1
-                ['Green', 'Orange', 'Orange'],# R2
-                ['Orange', 'Green', 'Green'], # R3
-                ['Green', 'Orange']           # R4
+                ['Green', 'Orange']           # R2
             ]
             flower_colors = round_flower_types[player.round_number - 1]
             player.exploration_flower_pairs_order = None
@@ -336,8 +335,8 @@ class FlowerField(Page):
             pairs = player.participant.vars.get('exploration_flower_pairs', None)
             if not pairs:
                 import random
-                treatment = player.session.config.get('display_name', '').lower()
-                if treatment == 'anomaly ct':
+                treatment = player.session.config.get('display_name', '')
+                if treatment == 'Anomaly CT':
                     exploration_flower_types = [
                         ['Blue', 'Yellow'], ['Orange', 'Purple'], ['Red', 'Yellow'], ['Green', 'Purple'],
                         ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Green', 'Green'],
@@ -345,7 +344,7 @@ class FlowerField(Page):
                         ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Green', 'Green'],
                         ['Orange', 'Orange'], ['Yellow', 'Yellow']
                     ]
-                elif treatment == 'no anomaly ct':
+                elif treatment == 'No Anomaly CT':
                     exploration_flower_types = [
                         ['Red', 'Blue'], ['Green', 'Orange'], ['Orange', 'Green'], ['Green', 'Orange'],
                         ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Purple', 'Purple'],
@@ -353,7 +352,7 @@ class FlowerField(Page):
                         ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Purple', 'Purple'],
                         ['Yellow', 'Yellow'], ['Yellow', 'Yellow']
                     ]
-                elif treatment == 'anomaly no ct':
+                elif treatment == 'Anomaly No CT':
                     exploration_flower_types = [
                         ['Orange', 'Green'], ['Green', 'Orange'], ['Yellow', 'Purple'], ['Purple', 'Yellow'],
                         ['Yellow', 'Purple'], ['Purple', 'Yellow'], ['Green', 'Orange'], ['Orange', 'Green'],
@@ -416,7 +415,7 @@ class FlowerField(Page):
                     # If missing (should not happen), initialize as in vars_for_template
                     import random
                     treatment = player.session.config.get('display_name', '').lower()
-                    if treatment == 'anomaly ct':
+                    if treatment == 'Anomaly CT':
                         exploration_flower_types = [
                             ['Blue', 'Yellow'], ['Orange', 'Purple'], ['Red', 'Yellow'], ['Green', 'Purple'],
                             ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Green', 'Green'],
@@ -424,7 +423,7 @@ class FlowerField(Page):
                             ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Green', 'Green'],
                             ['Orange', 'Orange'], ['Yellow', 'Yellow']
                         ]
-                    elif treatment == 'no anomaly ct':
+                    elif treatment == 'No Anomaly CT':
                         exploration_flower_types = [
                             ['Red', 'Blue'], ['Green', 'Orange'], ['Orange', 'Green'], ['Green', 'Orange'],
                             ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Purple', 'Purple'],
@@ -432,7 +431,7 @@ class FlowerField(Page):
                             ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Purple', 'Purple'],
                             ['Yellow', 'Yellow'], ['Yellow', 'Yellow']
                         ]
-                    elif treatment == 'anomaly no ct':
+                    elif treatment == 'Anomaly No CT':
                         exploration_flower_types = [
                             ['Orange', 'Green'], ['Green', 'Orange'], ['Yellow', 'Purple'], ['Purple', 'Yellow'],
                             ['Yellow', 'Purple'], ['Purple', 'Yellow'], ['Green', 'Orange'], ['Orange', 'Green'],
@@ -540,21 +539,17 @@ class FlowerField(Page):
             treatment = player.session.config.get('display_name', '').lower()
             # Map noisy and transmission treatments to their no-noise logic for flower sequences
             if treatment == 'anomaly noisy':
-                treatment_logic = 'anomaly no noise'
+                treatment_logic = 'Anomaly CT'
             elif treatment in ['transmission correct', 'transmission m&m']:
-                treatment_logic = 'anomaly no noise'
-            elif treatment == 'no anomaly no noise':
-                treatment_logic = 'no anomaly no noise'
+                treatment_logic = 'Anomaly CT'
             else:
                 treatment_logic = treatment
             if player.round_number <= C.TRAINING_ROUNDS:
                 phase = 'Training phase'
                 display_round = player.round_number
                 round_flower_types = [
-                    ['Orange', 'Green'],          # R1
-                    ['Green', 'Orange', 'Orange'],# R2
-                    ['Orange', 'Green', 'Green'], # R3
-                    ['Green', 'Orange']           # R4
+                    ['Orange', 'Green'],   # R1
+                    ['Green', 'Orange'],   # R2
                 ]
                 flower_colors = round_flower_types[player.round_number - 1]
             elif player.round_number <= C.TRAINING_ROUNDS + C.TEST1_ROUNDS:
@@ -570,7 +565,7 @@ class FlowerField(Page):
                     # If missing (should not happen), initialize as in vars_for_template
                     import random
                     treatment = player.session.config.get('display_name', '').lower()
-                    if treatment == 'anomaly ct':
+                    if treatment == 'Anomaly CT':
                         exploration_flower_types = [
                             ['Blue', 'Yellow'], ['Orange', 'Purple'], ['Red', 'Yellow'], ['Green', 'Purple'],
                             ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Green', 'Green'],
@@ -578,7 +573,7 @@ class FlowerField(Page):
                             ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Green', 'Green'],
                             ['Orange', 'Orange'], ['Yellow', 'Yellow']
                         ]
-                    elif treatment == 'no anomaly ct':
+                    elif treatment == 'No Anomaly CT':
                         exploration_flower_types = [
                             ['Red', 'Blue'], ['Green', 'Orange'], ['Orange', 'Green'], ['Green', 'Orange'],
                             ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Purple', 'Purple'],
@@ -586,7 +581,7 @@ class FlowerField(Page):
                             ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Purple', 'Purple'],
                             ['Yellow', 'Yellow'], ['Yellow', 'Yellow']
                         ]
-                    elif treatment == 'anomaly no ct':
+                    elif treatment == 'Anomaly No CT':
                         exploration_flower_types = [
                             ['Orange', 'Green'], ['Green', 'Orange'], ['Yellow', 'Purple'], ['Purple', 'Yellow'],
                             ['Yellow', 'Purple'], ['Purple', 'Yellow'], ['Green', 'Orange'], ['Orange', 'Green'],
@@ -794,7 +789,7 @@ class Results(Page):
         # Always provide test1_zipped and test2_zipped as empty lists for template robustness
         return dict(
             total_earnings="{:.2f}".format(total),
-            treatment=treatment,
+            treatment=player.treatment,
             test1_zipped=[],
             test2_zipped=[],
             test1_result=None,
@@ -837,8 +832,6 @@ class TestResults(Page):
         env_params = [
             {'temp': 18, 'rain': 5.6},
             {'temp': 21, 'rain': 6.8},
-            {'temp': 15, 'rain': 7.3},
-            {'temp': 23, 'rain': 8.1},
             {'temp': 22, 'rain': 10.0},
             {'temp': 14, 'rain': 4.2},
             {'temp': 17, 'rain': 8.2},
@@ -861,10 +854,11 @@ class TestResults(Page):
             {'temp': 18, 'rain': 11.3},
             {'temp': 16, 'rain': 8.5},
             {'temp': 24, 'rain': 10.7},
-        )
+        ]
         # Test 1 = round 5, Test 2 = round 26 (index 4 and 15)
         test1_env = env_params[4]
         test2_env = env_params[15]
+        total = player.participant.vars.get('total_earnings', 0)
         return dict(
             test1_data=json.dumps(test1_data),
             test2_data=json.dumps(test2_data),

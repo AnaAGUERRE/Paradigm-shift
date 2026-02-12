@@ -40,15 +40,15 @@ SESSION_CONFIGS = [
     ),
     dict(
         name='no_anomaly_ct',                    
-        display_name='No anomaly CT',    
+        display_name='No Anomaly CT',    
         app_sequence=['flowerfieldtask'],      
         num_demo_participants=1,                
         scoring_system='anomaly',               
     ),
-    # Anomaly no CT (new treatment)
+    # Anomaly No CT (new treatment)
     dict(
         name='anomaly_no_ct',
-        display_name='Anomaly no CT',
+        display_name='Anomaly No CT',
         app_sequence=['flowerfieldtask'],
         num_demo_participants=1,
         scoring_system='anomaly',

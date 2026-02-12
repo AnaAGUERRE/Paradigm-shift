@@ -58,16 +58,12 @@ It summarizes their performance, provides feedback, and gives a final message wi
         <p><b>Current total is <span style="font-size: 1.2em;">£{{ total_earnings }}</span></b></p>
     {% endif %}
          <p>Click on the following button to complete the study and go back to Prolific.</p>
-        {% if treatment == "Anomaly CT" %}
-            <a href="https://app.prolific.com/submissions/complete?cc=ANOMALY_CT_CODE" class="otree-btn-next btn btn-primary">Return to Prolific (Anomaly CT)</a>
-        {% elif treatment == "Anomaly no CT" %}
-            <a href="https://app.prolific.com/submissions/complete?cc=ANOMALY_NO_CT_CODE" class="otree-btn-next btn btn-primary">Return to Prolific (Anomaly no CT)</a>
-        {% elif treatment == "No anomaly CT" %}
-            <a href="https://app.prolific.com/submissions/complete?cc=NO_ANOMALY_CT_CODE" class="otree-btn-next btn btn-primary">Return to Prolific (No anomaly CT)</a>
-        {% elif treatment == "No anomaly no CT" %}
-            <a href="https://app.prolific.com/submissions/complete?cc=NO_ANOMALY_NO_CT_CODE" class="otree-btn-next btn btn-primary">Return to Prolific (No anomaly no CT)</a>
-        {% else %}
-            <a href="https://app.prolific.com/submissions/complete?cc=C104QC2U" class="otree-btn-next btn btn-primary">Return to the website</a>
-        {% endif %}
+            {% if treatment == "Anomaly CT" %}
+                <a href="https://app.prolific.com/submissions/complete?cc=C104QC2U" class="otree-btn-next btn btn-primary">Return to Prolific</a>
+            {% elif treatment == "Anomaly No CT" %}
+                <a href="https://app.prolific.com/submissions/complete?cc=CKXRTMB9" class="otree-btn-next btn btn-primary">Return to Prolific</a>
+            {% elif treatment == "No Anomaly CT" %}
+                <a href="https://app.prolific.com/submissions/complete?cc=CNVXUTM1" class="otree-btn-next btn btn-primary">Return to Prolific</a>
+           {% endif %}
      </div>
 {% endblock %}
