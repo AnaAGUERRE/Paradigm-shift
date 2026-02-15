@@ -202,6 +202,17 @@ class FlowerField(Page):
             player.popup_strategy = player.participant.vars.get('popup_strategy', '')
 
 
+        # Define test1_entry and test2_entry from participant history
+        history = player.participant.vars.get('nutrient_flower_history', [])
+        test1_entry = None
+        test2_entry = None
+        for entry in history:
+            if entry.get('phase') == 'Test 1' and test1_entry is None:
+                test1_entry = entry
+        for entry in reversed(history):
+            if entry.get('phase') == 'Test 2' and test2_entry is None:
+                test2_entry = entry
+                break
         test1_data = dict(
             flower_colors = test1_entry['flower_colors'] if test1_entry else [],
             nutrients = test1_entry['nutrients'] if test1_entry else [],
