@@ -1,39 +1,45 @@
-{# The JavaScript instructions.js handles the instructions’ content, 
-but this HTML template is essential for page structure, navigation, and integration with oTree’s workflow. #}
+{#
+instructions.html
 
-{% extends "global/Page.html" %}
+This template displays the experiment instructions to participants. It provides:
+- A root div for dynamic instructions content (populated by instructions.js)
+- A hidden input for tracking QCM click sequence (used by instructions.js)
+- An inactivity timeout that redirects to Prolific after 5 minutes
+- Loads custom styles and scripts for the instructions page
+#}
+{% extends "Page.html" %}
 {% load static %}
 
+{% block title %}Instructions{% endblock %}
 {% block content %}
-<div id="instructions-container">
-    <h2>Instructions</h2>
-        <div id="custom-instructions"></div>
-        <script>
-            window.isNoisyTreatment = true;
-        </script>
-        <script src="{% static 'js/instructions.js' %}"></script>
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-primary" style="margin-top:2em;">Start Experiment</button>
-    </form>
-</div>
+
+<!-- Root div for dynamic instructions content (populated by instructions.js) -->
+<div id="instructions-root"></div>
+
+{% block formfields %}
+	<!-- Hidden input for QCM click sequence tracking (used by instructions.js) -->
+	<input type="hidden" id="id_qcm_click_sequence" name="qcm_click_sequence" value="">
 {% endblock %}
 
 <script>
 // --- INACTIVITY TIMEOUT SCREENOUT ---
 (function() {
-    var timeoutDuration = 5 * 60 * 1000; // 5 minutes
-    var screenoutUrl = 'https://app.prolific.com/submissions/complete?cc=SCREENOUT';
-    var inactivityTimer = null;
-    function resetInactivityTimer() {
-        if (inactivityTimer) clearTimeout(inactivityTimer);
-        inactivityTimer = setTimeout(function() {
-            window.location.href = screenoutUrl;
-        }, timeoutDuration);
-    }
-    ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(function(evt) {
-        window.addEventListener(evt, resetInactivityTimer, true);
-    });
-    resetInactivityTimer();
+	var timeoutDuration = 5 * 60 * 1000; // 5 minutes
+	var screenoutUrl = 'https://app.prolific.com/submissions/complete?cc=SCREENOUT';
+	var inactivityTimer = null;
+	function resetInactivityTimer() {
+		if (inactivityTimer) clearTimeout(inactivityTimer);
+		inactivityTimer = setTimeout(function() {
+			window.location.href = screenoutUrl;
+		}, timeoutDuration);
+	}
+	['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(function(evt) {
+		window.addEventListener(evt, resetInactivityTimer, true);
+	});
+	resetInactivityTimer();
 })();
 </script>
+<link rel="stylesheet" href="{% static 'css/instructions.css' %}">
+<script src="{% static 'libraries/bootbox/bootbox.js' %}"></script>
+<script src="{% static 'js/instructions.js' %}"></script>
+{% endblock %}

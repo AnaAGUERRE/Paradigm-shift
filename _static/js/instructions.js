@@ -1,5 +1,14 @@
-// This script manages the interactive instructions and quiz (QCM) for the experiment.
-// It tracks user answers, manages slide navigation, and ensures participants understand the rules before starting.
+/**
+ * instructions.js
+ * 
+ * Main JavaScript logic for the interactive instructions and comprehension quiz (QCM) in the oTree experiment.
+ * Handles:
+ *  - Interactive, multi-slide instructions with navigation
+ *  - Drag-and-drop demo for nutrient assignment
+ *  - Comprehension check questions (QCM) with feedback
+ *  - Tracking and saving user answer sequences for backend export
+ *  - Final confirmation and experiment start logic
+ */
 
 window.qcmClickSequence = [];
 
@@ -89,16 +98,17 @@ document.addEventListener('DOMContentLoaded', function () {
             // Persist dropped nutrients state for slide 3
             let slide3Nutrients = [];
         // Prevent Enter key from triggering Next or submitting the page
+        // Prevent accidental form submission or navigation by blocking Enter key outside of input/textarea
         document.addEventListener('keydown', function(e) {
-            // Block Enter key if not in a textarea or input
             if (e.key === 'Enter' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
                 e.preventDefault();
                 return false;
             }
         });
-    // Build slides array (10 slides)
+    // Build the array of instruction slides (10 slides in total)
+    // Each slide is an object with a render() function and navigation/logic flags
     let slides = [
-        // 1. Welcome (1/10)
+        // 1. Welcome (1/10): Introduction to the experiment
         {
             render: () => `
                 <div class="slide slide-1">
@@ -114,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function () {
             `,
             nextEnabled: true,
         },
-        // 2. The task (static images) (2/10)
+        // 2. The task (2/10): Overview of the flower-growing task with static image
         {
             render: () => `
                 <div class="slide slide-2">
@@ -135,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function () {
             `,
             nextEnabled: true,
         },
-        // 3. Dragging the nutrients (interactive) (3/10)
+        // 3. Dragging the nutrients (3/10): Interactive demo for drag-and-drop nutrients
         {
             render: () => `
                 <div class="slide slide-3">
@@ -155,10 +165,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                 </div>
             `,
-            nextEnabled: false, // Will be enabled by JS when task is complete
+            // Will be enabled by JS when the correct nutrients are dragged
+            nextEnabled: false,
             interactive: true,
         },
-        // 4. Earnings (4/10)
+        // 4. Earnings (4/10): Explains how earnings are determined
         {
             render: () => `
                 <div class="slide slide-4">
@@ -176,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function () {
             `,
             nextEnabled: true,
         },
-        // 5. Comprehension check 1 (5/10)
+        // 5. Comprehension check 1 (5/10): First QCM to check understanding
         {
             render: () => `
                 <div class="slide slide-5">
@@ -196,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function () {
             nextEnabled: false,
             comprehension: true,
         },
-        // 6. Seasonal environmental conditions (6/10)
+        // 6. Seasonal environmental conditions (6/10): Explains round-to-round variation
         {
             render: () => `
                 <div class="slide slide-6">
@@ -214,7 +225,7 @@ document.addEventListener('DOMContentLoaded', function () {
             `,
             nextEnabled: true,
         },
-        // 7. Learning from a previous participant(7/10)
+        // 7. Learning from a previous participant (7/10): Describes possible social learning
         {
             render: () => `
                 <div class="slide slide-7">
@@ -232,7 +243,7 @@ document.addEventListener('DOMContentLoaded', function () {
             nextEnabled: true,
         },
 
-        // 8. Summary (8/10)
+        // 8. Summary (8/10): Recap of key points
         {
             render: () => `
                 <div class="slide slide-8">
@@ -250,7 +261,7 @@ document.addEventListener('DOMContentLoaded', function () {
             `,
             nextEnabled: true,
         },
-        // 9. Comprehension check 2 (9/10)
+        // 9. Comprehension check 2 (9/10): Second QCM to check understanding
         {
             render: () => `
                 <div class="slide slide-9">
@@ -270,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function () {
             nextEnabled: false,
             comprehension: true,
         },
-        // 10. Final slide (10/10)
+        // 10. Final slide (10/10): End of instructions, ready to start experiment
         {
             render: () => {
                 return `
@@ -292,6 +303,7 @@ document.addEventListener('DOMContentLoaded', function () {
     ];
 
 // Helper to get CSRF token from cookie (for Django forms)
+// Used to securely submit forms in the final slide
 window.getCSRFToken = function() {
     const name = 'csrftoken';
     const cookies = document.cookie.split(';');
@@ -304,8 +316,9 @@ window.getCSRFToken = function() {
     return '';
 };
 
-    let currentSlide = 0;
+    let currentSlide = 0; // Tracks the current slide index
 
+    // Renders the slide at the given index, sets up navigation and slide-specific logic
     function renderSlide(idx) {
         const root = document.getElementById('instructions-root');
         currentSlide = idx;
@@ -315,6 +328,7 @@ window.getCSRFToken = function() {
         let counter = tempDiv.querySelector('.slide-counter');
         let h1 = tempDiv.querySelector('h1');
         let rest = tempDiv.innerHTML;
+        // If slide has a header row, extract and reformat it
         if (counter && h1) {
             counter.remove();
             h1.remove();
@@ -329,23 +343,25 @@ window.getCSRFToken = function() {
                 </div>
             `;
         } else {
+            // Default: just render the slide HTML
             root.innerHTML = `<div class="slide">${slideHtml}</div>`;
         }
-        // Reset slide3Nutrients if not on slide 3
+        // Reset interactive demo state if not on slide 3
         if (idx !== 2) {
             slide3Nutrients = [];
         }
-        renderNav(idx);
-        if (slides[idx].interactive) setupInteractiveDemo();
-        if (slides[idx].comprehension) setupComprehensionCheck(idx);
+        renderNav(idx); // Render navigation buttons
+        if (slides[idx].interactive) setupInteractiveDemo(); // Setup demo if needed
+        if (slides[idx].comprehension) setupComprehensionCheck(idx); // Setup QCM if needed
         // No setupFinalSlide; not needed and not defined
     }
 
+    // Renders navigation buttons (Previous, Next, Start Experiment) for the current slide
     function renderNav(idx) {
         const root = document.getElementById('instructions-root');
         let nav = document.createElement('div');
         nav.className = 'slide-nav';
-        // Previous button
+        // Previous button (hidden on first slide)
         let prevBtn = document.createElement('button');
         prevBtn.type = 'button';
         prevBtn.textContent = 'Previous';
@@ -364,7 +380,7 @@ window.getCSRFToken = function() {
             nextBtn.textContent = 'Next';
             nextBtn.className = 'nav-btn next-btn';
             nextBtn.onclick = () => {
-                // ...
+                // Only allow advancing if nextEnabled is true
                 if (slides[idx].nextEnabled !== false) {
                     if (currentSlide < slides.length - 1) {
                         currentSlide = currentSlide + 1;
@@ -372,6 +388,7 @@ window.getCSRFToken = function() {
                     }
                 }
             };
+            // Disable Next if slide requires completion (e.g., QCM or demo)
             if (slides[idx].nextEnabled === false) {
                 if (slides[idx].comprehension) {
                     nextBtn.disabled = true;
@@ -405,9 +422,12 @@ window.getCSRFToken = function() {
         root.appendChild(nav);
     }
 
+    // Sets up the interactive drag-and-drop demo for slide 3
+    // Allows user to drag nutrients into the slot; enables Next when correct nutrients are present
     function setupInteractiveDemo() {
         const demo = document.getElementById('interactive-demo');
         if (!demo) return;
+        // Render flower and nutrient slots
         demo.innerHTML = `
             <div class="flower-container" style="margin-bottom: 0; min-height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start;">
                 <img src="/static/img/indicationGrey.png" class="flower-image" style="width: 60px; display: block; margin-bottom: 10px;">
@@ -422,9 +442,9 @@ window.getCSRFToken = function() {
             </div>
         `;
         let slot = document.getElementById('demo-slot');
-        // Use persistent state for nutrients
+        // Use persistent state for nutrients (slide3Nutrients is global)
         let nutrients = slide3Nutrients;
-        // If re-rendered, restore dropped nutrients
+        // Restore dropped nutrients if re-rendered
         slot.innerHTML = '';
         nutrients.forEach(nutrient => {
             let img = document.createElement('img');
@@ -434,6 +454,7 @@ window.getCSRFToken = function() {
             img.style.height = '24px';
             slot.appendChild(img);
         });
+        // Drag-and-drop handlers for slot
         slot.ondragover = (e) => { e.preventDefault(); slot.classList.add('drag-over'); };
         slot.ondragleave = (e) => { slot.classList.remove('drag-over'); };
         slot.ondrop = (e) => {
@@ -441,6 +462,7 @@ window.getCSRFToken = function() {
             slot.classList.remove('drag-over');
             let nutrient = e.dataTransfer.getData('nutrient');
             if (!nutrient) return;
+            // Only allow two nutrients; remove oldest if full
             if (nutrients.length >= 2) {
                 nutrients.shift();
                 slot.removeChild(slot.firstChild);
@@ -454,7 +476,7 @@ window.getCSRFToken = function() {
             img.style.width = '24px';
             img.style.height = '24px';
             slot.appendChild(img);
-            // Check if both Yellow and Red are present
+            // Enable Next if both Yellow and Red are present
             if (nutrients.includes('Yellow') && nutrients.includes('Red')) {
                 slides[2].nextEnabled = true;
                 const nextBtn = document.querySelector('.next-btn');
@@ -466,6 +488,7 @@ window.getCSRFToken = function() {
                 if (msg) msg.style.display = 'none';
             }
         };
+        // Setup dragstart for each nutrient image
         document.querySelectorAll('.demo-nutrient[draggable="true"]').forEach(img => {
             img.ondragstart = (e) => {
                 e.dataTransfer.setData('nutrient', img.dataset.nutrient);
@@ -486,6 +509,8 @@ window.getCSRFToken = function() {
         if (msg) msg.style.display = '';
     }
 
+    // Sets up the comprehension check (QCM) for slides with quiz questions
+    // Handles answer selection, feedback, and enabling Next button
     function setupComprehensionCheck(idx) {
         const root = document.getElementById('instructions-root');
         const buttons = root.querySelectorAll('.answer-btn');
@@ -498,9 +523,11 @@ window.getCSRFToken = function() {
         }
         buttons.forEach(btn => {
             btn.onclick = () => {
+                // Remove selection and feedback from all buttons
                 buttons.forEach(b => b.classList.remove('selected', 'correct', 'incorrect'));
                 btn.classList.add('selected');
                 if (btn.dataset.correct === 'true') {
+                    // Correct answer selected
                     btn.classList.add('correct');
                     feedback.textContent = 'Your answer is correct! Press [Next] to continue.';
                     feedback.style.color = '#218739';
@@ -513,6 +540,7 @@ window.getCSRFToken = function() {
                         slides[idx].nextEnabled = true;
                     }
                 } else {
+                    // Incorrect answer selected
                     btn.classList.add('incorrect');
                     feedback.textContent = 'That’s not correct. Please try again.';
                     feedback.style.color = '#c0392b';
@@ -527,5 +555,6 @@ window.getCSRFToken = function() {
             };
         });
     }
+    // Initial render of the first slide
     renderSlide(currentSlide);
 });

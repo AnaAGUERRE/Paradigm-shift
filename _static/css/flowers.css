@@ -1,4 +1,13 @@
+/*
+flowers.css
+
+Flower-specific styles for the flower field experiment.
+Handles:
+- Flower images, previous combinations, and results display.
+- Button and panel layout for flower-related UI.
+*/
 .otree-title-box {
+    /* Main title box styling for flower field pages */
     background: white !important;
     border-radius: 8px !important;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
@@ -15,7 +24,8 @@ body {
 }
 /* Make previous combinations panel smaller */
 #previous-combinations {
-        background: white !important;
+    /* Panel for displaying previous flower combinations */
+    background: white !important;
     max-height: 80px;
     min-height: 0;
     overflow-y: auto;
@@ -23,12 +33,14 @@ body {
 }
 /* Growth phase: flowers start small and grow */
 .flower-image.grow-phase {
+    /* Animation for growing flowers during growth phase */
     width: 50px !important;
     height: 50px !important;
     transition: width 1s, height 1s;
 }
 /* Ensure continue button and its container are always perfectly centered */
 #continueBtnContainer {
+    /* Container for centering the continue button */
     width: 100%;
     display: flex;
     justify-content: center;
@@ -36,6 +48,7 @@ body {
     margin-top: 24px;
 }
 .btn#continueAfterResults {
+    /* Styling for the main continue button on results pages */
     display: inline-block;
     text-align: center;
     min-width: 0;

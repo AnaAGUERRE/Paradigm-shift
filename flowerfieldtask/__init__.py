@@ -1,9 +1,80 @@
+
+"""
+__init__.py
+
+This file marks the flowerfieldtask directory as a Python package and defines the main oTree app logic for the experiment.
+Handles:
+- Page classes and experiment flow (Consent, Screenout, Instructions, FlowerField, TestResults, Survey, Results)
+- Player, Group, Subsession models and experiment constants
+- Backend game logic and real-time communication
+- Sequence of pages for oTree
+"""
+
+
 from otree.api import *   # Import oTree base classes and functions
+from .engine import run_engine, calculate_p_from_growth   # Import custom game logic
+import json   # For handling JSON data
 
-# ...existing code...
+# --- Helper functions to reduce code repetition ---
+def map_treatment(treatment):
+    """Maps treatment names to experiment logic labels."""
+    if treatment in ['Anomaly CT', 'Anomaly noisy', 'Transmission correct', 'Transmission M&M']:
+        return 'Anomaly CT'
+    elif treatment == 'No Anomaly CT':
+        return 'No Anomaly CT'
+    elif treatment == 'Anomaly No CT':
+        return 'Anomaly No CT'
+    else:
+        return treatment
 
-from otree.api import *   # Import oTree base classes and functions
+def get_env_params():
+    """Returns the list of environmental parameters for all rounds."""
+    return [
+        {'temp': 18, 'rain': 5.6}, {'temp': 21, 'rain': 6.8}, {'temp': 15, 'rain': 7.3}, {'temp': 23, 'rain': 8.1},
+        {'temp': 22, 'rain': 10.0}, {'temp': 14, 'rain': 4.2}, {'temp': 17, 'rain': 8.2}, {'temp': 19, 'rain': 11.6},
+        {'temp': 20, 'rain': 12.4}, {'temp': 16, 'rain': 13.9}, {'temp': 18, 'rain': 9.5}, {'temp': 19, 'rain': 7.7},
+        {'temp': 21, 'rain': 9.1}, {'temp': 16, 'rain': 6.4}, {'temp': 22, 'rain': 11.0}, {'temp': 24, 'rain': 9.3},
+        {'temp': 20, 'rain': 8.8}, {'temp': 17, 'rain': 10.2}, {'temp': 22, 'rain': 7.5}, {'temp': 19, 'rain': 12.0},
+        {'temp': 21, 'rain': 13.1}, {'temp': 15, 'rain': 9.9}, {'temp': 23, 'rain': 6.7}, {'temp': 18, 'rain': 11.3},
+        {'temp': 16, 'rain': 8.5}, {'temp': 24, 'rain': 10.7},
+    ]
 
+def get_exploration_flower_types(treatment):
+    """Returns the exploration flower pairs for a given treatment."""
+    if treatment == 'Anomaly CT':
+        return [
+            ['Blue', 'Yellow'], ['Orange', 'Purple'], ['Red', 'Yellow'], ['Green', 'Purple'],
+            ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Green', 'Green'],
+            ['Orange', 'Orange'], ['Yellow', 'Yellow'], ['Blue', 'Yellow'], ['Orange', 'Purple'], ['Red', 'Yellow'], ['Green', 'Purple'],
+            ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Green', 'Green'],
+            ['Orange', 'Orange'], ['Yellow', 'Yellow']
+        ]
+    elif treatment == 'No Anomaly CT':
+        return [
+            ['Red', 'Blue'], ['Green', 'Orange'], ['Orange', 'Green'], ['Green', 'Orange'],
+            ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Purple', 'Purple'],
+            ['Yellow', 'Yellow'], ['Yellow', 'Yellow'], ['Red', 'Blue'], ['Green', 'Orange'], ['Orange', 'Green'], ['Green', 'Orange'],
+            ['Purple', 'Purple'], ['Green', 'Green'], ['Orange', 'Orange'], ['Purple', 'Purple'],
+            ['Yellow', 'Yellow'], ['Yellow', 'Yellow']
+        ]
+    elif treatment == 'Anomaly No CT':
+        return [
+            ['Orange', 'Green'], ['Green', 'Orange'], ['Yellow', 'Purple'], ['Purple', 'Yellow'],
+            ['Yellow', 'Purple'], ['Purple', 'Yellow'], ['Green', 'Orange'], ['Orange', 'Green'],
+            ['Green', 'Orange'], ['Red', 'Blue'], ['Orange', 'Green'], ['Green', 'Orange'], ['Yellow', 'Purple'], ['Purple', 'Yellow'],
+            ['Yellow', 'Purple'], ['Purple', 'Yellow'], ['Green', 'Orange'], ['Orange', 'Green'],
+            ['Green', 'Orange'], ['Red', 'Blue']
+        ]
+    else:
+        return [
+            ['Orange', 'Green'], ['Green', 'Orange'], ['Yellow', 'Purple'], ['Purple', 'Yellow'],
+            ['Yellow', 'Purple'], ['Purple', 'Yellow'], ['Green', 'Orange'], ['Orange', 'Green'],
+            ['Green', 'Orange'], ['Red', 'Blue'], ['Orange', 'Green'], ['Green', 'Orange'], ['Yellow', 'Purple'], ['Purple', 'Yellow'],
+            ['Yellow', 'Purple'], ['Purple', 'Yellow'], ['Green', 'Orange'], ['Orange', 'Green'],
+            ['Green', 'Orange'], ['Red', 'Blue']
+        ]
+
+# Screenout page: shown if participant does not consent
 class Screenout(Page):
     @staticmethod
     def is_displayed(player):
@@ -12,11 +83,6 @@ class Screenout(Page):
     def vars_for_template(player):
         return {'screenout_url': 'https://app.prolific.com/submissions/complete?cc=SCREENOUT'}
     template_name = 'screenout.html'
-
-# oTree imports and engine functions
-from otree.api import *   # Import oTree base classes and functions
-from .engine import run_engine, calculate_p_from_growth   # Import custom game logic
-import json   # For handling JSON data
 
 # Consent page: always shown first, requires explicit consent
 class Consent(Page):
@@ -91,17 +157,21 @@ class Player(BasePlayer):
     popup_strategy = models.LongStringField(blank=True, null=True, label="Strategy description from popup", default="")
 
 
-# Instructions
+
+# Instructions page: shown in round 1 if consent is given
 class Instructions(Page):
+    form_model = 'player'
+    form_fields = ['qcm_click_sequence']
+
     @staticmethod
     def is_displayed(player):
+        # Show only in the first round and if consent is not 'no'
         return player.round_number == 1 and player.consent_given != 'no'
+
     @staticmethod
     def vars_for_template(player):
         return {}
-    template_name = '_templates/instructions.html'
-    form_model = 'player'
-    form_fields = ['dummy_field', 'qcm_click_sequence', 'popup_strategy']
+
     @staticmethod
     def before_next_page(player, timeout_happened):
         qcm_seq = player.qcm_click_sequence
@@ -111,9 +181,8 @@ class Instructions(Page):
                 player.qcm_click_sequence = qcm_seq
             except Exception:
                 player.qcm_click_sequence = ''
-        # Save popup answer to player.popup_strategy for export
-        if hasattr(player, 'popup_strategy') and player.popup_strategy:
-            player.popup_strategy = player.popup_strategy
+
+    template_name = 'instructions.html'  # Use the correct template name
 
 class FlowerField(Page):
     @staticmethod

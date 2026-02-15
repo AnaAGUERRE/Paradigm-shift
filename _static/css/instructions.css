@@ -1,4 +1,13 @@
-/* instructions.css - minimal styles for instructions sequence */
+/*
+instructions.css
+
+Styles for the instructions page/sequence in the flower field experiment.
+Handles:
+- Layout and appearance of instruction slides and content blocks.
+- Responsive alignment and spacing for instructional elements.
+*/
+
+/* Only add margin-top to h1 if not first slide */
 
 /* Only add margin-top to h1 if not first slide */
 h1, .slide h1 { text-align: left; }
@@ -7,6 +16,7 @@ h1, .slide h1 { text-align: left; }
 	margin-bottom: 10px !important;
 }
 .slide {
+	/* Main container for each instruction slide */
 	max-width: 1100px;
 	margin: 10px auto 0 auto;
 	padding: 0 10px;
@@ -17,6 +27,7 @@ h1, .slide h1 { text-align: left; }
 	position: relative;
 }
 .slide-header-row {
+	/* Header row for navigation and title */
 	display: flex;
 	justify-content: space-between;
 	align-items: flex-start;

@@ -1,13 +1,25 @@
-# This file configures your oTree experiment and Django project settings. 
-# It defines session types, currency, admin credentials, static file locations, and other global options for your experiment.
+
+"""
+settings.py
+
+Configures oTree experiment and Django project settings for the flower field task.
+Handles:
+- Session types and app sequence
+- Currency and participation fee
+- Admin credentials and secret key
+- Static file locations and rooms
+- Custom participant/session fields
+"""
 
 # Used by oTree and Django to set up the experiment environment.
 # Controls which apps (like flowerfieldtask) are run, and how.
 # Static files referenced here are used in HTML templates (e.g., images, CSS, JS)
 
 DEBUG = False  # Disables debug mode (should be True for development, False for production)
+
 from os import environ
 import os  # For file path and environment variable handling
+
 
 # oTree experiment settings for Flower Field Task
 
@@ -18,9 +30,9 @@ SESSION_CONFIGS = [
     dict(
         name='anomaly_ct',                # Internal name for the session
         display_name='Anomaly CT',        # Shown in admin
-        app_sequence=['flowerfieldtask'],       # Apps to run in sequence
-        num_demo_participants=1,                # Number of demo participants
-        scoring_system='anomaly',               # Scoring system identifier
+        app_sequence=['flowerfieldtask'], # Apps to run in sequence
+        num_demo_participants=1,          # Number of demo participants
+        scoring_system='anomaly',         # Scoring system identifier
     ),
     # Transmission correct
     dict(
@@ -61,8 +73,12 @@ SESSION_CONFIG_DEFAULTS = dict(
     doc="",                              # Optional documentation
 )
 
+
+# Custom participant and session fields
 PARTICIPANT_FIELDS = ['total_earnings']  # Custom fields for each participant
 SESSION_FIELDS = []                      # Custom fields for each session
+
+# Room definitions for experiment sessions
 ROOMS = [
     dict(name='room1', display_name='Room 1'),
     dict(name='room2', display_name='Room 2'),
@@ -72,15 +88,23 @@ ROOMS = [
     dict(name='room6', display_name='Room 6'),
 ]
 
+
+# Language and currency settings
 LANGUAGE_CODE = 'en'                     # Language for experiment
 REAL_WORLD_CURRENCY_CODE = 'GBP'         # Currency code
 USE_POINTS = True                        # Use points system
 
+
+# Admin credentials
 ADMIN_USERNAME = 'Paradigm_Shift'           # Admin login username
 ADMIN_PASSWORD = '271219'                   # Admin password
 
+
+# Django secret key
 SECRET_KEY = '7550954140615'              # Django secret key
 
+
+# Static files directory configuration
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))   # Base directory of project
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, '_static'),                  # Static files directory

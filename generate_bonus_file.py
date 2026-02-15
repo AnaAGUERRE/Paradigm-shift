@@ -1,8 +1,12 @@
-# Script to generate Prolific bonus payment file from oTree export
-# Output: bonus_payments.csv with columns: Prolific PID, Bonus Amount
+# ===============================
+# generate_bonus_file.py
+# ===============================
+# Purpose: Generate Prolific bonus payment files from oTree export.
+# Usage: Run directly (python generate_bonus_file.py). Not imported elsewhere.
+# Input: otree_exported_data.csv (raw oTree export)
+# Output: bonus_payments_<treatment>.csv (one per treatment)
 
 import csv
-
 
 # Input file name
 INPUT_FILE = 'otree_exported_data.csv'  # oTree export

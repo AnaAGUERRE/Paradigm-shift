@@ -1,5 +1,14 @@
-# This file defines the oTree page sequence, page logic, and custom export for the experiment.
-# It controls what each page does, when it is shown, and how participant data is processed and exported.
+
+"""
+pages.py
+
+Defines the oTree page sequence, page logic, and custom export for the flower field experiment.
+Handles:
+- Experiment constants and session setup
+- Page classes for instructions, main task, results, and survey
+- Custom CSV export logic for participant data
+"""
+
 
 # Import oTree API and json module for data handling
 from otree.api import *
@@ -14,7 +23,7 @@ class C(BaseConstants):
 # Subsession logic: runs at the start of the session
 class Subsession(BaseSubsession):
     def creating_session(self):
-        # Initialize total_earnings for each participant if not already set
+        # Initialize participant earnings and set treatment for each player
         for p in self.session.get_participants():
             if not hasattr(p, 'total_earnings') or p.total_earnings is None:
                 p.total_earnings = 0
@@ -24,7 +33,7 @@ class Subsession(BaseSubsession):
 
 # No group logic needed for this experiment
 class Group(BaseGroup):
-    pass
+    pass  # No group logic needed
 
 # Instructions page: only shown in round 1
 class Instructions(Page):
@@ -36,7 +45,7 @@ class Instructions(Page):
         return self.round_number == 1
 
     def before_next_page(self):
-        # Before leaving the page, save the QCM click sequence if valid JSON
+        # Save the QCM click sequence if valid JSON
         qcm_seq = self.request.POST.get('qcm_click_sequence')
         if qcm_seq:
             try:
@@ -95,8 +104,13 @@ class Survey(Page):
 
 
 
+
 # Custom export function for CSV download
 def custom_export(players):
+    """
+    Custom CSV export for participant data.
+    Yields rows for each round and a summary row per participant.
+    """
     # Header row for the CSV
     yield [
         "participant_code",

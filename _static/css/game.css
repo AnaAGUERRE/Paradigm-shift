@@ -1,12 +1,21 @@
+/*
+game.css
+
+General layout and utility styles for the flower field experiment game pages.
+Handles:
+- Main container, panels, and responsive layout.
+- Utility classes for selection, warnings, and panel backgrounds.
+*/
 body {
-  background-color: #fff; /* Default white background */
+  background-color: #fff; /* Default white background for all game pages */
 }
 .form-group label {
   display: block;
 }
 
 .otree-body {
-    max-width: 1200px !important;
+  /* Restrict main oTree body width for consistent layout */
+  max-width: 1200px !important;
 }
 
 
@@ -15,12 +24,13 @@ body {
 }
 
 .not-selectable {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
+  /* Prevent user selection for drag/drop and game elements */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 .timeout_warning_title {
@@ -29,13 +39,14 @@ body {
 }
 
 #main-container {
+    /* Main game container: centers and constrains width */
     width: 1130px;
     min-width: 1130px;
     margin: 0 auto; /* This centers the container */
     background-color: #fff !important; /* Force white background */
     border: none !important;
-  background: white !important;
-  border: none !important;
+    background: white !important;
+    border: none !important;
 }
 
 #left-panel {

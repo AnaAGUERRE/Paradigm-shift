@@ -1,5 +1,11 @@
-{# This file displays a post-experiment survey to collect demographic information
- (year of birth) and optional feedback from participants. #}
+{#
+survey.html
+
+This template displays a post-experiment survey to collect demographic information (year of birth) and optional feedback from participants. It includes an inactivity timeout that redirects to Prolific after 5 minutes of inactivity.
+Handles:
+- Collects year of birth and optional feedback.
+- Inactivity timeout with redirect to Prolific.
+#}
 
 {% block content %}
     <style>

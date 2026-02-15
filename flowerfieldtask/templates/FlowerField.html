@@ -1,5 +1,12 @@
-{# This file defines the oTree page sequence, page logic, and custom export for the flower field experiment.
-It controls what each page does, when it is shown, and how participant data is processed and exported. #}
+{#
+FlowerField.html
+
+This template defines the main interactive flower field task page for the experiment. It handles:
+- Displaying the flower field game, controls, and feedback
+- Showing phase/round info and submitted configurations
+- Dynamic JS-based game logic and feedback (via flowers.js)
+- Inactivity timeout and Prolific redirect
+#}
 
 
 {# Django static files loader #}
@@ -7,7 +14,7 @@ It controls what each page does, when it is shown, and how participant data is p
 
 {# Main content block for oTree/Django template #}
 {% block content %}
-    {# Inline CSS for game controls and layout #}
+    {# Inline CSS for game controls and layout (specific to this page) #}
     <style>
         .game-controls .submit-button,
         .game-controls .reset-button {
@@ -32,8 +39,23 @@ It controls what each page does, when it is shown, and how participant data is p
     </style>
 
 
-{# Include shared scripts for oTree (Django include) #}
-{% include "_templates/scripts.html" %}
+<!-- Script includes: jQuery, Bootstrap, Bootbox, stylesheets, and icons -->
+
+<!-- jQuery required for Bootstrap and Bootbox -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Bootstrap JS required for Bootbox (must come after jQuery) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- bootbox (requires Bootstrap JS and jQuery above) -->
+<script src="{% static 'libraries/bootbox/bootbox.js' %}"></script>
+<!-- Removed unused/missing script: helpers.js -->
+<!-- Removed unused/missing scripts: wheel.js, arm.js, weight.js -->
+<!-- Removed unused/missing script: platforms.js -->
+
+<!-- get style from game.css -->
+<link rel="stylesheet" href="{% static 'css/game.css' %}">
+
+<!-- bootstrap icons-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
 
 {# Main stylesheet for flower task #}
@@ -125,6 +147,7 @@ It controls what each page does, when it is shown, and how participant data is p
                         {# Feedback panels are injected dynamically after submitting Test 2. Test 1 feedback is NOT shown immediately after Test 1. #}
                         <script>
                         // Show environmental parameters after feedback (after submit)
+                        // This script manages UI state after round submission and feedback
                         document.addEventListener('DOMContentLoaded', function() {
                             var submitBtn = document.getElementById('submitButton');
                             var envParams = document.getElementById('env-params');
@@ -171,7 +194,7 @@ It controls what each page does, when it is shown, and how participant data is p
         </div>
     </div>
 </div>
-{# Show previous combinations only in first and second phases #}
+    {# Show previous combinations only in first and second phases (for participant review) #}
 {% if phase == 'Training phase' or phase == 'Exploration phase' %}
 <div id="previous-combinations" style="width:100%; padding:8px 0 8px 0; text-align:center; margin:24px auto 0 auto; max-height:500px; overflow-y:auto;">
     {% if previous_combinations|length > 0 %}
@@ -205,7 +228,7 @@ It controls what each page does, when it is shown, and how participant data is p
     </div>
     {% endif %}
 </div>
-    <style>
+    <style> {# Additional styles for previous combinations and layout #}
     .prev-combo.two-flowers .prev-combo-flowers-row,
     .prev-combo.two-flowers .prev-combo-scores-row {
         display: flex !important;
@@ -296,7 +319,7 @@ It controls what each page does, when it is shown, and how participant data is p
         }
     </style>
 
-    {# JS variables and game initialization #}
+    {# JS variables and game initialization for the flower field game #}
     <script>
         window.js_vars = window.js_vars || {};
         window.js_vars.treatment = "{{ session.config.display_name }}";
@@ -306,7 +329,7 @@ It controls what each page does, when it is shown, and how participant data is p
         window.js_vars.round_submitted = {{ round_submitted|json }};
         window.js_vars.flower_scores = {% if flower_scores %}{{ flower_scores|json }}{% else %}null{% endif %};
         window.js_vars.flower_earnings = {% if flower_earnings %}{{ flower_earnings|json }}{% else %}null{% endif %};
-        // Pass nutrients for this round if submitted
+        // Pass nutrients for this round if submitted (for feedback display)
         {% if round_submitted and phase in ['Training phase', 'Exploration phase'] %}
         {% for entry in participant.vars.nutrient_flower_history %}
             {% if entry.phase == phase and entry.round == phase_round %}
@@ -316,7 +339,7 @@ It controls what each page does, when it is shown, and how participant data is p
         {% endif %}
 
         console.log('Flowers template loaded, initializing...');
-        // Initialize the game
+        // Initialize the game (main entry point for FlowerGame logic)
         function initGame() {
             console.log('Attempting to initialize FlowerGame');
             console.log('window.FlowerGame exists:', typeof window.FlowerGame);
@@ -350,7 +373,7 @@ It controls what each page does, when it is shown, and how participant data is p
             }
         }
         document.addEventListener('DOMContentLoaded', function() {
-        // Unified popup and overlay for Test 1 and Test 2 phases
+        // Unified popup and overlay for Test 1 and Test 2 phases (show warning and block interaction)
         if (window.js_vars.phase === 'Test 1' || window.js_vars.phase === 'Test 2') {
             const overlay = document.createElement('div');
             overlay.id = 'test1-blocking-overlay';
@@ -420,7 +443,7 @@ It controls what each page does, when it is shown, and how participant data is p
             }
         }
         initGame();
-        // Reset button should only reset the field
+        // Reset button should only reset the field (not the whole page)
         const resetButton = document.getElementById('resetButton');
         if (resetButton) {
             resetButton.addEventListener('click', function(event) {
@@ -429,7 +452,7 @@ It controls what each page does, when it is shown, and how participant data is p
                 document.getElementById('status-message').innerHTML = '';
             });
         }
-        // Submit button should not advance round if not all flowers have at least one nutrient
+        // Submit button: only allow advance if all flowers have at least one nutrient
         const submitButton = document.getElementById('submitButton');
         if (submitButton) {
             submitButton.addEventListener('click', function(event) {
@@ -497,7 +520,7 @@ It controls what each page does, when it is shown, and how participant data is p
                 }
             });
         }
-        // Next round button handler
+        // Next round button handler (submits form to advance)
         const nextRoundButton = document.getElementById('nextRoundButton');
         if (nextRoundButton) {
             nextRoundButton.addEventListener('click', function(event) {
@@ -513,7 +536,7 @@ It controls what each page does, when it is shown, and how participant data is p
                 form.submit();
             });
         }
-        // Listen for liveRecv to handle server response
+        // Listen for liveRecv to handle server response (feedback, earnings, progression)
         window.liveRecv = function(data) {
             // Accept both direct and wrapped responses
             let responseData = null;
@@ -590,7 +613,7 @@ It controls what each page does, when it is shown, and how participant data is p
                 }
             }
         };
-        // Format total earnings on page load
+        // Format total earnings on page load (show as £X.XX)
         var totalEarningsElem = document.getElementById('totalEarningsResult');
         if (totalEarningsElem) {
             var val = parseFloat(totalEarningsElem.textContent);
@@ -599,6 +622,7 @@ It controls what each page does, when it is shown, and how participant data is p
             }
         }
         // --- INACTIVITY TIMEOUT SCREENOUT ---
+        // Redirects to Prolific if participant is inactive for 5 minutes
         (function() {
             var timeoutDuration = 5 * 60 * 1000; // 5 minutes
             var screenoutUrl = 'https://app.prolific.com/submissions/complete?cc=SCREENOUT';

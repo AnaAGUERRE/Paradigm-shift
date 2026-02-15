@@ -1,3 +1,11 @@
+{#
+consent.html
+
+This template displays the consent form for the experiment. It presents study information, collects participant consent (yes/no), and handles screenout logic:
+- If the participant does not consent, the form is hidden, a screenout message is shown, and the user is redirected to Prolific after a short delay.
+- An inactivity timeout also redirects to Prolific after 5 minutes of no activity.
+#}
+
 {% block content %}
 <style>
     .consent-container {

@@ -1,13 +1,10 @@
-# MAIN PURPOSE
-    # This script processes and cleans data exported from oTree. 
-    # It reads a CSV file (otree_exported_data.csv), 
-    # restructures and filters the data, and outputs a clean_file.csv file 
-    # with selected columns, renamed headers, and some data transformations.
-
-# RELATIONS TO OTHER FILES
-    # The script is designed to be run directly: python clean_otree_export.py
-    #It is not imported or called by other files in the project.
-
+# ===============================
+# clean_otree_export.py
+# ===============================
+# Purpose: Clean and restructure oTree exported CSV data for further analysis or reporting.
+# Usage: Run directly (python clean_otree_export.py). Not imported elsewhere.
+# Input: otree_exported_data.csv (raw oTree export)
+# Output: clean_file.csv (cleaned CSV), clean_file.xlsx (Excel version)
 
 import csv
 import openpyxl  # For creating Excel files
