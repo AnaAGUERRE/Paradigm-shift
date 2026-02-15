@@ -53,16 +53,6 @@ SESSION_CONFIGS = [
         num_demo_participants=1,
         scoring_system='anomaly',
     ),
-    # Anomaly noisy: duplicate of Anomaly no noise but with noise
-    dict(
-        name='anomaly_noisy',
-        display_name='Anomaly noisy',
-        app_sequence=['flowerfieldtask'],
-        num_demo_participants=1,
-        scoring_system='anomaly',
-        epsilon=0.2,  # noise
-        noisy=True,
-    ),
 ]
 
 SESSION_CONFIG_DEFAULTS = dict(

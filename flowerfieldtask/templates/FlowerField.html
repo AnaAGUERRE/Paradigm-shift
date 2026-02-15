@@ -341,8 +341,7 @@ It controls what each page does, when it is shown, and how participant data is p
                         window.flowerGame.animateFlowerSizes(window.js_vars.flower_scores);
                     }
                     if (window.js_vars.flower_scores && window.js_vars.flower_earnings && window.flowerGame.showAllScores) {
-                        let scaledScores = window.js_vars.flower_scores.map(x => Math.round(x * 400));
-                        window.flowerGame.showAllScores(scaledScores, window.js_vars.flower_earnings);
+                        window.flowerGame.showAllScores(window.js_vars.flower_scores, window.js_vars.flower_earnings);
                     }
                 }
                 console.log('Game UI initialized');
@@ -572,8 +571,9 @@ It controls what each page does, when it is shown, and how participant data is p
                     }
                 }
                 if (window.flowerGame && typeof window.flowerGame.showAllScores === 'function') {
-                    let scaledScores = responseData.flower_scores.map(x => Math.round(x * 400));
-                    window.flowerGame.showAllScores(scaledScores, responseData.flower_earnings);
+                    // Always show the backend-provided decimal scores under each flower (no scaling)
+                    let displayScores = responseData.growths_for_display ? responseData.growths_for_display : responseData.flower_scores;
+                    window.flowerGame.showAllScores(displayScores);
                 }
                 if (responseData.cumulative_earnings !== undefined) {
                     const totalEarningsElem = document.getElementById('totalEarningsResult');

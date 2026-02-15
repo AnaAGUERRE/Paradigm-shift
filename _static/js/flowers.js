@@ -23,68 +23,18 @@ document.addEventListener('DOMContentLoaded', function() {
             var style = document.createElement('style');
             style.innerHTML = '.bootbox.modal { z-index: 10000 !important; } .modal-backdrop { z-index: 9999 !important; }';
             document.head.appendChild(style);
+            // Removed noisy data popup completely
             var showNoisePopup = function() {
-                // Only show for Anomaly noisy
-                var treatment = (window.js_vars && window.js_vars.treatment) ? window.js_vars.treatment : '';
-                if (treatment === 'Anomaly noisy') {
-                    if (typeof bootbox !== 'undefined') {
-                        bootbox.dialog({
-                            message: `<div style='font-size:1.15em; text-align:center;'>
-                                <div style='margin-bottom:1em;'><b>Note about random variation</b></div>
-                                <div style='margin-bottom:1em;'>In this experiment, the data may be <b>noisy</b>. This means that for some flowers, there will be a small random variation in the score, even if you use the same nutrient combination for a given flower. This is normal and part of the experiment design.</div>                           </div>`,
-                            buttons: [
-                                {
-                                    label: 'I understand',
-                                    className: 'btn-primary',
-                                    callback: function() {
-                                        // Remove overlay by ID
-                                        var overlays = document.querySelectorAll('#firstchain-blocking-overlay');
-                                        overlays.forEach(function(overlayElem) {
-                                            if (overlayElem && overlayElem.parentNode) {
-                                                overlayElem.parentNode.removeChild(overlayElem);
-                                            }
-                                        });
-                                        // Remove Bootbox modal and backdrop
-                                        var modals = document.querySelectorAll('.bootbox');
-                                        modals.forEach(function(modal) {
-                                            if (modal && modal.parentNode) {
-                                                modal.parentNode.removeChild(modal);
-                                            }
-                                        });
-                                        var backdrops = document.querySelectorAll('.modal-backdrop');
-                                        backdrops.forEach(function(backdrop) {
-                                            if (backdrop && backdrop.parentNode) {
-                                                backdrop.parentNode.removeChild(backdrop);
-                                            }
-                                        });
-                                        document.body.style.overflow = '';
-                                        document.documentElement.style.overflow = '';
-                                        return true;
-                                    }
-                                }
-                            ],
-                            closeButton: false
-                        });
-                    } else {
-                        alert('Note about random variation: In this version of the experiment, the data may be noisy. This means that for some flowers, there will be a small random variation in the score, even if you use the same nutrient combination. This is normal and part of the experiment design. Try to focus on the general patterns, and don\'t worry if you see small differences in the results for the same combination.');
-                        var overlays = document.querySelectorAll('#firstchain-blocking-overlay');
-                        overlays.forEach(function(overlayElem) {
-                            if (overlayElem && overlayElem.parentNode) {
-                                overlayElem.parentNode.removeChild(overlayElem);
-                            }
-                        });
+                // Always just remove the overlay if present
+                var overlays = document.querySelectorAll('#firstchain-blocking-overlay');
+                overlays.forEach(function(overlayElem) {
+                    if (overlayElem && overlayElem.parentNode) {
+                        overlayElem.parentNode.removeChild(overlayElem);
                     }
-                } else {
-                    // Remove overlay if not noisy treatment
-                    var overlays = document.querySelectorAll('#firstchain-blocking-overlay');
-                    overlays.forEach(function(overlayElem) {
-                        if (overlayElem && overlayElem.parentNode) {
-                            overlayElem.parentNode.removeChild(overlayElem);
-                        }
-                    });
-                }
+                });
             };
             var treatment = (window.js_vars && window.js_vars.treatment) ? window.js_vars.treatment : '';
+            // For the transmission popup, treat Anomaly CT, Anomaly no CT, and No anomaly CT as second chain
             var transmTreatments = [
                 'Transmission correct',
                 'Transmission M&M',
@@ -93,13 +43,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 'No anomaly CT'
             ];
             var isSecondChain = transmTreatments.includes(treatment);
+            // Force isSecondChain true for Anomaly CT, Anomaly no CT, No anomaly CT
+            if (['Anomaly CT', 'Anomaly No CT', 'No Anomaly CT'].includes(treatment)) {
+                isSecondChain = true;
+            }
             var imgSrc = isSecondChain
                 ? (window.static ? window.static('img/Transm.png') : '/static/img/Transm.png')
                 : (window.static ? window.static('img/NoTransm.png') : '/static/img/NoTransm.png');
             var extraImg = '';
             if (treatment === 'Transmission correct') {
                 extraImg = `<img src='${window.static ? window.static('img/TransCorr.png') : '/static/img/TransCorr.png'}' style='height:240px; margin-top:1.0em;'>`;
-            } else if (treatment === 'Transmission M&M' || treatment === 'Anomaly CT' || treatment === 'Anomaly no CT' || treatment === 'No anomaly CT') {
+            } else if (['Transmission M&M', 'Anomaly CT', 'Anomaly No CT', 'No Anomaly CT'].includes(treatment)) {
                 extraImg = `<img src='${window.static ? window.static('img/TransMM.png') : '/static/img/TransMM.png'}' style='height:240px; margin-top:1.0em;'>`;
             }
             var popupText = isSecondChain
@@ -131,6 +85,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                         var warn = document.getElementById('strategy-warning');
                                         if (warn) warn.style.display = '';
                                         return false;
+                                    }
+                                    // Send popup answer to backend for export
+                                    if (window.liveSend) {
+                                        window.liveSend({type: 'popupStrategy', answer: val});
                                     }
                                 }
                                 showNoisePopup();
@@ -535,11 +493,34 @@ class FlowerGame {
         this.updateFlowerScore(flowerIdx);
     }
 
-    // Updates the score display for a specific flower based on its nutrients.
+    // Updates the score display for a specific flower based on its nutrients or backend-provided display-modified score.
     updateFlowerScore(flowerIdx, earningsPenny) {
-        // Determine phase from global js_vars if available
+        // If backend provides both raw and modified scores, use them
+        if (window.js_vars && window.js_vars.round_submitted && window.js_vars.flower_scores && window.js_vars.flower_scores.raw && window.js_vars.flower_scores.modified) {
+            let displayScore = window.js_vars.flower_scores.modified[flowerIdx];
+            let rawScore = window.js_vars.flower_scores.raw[flowerIdx];
+            let envFactor = window.js_vars.flower_scores.env_factor || 100;
+            if (displayScore !== null && displayScore !== undefined && rawScore !== null && rawScore !== undefined) {
+                // Show the modified score as label (rounded ×10)
+                let shownScore = Math.round(displayScore * 10);
+                this.flowers[flowerIdx].scoreDiv.textContent = `${shownScore} points`;
+                // Flower size: proportional to raw score × env_factor / 10
+                const scaleFactor = 5;
+                const minSize = 18;
+                const maxSize = 130;
+                let size = rawScore * (envFactor / 10) * scaleFactor;
+                if (size < minSize) size = minSize;
+                if (size > maxSize) size = maxSize;
+                let imgRef = this.flowers[flowerIdx].flowerImg || this.flowers[flowerIdx].element.querySelector('.flower-image');
+                if (imgRef) {
+                    imgRef.style.width = size + 'px';
+                    imgRef.style.height = size + 'px';
+                }
+                return;
+            }
+        }
+        // Otherwise, fallback to the previous logic
         let phase = (window.js_vars && window.js_vars.phase) ? window.js_vars.phase : '';
-        // Set the displayed score as before
         if (typeof earningsPenny === 'string') {
             this.flowers[flowerIdx].scoreDiv.textContent = `${earningsPenny} points`;
         } else if (typeof earningsPenny === 'number') {
@@ -570,14 +551,15 @@ class FlowerGame {
         if (phase === 'Test 1' || phase === 'Test 2') {
             sizeScore = scoreVal / 2;
         }
-        const scaleFactor = 28; // 1p = 28px, 2p = 56px, etc. (increased for more visible difference)
-        const minSize = 12; // minimum visible size for scores <= 1
+        const scaleFactor = 1; // 1p = 1px, 2p = 2px, etc.
+        const minSize = 18; // minimum visible size
+        const maxSize = 130; // cap maximum size
         let size;
-        if (sizeScore <= 1) {
+        if (sizeScore < minSize) {
             size = minSize;
         } else {
             size = sizeScore * scaleFactor;
-            if (size < minSize) size = minSize;
+            if (size > maxSize) size = maxSize;
         }
         // Try to get the flower image reference
         let imgRef = null;
@@ -597,26 +579,29 @@ class FlowerGame {
     showAllScores(scores, earnings) {
         // After showing scores, mask nutrients and disable slots
         disableNutrientPanelAndSlots();
+        // If backend provides both raw and modified scores, use them
+        let rawScores = (window.js_vars && window.js_vars.flower_scores && window.js_vars.flower_scores.raw) ? window.js_vars.flower_scores.raw : null;
+        let modifiedScores = (window.js_vars && window.js_vars.flower_scores && window.js_vars.flower_scores.modified) ? window.js_vars.flower_scores.modified : null;
+        let envFactor = (window.js_vars && window.js_vars.flower_scores && window.js_vars.flower_scores.env_factor) ? window.js_vars.flower_scores.env_factor : 100;
         for (let i = 0; i < this.flowers.length; i++) {
-            // Always use earnings if available, else fallback to previous logic
-            let earning = (earnings && earnings[i] !== undefined) ? earnings[i] : undefined;
-            this.updateFlowerScore(i, earning);
+            let displayScore = (modifiedScores && modifiedScores[i] !== undefined) ? modifiedScores[i] : (scores && scores[i] !== undefined ? scores[i] : undefined);
+            let rawScore = (rawScores && rawScores[i] !== undefined) ? rawScores[i] : undefined;
+            // Show the modified score as label (rounded ×10)
+            if (displayScore !== undefined && !isNaN(displayScore)) {
+                let shownScore = Math.round(displayScore * 10);
+                this.flowers[i].scoreDiv.textContent = `${shownScore} points`;
+            } else {
+                this.updateFlowerScore(i);
+            }
             this.flowers[i].scoreDiv.style.display = '';
-            // Ensure size is updated after scoreDiv is set
-            let scoreText = this.flowers[i].scoreDiv.textContent;
-            let scoreVal = 0;
-            if (typeof scoreText === 'string' && scoreText.endsWith('points')) {
-                scoreVal = parseFloat(scoreText.replace(' points', '')) || 0;
-            }
-            let phase = (window.js_vars && window.js_vars.phase) ? window.js_vars.phase : '';
-            let sizeScore = scoreVal;
-            if (phase === 'Test 1' || phase === 'Test 2') {
-                sizeScore = scoreVal / 2;
-            }
-            const scaleFactor = 35; // 1p = 28px
-            const minSize = 12;
-            let size = sizeScore <= 1 ? minSize : sizeScore * scaleFactor;
+            // Flower size: use raw score × env_factor / 10, then scale
+            let sizeScore = (rawScore !== undefined && !isNaN(rawScore)) ? (rawScore * envFactor / 10) : 0;
+            const scaleFactor = 1;
+            const minSize = 18;
+            const maxSize = 130;
+            let size = sizeScore * scaleFactor;
             if (size < minSize) size = minSize;
+            if (size > maxSize) size = maxSize;
             let imgRef = null;
             if (this.flowers[i].flowerImg) {
                 imgRef = this.flowers[i].flowerImg;
@@ -633,23 +618,26 @@ class FlowerGame {
     // Animates the size of each flower image based on its score.
     // Higher scores result in larger flower images.
     animateFlowerSizes(scores) {
-        // scores: array of 6 values between 0 and 1
-        const baseSize = 28; // px, initial size
+        // scores: array of display-modified values (not multiplied by 10)
+        const baseSize = 18;
+        const scaleFactor = 6;
+        const minSize = 18;
+        const maxSize = 130;
         const flowerImages = document.querySelectorAll('#flower-field .flower-image');
-        // Reset all flower sizes to baseSize for smooth animation
+        // Reset all flower sizes to minSize for smooth animation
         flowerImages.forEach(img => {
             img.style.transition = 'none';
-            img.style.setProperty('width', baseSize + 'px', 'important');
-            img.style.setProperty('height', baseSize + 'px', 'important');
+            img.style.setProperty('width', minSize + 'px', 'important');
+            img.style.setProperty('height', minSize + 'px', 'important');
         });
         // Force reflow for animation
         void document.body.offsetWidth;
         scores.forEach((score, i) => {
             const img = flowerImages[i];
             if (img) {
-                // Calculate new size: 0% score = baseSize, 100% = 2x baseSize
-                const factor = 1 + Math.max(0, Math.min(1, score));
-                const size = baseSize * factor;
+                let size = baseSize + score * scaleFactor;
+                if (size < minSize) size = minSize;
+                if (size > maxSize) size = maxSize;
                 console.log(`Animating flower #${i}: score=${score}, size=${size}`);
                 img.style.transition = 'width 0.7s, height 0.7s';
                 requestAnimationFrame(() => {

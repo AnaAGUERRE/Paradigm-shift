@@ -10,29 +10,15 @@ def run_engine(nutrient_choices, flower_colors=None, scoring_system='anomaly'):
     # Nutrient choices is a list of flowers, each flower has 2 nutrients, e.g.:
     # [["red", "blue"], ["yellow", "yellow"], ["blue", "blue"]]
 
-    noise_type_counts = {'increase': 0, 'decrease': 0, 'none': 0}
     results = []
-    noisy = False
-    epsilon = 0.0
-    frame = inspect.currentframe().f_back
-    session_config = getattr(frame.f_locals.get('player', None), 'session', None)
-    if session_config:
-        config = session_config.config
-        noisy = config.get('noisy', False)
-        epsilon = config.get('epsilon', 0.0)
     n_flowers = len(nutrient_choices)
     for i, nutrients in enumerate(nutrient_choices):
-        noise = None
         growth = calculate_growth(nutrients)
-        if noisy:
-            noise_choice = random.choice(['none', 'decrease', 'increase'])
-            noise_type_counts[noise_choice] += 1
-            # Only record the noise type
-            noise = {'index': i, 'type': noise_choice}
+        # Plus de bruit intra-fleur, uniquement la croissance brute
         results.append({
             'nutrients': nutrients,
             'growth': growth,
-            'noise': noise
+            'noise': None  # Pour compatibilité, mais toujours None
         })
     return results
 

@@ -118,9 +118,9 @@ nutrients, and scores for Test 1 and Test 2, with dynamic rendering via JavaScri
         flowerImg.src = '/static/img/Flw' + colors[i] + '.png';
         flowerImg.className = 'flower-image';
         flowerImg.alt = colors[i];
-        // Use the same formula as other phases: 18 + 18*growth
-        let baseSize = 18; // px
-        let scale = 18; // px per growth unit
+        // Use the same formula as previous combinations: 14 + 3*growth
+        let baseSize = 14; // px
+        let scale = 5; // px per growth unit
         let growth = (growths && growths[i] !== undefined) ? parseFloat(growths[i]) : 0;
         let size = baseSize + scale * growth;
         flowerImg.style.width = size + 'px';
@@ -146,7 +146,9 @@ nutrients, and scores for Test 1 and Test 2, with dynamic rendering via JavaScri
         flowerElem.appendChild(nutrientsDiv);
         let scoreDiv = document.createElement('div');
         scoreDiv.className = 'flower-score';
-        scoreDiv.textContent = (scores[i] || '0') + 'p';
+        // Display the modified score (with Vround): growths[i] * 10, rounded
+        let displayScore = (growths && growths[i] !== undefined) ? Math.round(parseFloat(growths[i]) * 10) : 0;
+        scoreDiv.textContent = displayScore + 'p';
         flowerElem.appendChild(scoreDiv);
         return flowerElem;
     }

@@ -28,8 +28,9 @@ COLUMNS = [
     ('player.score_per_flower', 'Score_per_flower'),
     ('player.Vround', 'Vround'),
     ('player.score_reel', 'Score_reel_flower'),
-    ('player.noise_applied', 'Noise_applied'),
+
     ('player.cumulative_earnings', 'Total_earnings'),
+    ('player.popup_strategy', 'Popup_strategy'),
     ('player.year_of_birth', 'Birth_year'),
     ('player.feedback', 'Feedback'),
     ('player.qcm_click_sequence', 'QCM_sequence_raw'),

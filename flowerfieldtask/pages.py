@@ -108,7 +108,6 @@ def custom_export(players):
         "score_flower1",
         "score_flower2",
         "score_flower3",
-        "noise_applied",
         "total_score",
         "birth_year",
         "qcm_click_sequence",
@@ -119,10 +118,6 @@ def custom_export(players):
             scores = json.loads(getattr(p, 'score_per_flower', '[null,null,null]'))
         except Exception:
             scores = [None, None, None]
-        try:
-            noise = json.loads(getattr(p, 'noise_applied', '[null,null,null]'))
-        except Exception:
-            noise = [None, None, None]
         phase = getattr(p, 'phase', '')
         round_number = getattr(p, 'round_number', '')
         # Only include feedback/birthyear in the summary row, not in phase rows
@@ -145,7 +140,6 @@ def custom_export(players):
             scores[0] if len(scores) > 0 else '',
             scores[1] if len(scores) > 1 else '',
             scores[2] if len(scores) > 2 else '',
-            noise if isinstance(noise, str) else ','.join([str(n) for n in noise]),
             getattr(p.participant, 'total_earnings', ''),
             birth_year,
             getattr(p, 'qcm_click_sequence', ''),
@@ -161,7 +155,6 @@ def custom_export(players):
             'flower_colors': '',
             'nutrient_choice': '',
             'score_per_flower': [None, None, None],
-            'noise_applied': [None, None, None],
             'total_earnings': '',
             'birth_year': '',
             'qcm_click_sequence': '',
@@ -175,10 +168,6 @@ def custom_export(players):
             summary['nutrient_choice'] = getattr(p, 'nutrient_choice', '')
             try:
                 summary['score_per_flower'] = json.loads(getattr(p, 'score_per_flower', '[null,null,null]'))
-            except Exception:
-                pass
-            try:
-                summary['noise_applied'] = json.loads(getattr(p, 'noise_applied', '[null,null,null]'))
             except Exception:
                 pass
             summary['total_earnings'] = getattr(p.participant, 'total_earnings', '')
@@ -205,7 +194,6 @@ def custom_export(players):
                 summary['score_per_flower'][0] if len(summary['score_per_flower']) > 0 else '',
                 summary['score_per_flower'][1] if len(summary['score_per_flower']) > 1 else '',
                 summary['score_per_flower'][2] if len(summary['score_per_flower']) > 2 else '',
-                ','.join([str(n) for n in summary['noise_applied']]) if isinstance(summary['noise_applied'], list) else summary['noise_applied'],
                 summary['total_earnings'],
                 summary['birth_year'],
                 qcm_seq,

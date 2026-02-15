@@ -1,5 +1,9 @@
 from otree.api import *   # Import oTree base classes and functions
 
+# ...existing code...
+
+from otree.api import *   # Import oTree base classes and functions
+
 class Screenout(Page):
     @staticmethod
     def is_displayed(player):
@@ -82,8 +86,9 @@ class Player(BasePlayer):
     score_per_flower = models.LongStringField(blank=True, null=True, label="Score per flower (JSON)")
     Vround = models.IntegerField(blank=True, null=True, label="Vround (variation saisonnière)")
     score_reel = models.LongStringField(blank=True, null=True, label="Score réel (JSON, bruit total)")
-    noise_applied = models.LongStringField(blank=True, null=True, label="Noise (JSON)")
+    # noise_applied field removed (no longer used)
     exploration_flower_pairs_order = models.LongStringField(blank=True, null=True, label="Shuffled flower pairs order (JSON)")
+    popup_strategy = models.LongStringField(blank=True, null=True, label="Strategy description from popup", default="")
 
 
 # Instructions
@@ -96,7 +101,7 @@ class Instructions(Page):
         return {}
     template_name = '_templates/instructions.html'
     form_model = 'player'
-    form_fields = ['dummy_field', 'qcm_click_sequence']
+    form_fields = ['dummy_field', 'qcm_click_sequence', 'popup_strategy']
     @staticmethod
     def before_next_page(player, timeout_happened):
         qcm_seq = player.qcm_click_sequence
@@ -106,11 +111,19 @@ class Instructions(Page):
                 player.qcm_click_sequence = qcm_seq
             except Exception:
                 player.qcm_click_sequence = ''
+        # Save popup answer to player.popup_strategy for export
+        if hasattr(player, 'popup_strategy') and player.popup_strategy:
+            player.popup_strategy = player.popup_strategy
 
 class FlowerField(Page):
     @staticmethod
     def is_displayed(player):
         return player.consent_given != 'no'
+    @staticmethod
+    def before_next_page(player, timeout_happened):
+        # Save popup answer in the first round of the first phase
+        if player.round_number == 1 and player.phase == 'First phase' and hasattr(player, 'popup_strategy'):
+            player.popup_strategy = player.participant.vars.get('popup_strategy', '')
 
 class TestResults(Page):
     @staticmethod
@@ -465,16 +478,18 @@ class FlowerField(Page):
                                 growths.append(float(s) / 10.0)
                             except:
                                 growths.append(0.0)
+                    # Use the display-modified score (with Vround) for previous_combinations
+                    display_scores = entry.get('growths', [])
                     filtered = [
                         (
                             f,
                             [f"img/Nutr{nut}.png" if nut else None for nut in (n if n is not None else [])],
-                            (s if s is not None else '0'),  # per-flower earnings as string (pennies, show 0 if missing)
+                            (str(int(round(ds * 10))) if ds is not None else '0'),  # display-modified score as string (pennies)
                             f"img/Flw{f}.png" if f is not None and f != '' and f in valid_flowers else None,
                             g,  # growth value as float (for proportional size)
-                            int(18 + (g if g is not None else 0.0) * 18)  # flower_size in px (smaller base and scale)
+                            int(14 + (g if g is not None else 0.0) * 3)  # flower_size in px (smaller base and scale, was 18+g*18)
                         )
-                        for (f, n, s, g) in zip(expected_flowers, entry.get('nutrients', []), entry.get('scores', []), growths)
+                        for (f, n, ds, g) in zip(expected_flowers, entry.get('nutrients', []), display_scores, growths)
                         if f is not None and f != '' and f in valid_flowers
                     ]
                     previous_combinations.append({
@@ -499,6 +514,14 @@ class FlowerField(Page):
                     flower_scores = entry.get('growths', None)
                     flower_earnings = entry.get('scores', None)
                     break
+        # For frontend: always provide display-modified scores (growths) as flower_scores after submission
+        display_flower_scores = None
+        if round_submitted and phase in ["Training phase", "Exploration phase"]:
+            history = player.participant.vars.get('nutrient_flower_history', [])
+            for entry in history:
+                if entry['phase'] == phase and entry['round'] == phase_round:
+                    display_flower_scores = entry.get('growths', None)
+                    break
         return dict(
             phase=phase,
             phase_round=phase_round,
@@ -514,7 +537,7 @@ class FlowerField(Page):
             temperature=temperature,
             rainfall=rainfall,
             round_submitted=round_submitted,
-            flower_scores=flower_scores,
+            flower_scores=display_flower_scores if display_flower_scores is not None else flower_scores,
             flower_earnings=flower_earnings
         )
     live_method = "live_method"  # Name of live method for JS communication
@@ -531,16 +554,20 @@ class FlowerField(Page):
         if player.round_number in submitted_rounds:
             return {player.id_in_group: {"error": "Round already submitted"}}
         # Handles live communication from JS (nutrient submission)
+        if data['type'] == 'popupStrategy':
+            # Save popup answer for export in round 1
+            if player.round_number == 1:
+                player.popup_strategy = data.get('answer', '')
+                player.participant.vars['popup_strategy'] = data.get('answer', '')
+            return {player.id_in_group: {'status': 'saved'}}
         if data['type'] == 'flowerSubmit':
             nutrients = data['data']
             # Select scoring system from session config
             scoring_system = player.session.config.get('scoring_system', 'anomaly')
             # Use the same treatment-dependent logic as vars_for_template
             treatment = player.session.config.get('display_name', '').lower()
-            # Map noisy and transmission treatments to their no-noise logic for flower sequences
-            if treatment == 'anomaly noisy':
-                treatment_logic = 'Anomaly CT'
-            elif treatment in ['transmission correct', 'transmission m&m']:
+            # Map transmission treatments to their logic for flower sequences
+            if treatment in ['transmission correct', 'transmission m&m']:
                 treatment_logic = 'Anomaly CT'
             else:
                 treatment_logic = treatment
@@ -608,10 +635,10 @@ class FlowerField(Page):
                 display_round = player.round_number - C.TRAINING_ROUNDS - C.TEST1_ROUNDS - C.EXPLORATION_ROUNDS
                 flower_colors = ['Green', 'Yellow', 'Purple', 'Red', 'Orange', 'Blue']
            
-            # Variation inter-round (linked to environmental values) pennies (per round, same for all flowers)
-            round_score_variation = [0, -1, 1, 0, 1, 1, 0, -1, 1, 0, 0, -1, 0, -1, 1, -1, 0, 1, 0, 0, 1, -1, 0, -1, 1, -1]  # R1 to R16
-            round_index = player.round_number - 1
-            variation_pennies = round_score_variation[round_index] if 0 <= round_index < len(round_score_variation) else 0
+            # Tirage du facteur environnemental pour le round
+            import numpy as np
+            facteur_env = max(20, int(np.random.normal(100, 10)))
+            variation_pennies = facteur_env
             # Run backend engine to calculate growth and points
             if scoring_system == 'mm':
                 output = run_engine(nutrients, flower_colors=flower_colors, scoring_system='mm')
@@ -619,31 +646,29 @@ class FlowerField(Page):
                 output = run_engine(nutrients)
             total_growth = sum(f['growth'] for f in output) / len(output)
             total_points = calculate_p_from_growth(total_growth)
-            flower_scores = [f['growth'] for f in output]
-            # Multiply score by 2 only for Test 1 and Test 2
-            if phase in ['Test 1', 'Test 2']:
-                flower_scores = [g * 2 for g in flower_scores]
-            # Apply intra round noise as fixed penny adjustment (+2p, -2p, 0p)
-            noise_effects = [f.get('noise') for f in output]
-            flower_earnings = []
-            new_growths = []
-            for g, noise in zip(flower_scores, noise_effects):
-                base_pennies = int(g * 10)
-                if noise:
-                    if noise['type'] == 'increase':
-                        base_pennies += 2
-                    elif noise['type'] == 'decrease':
-                        base_pennies -= 2
-                # Add per-round variation (inter round noise)
-                earning = max(0, base_pennies + variation_pennies)
-                flower_earnings.append(str(earning))
-                # Calculate new growth after all effects for display
-                new_growths.append(earning / 10.0)
-            # Use new_growths for display (flower size)
-            flower_scores_for_display = new_growths
-            # For total, sum as £, mais diviser par 3 au lieu de 2
+
+            # 1) Score brut (uniquement nutriments)
+            flower_scores_brut = [f['growth'] for f in output]
+
+            # 2) Paiement basé uniquement sur le score brut (pas de variation, pas de bruit)
+            flower_earnings = [str(int(g * 10)) for g in flower_scores_brut]
             round_earnings = sum([int(e) for e in flower_earnings]) / 3 / 100.0
-            # Track noise effects for noisy configs (already set above)
+
+            # 3) Apply environmental variation multiplicatively (facteur_env/10)
+            flower_scores_modifies = [(g * variation_pennies) / 10.0 for g in flower_scores_brut]
+
+            # 4) Affichage du score modifié sous chaque fleur
+            flower_scores_for_display = flower_scores_modifies
+            # Pour l'export, on garde le score brut
+            flower_scores = flower_scores_brut
+
+            # --- SEND BOTH RAW AND MODIFIED SCORES TO FRONTEND ---
+            flower_scores_data = {
+                'raw': flower_scores_brut,
+                'modified': flower_scores_modifies,
+                'env_factor': variation_pennies
+            }
+            #
             # Update participant's total earnings
             if 'total_earnings' not in player.participant.vars:
                 player.participant.vars['total_earnings'] = 0.0
@@ -683,8 +708,9 @@ class FlowerField(Page):
             player.nutrient_choice = json.dumps(nutrients)
             player.score_per_flower = json.dumps(flower_scores)
             player.Vround = variation_pennies
-            player.score_reel = json.dumps(flower_earnings)
-            player.noise_applied = json.dumps(noise_effects)
+            # Store the display-modified score (with env variation) as shown under the flower, x10 and rounded
+            player.score_reel = json.dumps([str(int(round(s * 10))) for s in flower_scores_for_display])
+            #
             player.cumulative_earnings = player.participant.vars['total_earnings']
             
 
@@ -697,15 +723,14 @@ class FlowerField(Page):
             safe_scores = (flower_earnings if len(flower_earnings) == n_flowers else [None]*n_flowers)
             # Store the new growths (after noise and env variation) for display/size
             safe_growths = (flower_scores_for_display if len(flower_scores_for_display) == n_flowers else [None]*n_flowers)
-            safe_noise = (noise_effects if len(noise_effects) == n_flowers else [None]*n_flowers)
+            #
             player.participant.vars['nutrient_flower_history'].append({
                 'phase': phase,
                 'round': display_round,
                 'flower_colors': list(flower_colors),
                 'nutrients': list(safe_nutrients),
                 'scores': list(safe_scores),
-                'growths': list(safe_growths),
-                'noise_effects': list(safe_noise)
+                'growths': list(safe_growths)
             })
 
             # Return results to JS for display
@@ -737,12 +762,12 @@ class FlowerField(Page):
                     growths = test2_entry['growths'] if test2_entry else []
                 )
                 print("[FEEDBACK] Test 1 and Test 2 results found and sent for animation.")
-            # Send the new growths (after noise and env variation) for display
+            # Send the new growths (after env variation) for display
             result_dict = dict(
-                flower_scores=flower_scores,  # original growths (if needed)
+                flower_scores=flower_scores_data,  # send both raw and modified
                 flower_earnings=flower_earnings,
                 cumulative_earnings="{:.2f}".format(player.cumulative_earnings),
-                growths_for_display=flower_scores_for_display  # new field for frontend to use for flower size
+                growths_for_display=flower_scores_for_display  # legacy, for compatibility
             )
             if phase == 'Test 2':
                 result_dict['test1_data'] = test1_data
