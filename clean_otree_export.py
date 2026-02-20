@@ -17,6 +17,7 @@ OUTPUT_FILE = 'clean_file.csv'
 # Columns to extract and their new order/name
 COLUMNS = [
     ('participant.code', 'Participant_code'),
+    ('participant.label', 'Participant_label'),
     ('player.treatment', 'Treatment'),
     ('player.phase', 'Phase'),
     ('subsession.round_number', 'Round'),
@@ -92,6 +93,7 @@ def clean_otree_export(input_path=INPUT_FILE, output_path=OUTPUT_FILE):
         summary = {new: '' for _, new in COLUMNS}
         if last_round:
             summary['Participant_code'] = last_round.get('participant.code', '')
+            summary['Participant_label'] = last_round.get('participant.label', '')
             summary['Treatment'] = last_round.get('player.treatment', '')
             summary['Phase'] = 'Results'
             summary['Round'] = ''
