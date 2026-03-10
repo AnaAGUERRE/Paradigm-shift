@@ -17,7 +17,7 @@ import json   # For handling JSON data
 # --- Helper functions to reduce code repetition ---
 def map_treatment(treatment):
     """Maps treatment names to experiment logic labels."""
-    if treatment in ['Anomaly CT', 'Transmission correct', 'Transmission M&M']:
+    if treatment == 'Anomaly CT':
         return 'Anomaly CT'
     elif treatment == 'No Anomaly CT':
         return 'No Anomaly CT'
@@ -161,7 +161,6 @@ class Player(BasePlayer):
     score_reel = models.LongStringField(blank=True, null=True, label="Actual score (JSON, total noise)")
     # noise_applied field removed (no longer used)
     exploration_flower_pairs_order = models.LongStringField(blank=True, null=True, label="Shuffled flower pairs order (JSON)")
-    popup_strategy = models.LongStringField(blank=True, null=True, label="Strategy description from popup", default="")
 
 
 
@@ -466,7 +465,7 @@ class FlowerField(Page):
             scoring_system = player.session.config.get('scoring_system', 'anomaly')
             # Use the same treatment-dependent logic as vars_for_template
             treatment = player.session.config.get('display_name', '').lower()
-            # Map transmission treatments to their logic for flower sequences
+            # Transmission treatments logic removed
             treatment_logic = map_treatment(treatment.title())
             if player.round_number <= C.TRAINING_ROUNDS:
                 phase = 'Training phase'

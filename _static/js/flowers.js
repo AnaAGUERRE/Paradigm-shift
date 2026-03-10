@@ -48,31 +48,9 @@ document.addEventListener('DOMContentLoaded', function() {
             window._firstChainPopupShown = true;
             createOverlay();
 
-            // Always show the second chain popup for all treatments
-            var treatment = (window.js_vars && window.js_vars.treatment) ? window.js_vars.treatment : '';
-            var imgSrc = window.static ? window.static('img/Transm.png') : '/static/img/Transm.png';
-            var extraImg = '';
-            if (treatment === 'Transmission correct') {
-                extraImg = `<img src='${window.static ? window.static('img/TransCorr.png') : '/static/img/TransCorr.png'}' style='height:240px; margin-top:1.0em;'>`;
-            } else if ([
-                'Transmission M&M',
-                'Anomaly CT',
-                'Anomaly No CT',
-                'No Anomaly CT'
-            ].includes(treatment)) {
-                extraImg = `<img src='${window.static ? window.static('img/TransMM.png') : '/static/img/TransMM.png'}' style='height:240px; margin-top:1.0em;'>`;
-            }
-            // Construct the popup text content
-            var popupText = `
-                <br>
-                <img src='${imgSrc}' style='height:60px; margin-bottom:1em;'>
-                <br>
-                <span style='font-size:0.85em;'>Below is how a previous participant fed the flowers. You will be able to see this information throughout the whole experiment.</span><br>
-                ${extraImg ? extraImg + '<br>' : ''}
-                <br>
-                <label for='strategy-desc' style='font-size:0.85em; display:block; margin-bottom:0.3em;'>Please describe in a few words the strategy you think this previous participant used to feed the flowers:</label>
-                <textarea id='strategy-desc' style='width:98%; min-width:180px; min-height:48px; max-width:340px; font-size:1em; border-radius:6px; border:1px solid #bbb; padding:6px; resize:vertical;'></textarea>
-                <div id='strategy-warning' style='color:#a80000; font-size:0.92em; margin-top:0.2em; display:none;'>Please write something before continuing.</div>`;
+            // Popup neutre sans transmission ni description
+            var imgSrc = window.static ? window.static('img/NoTransm.png') : '/static/img/NoTransm.png';
+            var popupText = `<img src='${imgSrc}' style='height:60px; margin-bottom:1em;'><br><span style='font-size:0.95em;'>You will not receive information about how a previous participant fed the flowers.</span>`;
 
             // Show the popup using Bootbox if available. The dialog:
             //   - Displays the constructed popupText
@@ -88,42 +66,15 @@ document.addEventListener('DOMContentLoaded', function() {
                             label: 'I understand',
                             className: 'btn-primary',
                             callback: function() {
-                                var val = document.getElementById('strategy-desc')?.value.trim();
-                                if (!val) {
-                                    var warn = document.getElementById('strategy-warning');
-                                    if (warn) warn.style.display = '';
-                                    return false; // Prevent closing if empty
-                                }
-                                // Send the participant's answer to the backend for export
-                                if (window.liveSend) {
-                                    window.liveSend({type: 'popupStrategy', answer: val});
-                                }
                                 removeOverlay();
                                 return true;
                             },
                             id: 'btn-understand',
-                            disabled: true
+                            disabled: false
                         }
                     ],
                     closeButton: false
                 });
-                // Disable the button until the textarea is filled
-                setTimeout(function() {
-                    var btn = document.querySelector('.bootbox .btn-primary#btn-understand');
-                    var textarea = document.getElementById('strategy-desc');
-                    var warn = document.getElementById('strategy-warning');
-                    if (btn && textarea) {
-                        btn.disabled = true;
-                        textarea.addEventListener('input', function() {
-                            if (textarea.value.trim().length > 0) {
-                                btn.disabled = false;
-                                if (warn) warn.style.display = 'none';
-                            } else {
-                                btn.disabled = true;
-                            }
-                        });
-                    }
-                }, 200);
             } else {
                 // Fallback: if Bootbox is not available, show a plain alert and remove overlay
                 alert(popupText.replace(/<[^>]+>/g, ''));

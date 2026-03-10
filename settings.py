@@ -34,22 +34,7 @@ SESSION_CONFIGS = [
         num_demo_participants=1,          # Number of demo participants
         scoring_system='anomaly',         # Scoring system identifier
     ),
-    # Transmission correct
-    dict(
-        name='transmission_correct',
-        display_name='Transmission correct',
-        app_sequence=['flowerfieldtask'],
-        num_demo_participants=1,
-        scoring_system='anomaly',
-    ),
-    # Transmission M&M
-    dict(
-        name='transmission_mm',
-        display_name='Transmission M&M',
-        app_sequence=['flowerfieldtask'],
-        num_demo_participants=1,
-        scoring_system='anomaly',
-    ),
+    # ...existing code...
     dict(
         name='no_anomaly_ct',                    
         display_name='No Anomaly CT',    

@@ -33,6 +33,7 @@ COLUMNS = [
     ('player.feedback', 'Feedback'),
     ('player.qcm_click_sequence', 'QCM_sequence_raw'),
     ('QCM_sequence_bool', 'QCM_sequence_bool'),
+    ('player.exploration_flower_pairs_order', 'phase_2_sequence'),
 ]
 
 def clean_otree_export(input_path=INPUT_FILE, output_path=OUTPUT_FILE):
@@ -100,6 +101,7 @@ def clean_otree_export(input_path=INPUT_FILE, output_path=OUTPUT_FILE):
             summary['Total_earnings'] = last_round.get('player.cumulative_earnings', '')
             summary['Birth_year'] = last_round.get('player.year_of_birth', '')
             summary['Feedback'] = last_round.get('player.feedback', '')
+            summary['phase_2_sequence'] = last_round.get('player.exploration_flower_pairs_order', '')
             # All other fields remain blank
         output_rows.append(summary)
 
